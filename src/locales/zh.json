@@ -1,0 +1,115 @@
+{
+  "app": {
+    "title": "Markdown Card",
+    "version": "v1.0.0"
+  },
+  "nav": {
+    "editorTheme": "编辑器主题",
+    "cardTheme": "卡片主题",
+    "export": "导出",
+    "settings": "设置"
+  },
+  "editor": {
+    "placeholder": "在此输入 Markdown..."
+  },
+  "toolbar": {
+    "bold": "加粗",
+    "italic": "斜体",
+    "heading": "标题",
+    "link": "链接",
+    "image": "图片",
+    "code": "代码块",
+    "table": "表格",
+    "math": "公式",
+    "mermaid": "Mermaid",
+    "divider": "分割线",
+    "leftColumn": "左分栏",
+    "rightColumn": "右分栏",
+    "highlight": "高亮",
+    "underline": "下划线"
+  },
+  "export": {
+    "png": "PNG 图片",
+    "jpg": "JPG 图片",
+    "pdf": "PDF 文档",
+    "svg": "SVG 矢量",
+    "clipboard": "复制到剪贴板",
+    "exporting": "导出中",
+    "progress": "{progress}%"
+  },
+  "status": {
+    "words": "字数",
+    "lines": "行数",
+    "theme": "主题",
+    "split": "分栏",
+    "page": "第 {current} / {total} 页"
+  },
+  "card": {
+    "sizePresets": {
+      "xiaohongshu": "小红书",
+      "square": "正方形",
+      "poster": "海报",
+      "a4": "A4"
+    },
+    "pageCount": "页",
+    "addPage": "添加页面"
+  },
+  "themes": {
+    "appleNote": "苹果笔记",
+    "cyberpunk": "赛博朋克",
+    "popArt": "波普艺术",
+    "glassmorphism": "毛玻璃",
+    "warmMinimal": "温暖极简",
+    "darkTech": "暗黑科技"
+  },
+  "drafts": {
+    "modalTitle": "检测到未保存的草稿",
+    "modalBody": "上次编辑的内容还未保存，是否恢复到之前的编辑状态？",
+    "restore": "恢复",
+    "discard": "忽略"
+  },
+  "documents": {
+    "untitled": "未命名",
+    "new": "新建文档",
+    "newTooltip": "新建文档 (Ctrl+T)",
+    "close": "关闭文档"
+  },
+  "validation": {
+    "titleMaxLength": "标题长度不能超过35字符"
+  },
+  "window": {
+    "minimize": "最小化",
+    "maximize": "最大化",
+    "restore": "还原",
+    "close": "关闭",
+    "closeTitle": "确认关闭",
+    "closeMessage": "确定要关闭窗口吗？未保存的更改将丢失。",
+    "confirmClose": "确定关闭",
+    "cancel": "取消"
+  },
+  "settings": {
+    "title": "设置",
+    "cardSize": "卡片默认尺寸",
+    "cardSizeOptions": {
+      "small": "小 (440×586)",
+      "medium": "中 (500×500)",
+      "large": "大 (595×842)"
+    },
+    "bodyFontSize": "正文字号",
+    "titleFontSize": "标题字号",
+    "exportFormat": "默认导出格式",
+    "language": "语言",
+    "languageOptions": {
+      "zh": "中文",
+      "en": "English"
+    },
+    "themePreview": "主题预览",
+    "splitMode": "拆分模式",
+    "splitModeOptions": {
+      "xiaohongshu": "小红书拆分",
+      "noSplit": "长图文",
+      "hrSplit": "横线拆分"
+    },
+    "close": "关闭"
+  }
+}

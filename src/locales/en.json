@@ -1,0 +1,115 @@
+{
+  "app": {
+    "title": "Markdown Card",
+    "version": "v1.0.0"
+  },
+  "nav": {
+    "editorTheme": "Editor Theme",
+    "cardTheme": "Card Theme",
+    "export": "Export",
+    "settings": "Settings"
+  },
+  "editor": {
+    "placeholder": "Type Markdown here..."
+  },
+  "toolbar": {
+    "bold": "Bold",
+    "italic": "Italic",
+    "heading": "Heading",
+    "link": "Link",
+    "image": "Image",
+    "code": "Code Block",
+    "table": "Table",
+    "math": "Formula",
+    "mermaid": "Mermaid",
+    "divider": "Divider",
+    "leftColumn": "Left Column",
+    "rightColumn": "Right Column",
+    "highlight": "Highlight",
+    "underline": "Underline"
+  },
+  "export": {
+    "png": "PNG Image",
+    "jpg": "JPG Image",
+    "pdf": "PDF Document",
+    "svg": "SVG Vector",
+    "clipboard": "Copy to Clipboard",
+    "exporting": "Exporting",
+    "progress": "{progress}%"
+  },
+  "status": {
+    "words": "Words",
+    "lines": "Lines",
+    "theme": "Theme",
+    "split": "Split",
+    "page": "Page {current} / {total}"
+  },
+  "card": {
+    "sizePresets": {
+      "xiaohongshu": "Xiaohongshu",
+      "square": "Square",
+      "poster": "Poster",
+      "a4": "A4"
+    },
+    "pageCount": "pages",
+    "addPage": "Add Page"
+  },
+  "themes": {
+    "appleNote": "Apple Note",
+    "cyberpunk": "Cyberpunk",
+    "popArt": "Pop Art",
+    "glassmorphism": "Glassmorphism",
+    "warmMinimal": "Warm Minimal",
+    "darkTech": "Dark Tech"
+  },
+  "drafts": {
+    "modalTitle": "Unsaved Drafts Detected",
+    "modalBody": "You have unsaved changes from your last session. Would you like to restore them?",
+    "restore": "Restore",
+    "discard": "Discard"
+  },
+  "documents": {
+    "untitled": "Untitled",
+    "new": "New Document",
+    "newTooltip": "New Document (Ctrl+T)",
+    "close": "Close Document"
+  },
+  "validation": {
+    "titleMaxLength": "Title cannot exceed 35 characters"
+  },
+  "window": {
+    "minimize": "Minimize",
+    "maximize": "Maximize",
+    "restore": "Restore",
+    "close": "Close",
+    "closeTitle": "Confirm Close",
+    "closeMessage": "Are you sure you want to close the window? Unsaved changes will be lost.",
+    "confirmClose": "Close",
+    "cancel": "Cancel"
+  },
+  "settings": {
+    "title": "Settings",
+    "cardSize": "Default Card Size",
+    "cardSizeOptions": {
+      "small": "Small (440×586)",
+      "medium": "Medium (500×500)",
+      "large": "Large (595×842)"
+    },
+    "bodyFontSize": "Body Font Size",
+    "titleFontSize": "Heading Font Size",
+    "exportFormat": "Default Export Format",
+    "language": "Language",
+    "languageOptions": {
+      "zh": "中文",
+      "en": "English"
+    },
+    "themePreview": "Theme Preview",
+    "splitMode": "Split Mode",
+    "splitModeOptions": {
+      "xiaohongshu": "XHS Split",
+      "noSplit": "Long Image",
+      "hrSplit": "HR Split"
+    },
+    "close": "Close"
+  }
+}
