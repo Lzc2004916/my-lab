@@ -26,6 +26,7 @@ import {
   CONTENT_WIDTH,
   BODY_BOTTOM_WITH_FOOTER,
   BODY_BOTTOM_WITHOUT_FOOTER,
+  HEADING_SIZE_RATIOS,
 } from './types'
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -54,7 +55,9 @@ function explodeInlineTokens(tokens: InlineToken[]): InlineToken[] {
     splitTextForWrapping(token.text).map((unit) => ({
       text: unit,
       bold: token.bold,
+      italic: token.italic,
       mark: token.mark,
+      underline: token.underline,
     })),
   )
 }
@@ -129,7 +132,9 @@ export function wrapInlineTokensByWidth(
       if (
         lastToken &&
         lastToken.bold === token.bold &&
-        lastToken.mark === token.mark
+        lastToken.italic === token.italic &&
+        lastToken.mark === token.mark &&
+        lastToken.underline === token.underline
       ) {
         lastToken.text += token.text
       } else {
@@ -148,26 +153,42 @@ export function wrapInlineTokensByWidth(
 // ═══════════════════════════════════════════════════════════════════════════
 
 /**
- * Parse inline markdown — extract **bold** and ==highlight== markers
- * into InlineToken[].
+ * Parse inline markdown — extract **bold**, *italic*, ==highlight==,
+ * and ^underline^ markers into InlineToken[].
  */
 export function parseInlineMarkdown(text: string): InlineToken[] {
   const tokens: InlineToken[] = []
-  const pattern = /(\*\*[\s\S]+?\*\*|==[\s\S]+?==)/g
+  // Bold (**) must match before italic (*) to avoid mis-parsing ** as two *.
+  // Uses lookbehind/lookahead to ensure single * is not part of **.
+  const pattern = /(\*\*[\s\S]+?\*\*|==[\s\S]+?==|\^[\s\S]+?\^|(?<!\*)\*[\s\S]+?\*(?!\*))/g
   const parts = text.split(pattern).filter(Boolean)
 
   for (const part of parts) {
+    // Bold: **...**
     const boldMatch = part.match(/^\*\*([\s\S]+)\*\*$/)
     if (boldMatch) {
-      tokens.push({ text: boldMatch[1]!, bold: true, mark: false })
+      tokens.push({ text: boldMatch[1]!, bold: true, italic: false, mark: false, underline: false })
       continue
     }
+    // Highlight: ==...==
     const markMatch = part.match(/^==([\s\S]+)==$/)
     if (markMatch) {
-      tokens.push({ text: markMatch[1]!, bold: false, mark: true })
+      tokens.push({ text: markMatch[1]!, bold: false, italic: false, mark: true, underline: false })
       continue
     }
-    tokens.push({ text: part, bold: false, mark: false })
+    // Underline: ^...^
+    const underlineMatch = part.match(/^\^([\s\S]+)\^$/)
+    if (underlineMatch) {
+      tokens.push({ text: underlineMatch[1]!, bold: false, italic: false, mark: false, underline: true })
+      continue
+    }
+    // Italic: *...* (single asterisk, not part of **)
+    const italicMatch = part.match(/^\*([\s\S]+)\*$/)
+    if (italicMatch) {
+      tokens.push({ text: italicMatch[1]!, bold: false, italic: true, mark: false, underline: false })
+      continue
+    }
+    tokens.push({ text: part, bold: false, italic: false, mark: false, underline: false })
   }
   return tokens
 }
@@ -414,8 +435,14 @@ export function parseTitleMarkup(raw: string): {
 // Paragraph measurement
 // ═══════════════════════════════════════════════════════════════════════════
 
-function getSubheadingFontSize(fontSize: number, style: SubheadingStyle): number {
-  return style === 'large' ? Math.round(fontSize * 1.08) : fontSize
+function getSubheadingFontSize(fontSize: number, headingLevel?: number): number {
+  // Use heading-level-based sizing when available (matches drawInlineParagraph)
+  if (headingLevel && headingLevel >= 1 && headingLevel <= 6) {
+    const ratio = HEADING_SIZE_RATIOS[headingLevel] ?? 1.12
+    return Math.round(fontSize * ratio)
+  }
+  // Fallback: generic subheading sizing (backward compatible)
+  return Math.round(fontSize * 1.08)
 }
 
 function getSubheadingLineHeight(lineHeight: number, style: SubheadingStyle): number {
@@ -506,9 +533,10 @@ export function measureParagraphBlock(
     return { lines: [], height: getDividerBlockHeight(fontSize) }
   }
 
+  const headingLevel = (block as any).headingLevel as number | undefined
   const activeFontSize =
     block.kind === 'subheading'
-      ? getSubheadingFontSize(fontSize, subheadingStyle)
+      ? getSubheadingFontSize(fontSize, headingLevel)
       : fontSize
   const activeLineHeight =
     block.kind === 'subheading'
@@ -553,9 +581,10 @@ export function getParagraphMaxLines(
     return availableHeight >= getDividerBlockHeight(fontSize) ? 1 : 0
   }
 
+  const headingLevel = (block as any).headingLevel as number | undefined
   const activeFontSize =
     block.kind === 'subheading'
-      ? getSubheadingFontSize(fontSize, subheadingStyle)
+      ? getSubheadingFontSize(fontSize, headingLevel)
       : fontSize
   const activeLineHeight =
     block.kind === 'subheading'

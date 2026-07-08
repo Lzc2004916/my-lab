@@ -26,7 +26,8 @@
     "leftColumn": "Left Column",
     "rightColumn": "Right Column",
     "highlight": "Highlight",
-    "underline": "Underline"
+    "underline": "Underline",
+    "undo": "Undo (Ctrl+Z)"
   },
   "export": {
     "png": "PNG Image",

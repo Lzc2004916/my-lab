@@ -11,7 +11,7 @@ import {
   highlightActiveLine,
   keymap,
 } from '@codemirror/view'
-import { defaultKeymap, history, undo, redo } from '@codemirror/commands'
+import { defaultKeymap, history, historyKeymap, undo } from '@codemirror/commands'
 import { markdown } from '@codemirror/lang-markdown'
 import { oneDark } from '@codemirror/theme-one-dark'
 
@@ -29,7 +29,6 @@ const props = defineProps<Props>()
 
 const emit = defineEmits<{
   (e: 'update:modelValue', value: string): void
-  (e: 'scroll', ratio: number): void
   (e: 'ready', view: EditorView): void
 }>()
 
@@ -46,9 +45,6 @@ let editorView: EditorView | null = null
  * so the external modelValue watcher skips syncing back.
  */
 let isInternalChange = false
-
-/** Cleanup function for the scroll event listener. */
-let removeScrollListener: (() => void) | null = null
 
 /**
  * Compartment so the theme can be swapped at runtime without
@@ -90,8 +86,11 @@ function createExtensions(): Extension[] {
     // Undo / redo history (required by defaultKeymap)
     history(),
 
-    // Default PC keybindings (Ctrl-Z, Ctrl-Y, Ctrl-A, etc.)
+    // Default PC keybindings (Enter, Backspace, etc.)
     keymap.of(defaultKeymap),
+
+    // Undo / Redo keybindings (Ctrl-Z, Ctrl-Y, Ctrl-Shift-Z)
+    keymap.of(historyKeymap),
 
     // Theme — managed via Compartment for hot-swapping
     themeCompartment.of(resolveThemeExtension(props.theme ?? 'one-dark')),
@@ -111,22 +110,6 @@ function createExtensions(): Extension[] {
   ]
 }
 
-// ── Scroll handler ──────────────────────────────────────────────────
-
-function handleScroll(scrollDOM: HTMLElement): void {
-  const { scrollTop, scrollHeight, clientHeight } = scrollDOM
-  const denominator = scrollHeight - clientHeight
-
-  if (denominator <= 0) {
-    emit('scroll', 0)
-    return
-  }
-
-  const ratio = scrollTop / denominator
-  // Clamp to [0, 1]
-  emit('scroll', Math.max(0, Math.min(1, ratio)))
-}
-
 // ── Lifecycle ───────────────────────────────────────────────────────
 
 onMounted(() => {
@@ -144,12 +127,6 @@ onMounted(() => {
     state,
     parent: container,
   })
-
-  // ── Scroll sync ──
-  const scrollDOM = editorView.scrollDOM
-  const onScroll = () => handleScroll(scrollDOM)
-  scrollDOM.addEventListener('scroll', onScroll, { passive: true })
-  removeScrollListener = () => scrollDOM.removeEventListener('scroll', onScroll)
 
   // Notify parent that the editor is ready
   emit('ready', editorView)
@@ -203,10 +180,6 @@ watch(
 )
 
 onBeforeUnmount(() => {
-  // Remove scroll listener
-  removeScrollListener?.()
-  removeScrollListener = null
-
   // Destroy editor, DOM, and all listeners
   if (editorView) {
     editorView.destroy()
@@ -231,7 +204,11 @@ function insertAtCursor(text: string): void {
     range: EditorSelection.range(range.from + text.length, range.from + text.length),
   }))
 
-  view.dispatch(state.update(changeSet, { scrollIntoView: true }))
+  view.dispatch({
+    changes: changeSet.changes,
+    selection: changeSet.selection,
+    scrollIntoView: true,
+  })
 }
 
 /**
@@ -274,7 +251,11 @@ function wrapSelectionOrInsert(prefix: string, suffix: string, placeholder: stri
     }
   })
 
-  view.dispatch(state.update(changeSet, { scrollIntoView: true }))
+  view.dispatch({
+    changes: changeSet.changes,
+    selection: changeSet.selection,
+    scrollIntoView: true,
+  })
 }
 
 /**
@@ -333,13 +314,6 @@ function undoEdit(): void {
   undo(view)
 }
 
-/** Redo the last undone edit (CodeMirror history). */
-function redoEdit(): void {
-  const view = editorView
-  if (!view) return
-  redo(view)
-}
-
 defineExpose({
   insertAtCursor,
   wrapSelectionOrInsert,
@@ -350,7 +324,6 @@ defineExpose({
   setValue,
   getEditorView,
   undo: undoEdit,
-  redo: redoEdit,
 })
 </script>
 

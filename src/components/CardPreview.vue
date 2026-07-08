@@ -54,7 +54,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, nextTick, onMounted, onBeforeUnmount } from 'vue'
-import { renderAllPages, PAGE_WIDTH, PAGE_HEIGHT } from '@/card'
+import { renderAllPagesAsync, renderAllPages, PAGE_WIDTH, PAGE_HEIGHT } from '@/card'
 import type { HighlightStyle, FooterRightMode, CardCornerMode, TypographySettings } from '@/card'
 
 // ── Props ───────────────────────────────────────────────────────────────
@@ -223,12 +223,12 @@ let debounceTimer: ReturnType<typeof setTimeout> | null = null
 
 function scheduleRender(): void {
   if (debounceTimer) clearTimeout(debounceTimer)
-  debounceTimer = setTimeout(doRender, 360)
+  debounceTimer = setTimeout(doRender, 150)
 }
 
-function doRender(): void {
+async function doRender(): Promise<void> {
   try {
-    const result = renderAllPages({
+    const result = await renderAllPagesAsync({
       source: props.source,
       manualTitle: props.manualTitle,
       themeId: props.themeId,
@@ -248,6 +248,21 @@ function doRender(): void {
     }
   } catch (e) {
     console.warn('[CardPreview] Render failed:', e)
+    // Fallback to sync render
+    try {
+      const result = renderAllPages({
+        source: props.source,
+        manualTitle: props.manualTitle,
+        themeId: props.themeId,
+        typography: props.typography,
+        highlightStyle: props.highlightStyle,
+        footerLeft: props.footerLeft,
+        footerRightMode: props.footerRightMode,
+        footerEnabled: props.footerEnabled,
+        cardCornerMode: props.cardCornerMode,
+      })
+      canvases.value = result.canvases
+    } catch { /* both failed */ }
   }
 }
 

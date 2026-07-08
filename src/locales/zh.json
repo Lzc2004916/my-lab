@@ -26,7 +26,8 @@
     "leftColumn": "左分栏",
     "rightColumn": "右分栏",
     "highlight": "高亮",
-    "underline": "下划线"
+    "underline": "下划线",
+    "undo": "撤回 (Ctrl+Z)"
   },
   "export": {
     "png": "PNG 图片",

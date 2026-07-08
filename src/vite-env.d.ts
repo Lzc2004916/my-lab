@@ -87,3 +87,27 @@ interface ElectronAPI {
 interface Window {
   electronAPI: ElectronAPI
 }
+
+// ── Third-party module declarations (packages without @types) ──────────
+
+declare module 'prismjs' {
+  const Prism: {
+    languages: Record<string, unknown>
+    tokenize: (code: string, grammar: unknown) => Array<{
+      type: string
+      content: string | Array<{ type: string; content: unknown }>
+    }>
+    highlight: (code: string, grammar: unknown, lang: string) => string
+  }
+  export default Prism
+}
+
+declare module 'mermaid' {
+  interface MermaidAPI {
+    initialize: (config: Record<string, unknown>) => void
+    render: (id: string, code: string) => Promise<{ svg: string }>
+    run: (options?: Record<string, unknown>) => Promise<void>
+  }
+  const mermaid: MermaidAPI
+  export default mermaid
+}

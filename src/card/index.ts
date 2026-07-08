@@ -17,6 +17,14 @@ export type {
   InlineToken,
   InlineLine,
   ParagraphBlock,
+  TextBlock,
+  CodeBlock,
+  MathDisplayBlock,
+  MermaidDisplayBlock,
+  TableDisplayBlock,
+  ColumnContainerBlock,
+  Block,
+  HeadingLevel,
   TextRange,
   PosterMetrics,
   QuoteBoxMetrics,
@@ -40,13 +48,18 @@ export {
   CONTENT_RIGHT,
   CONTENT_WIDTH,
   CANVAS_SCALE,
+  CODE_FONT_FAMILY,
+  CODE_FONT_SIZE_RATIO,
+  CODE_BG_ALPHA,
+  HEADING_SIZE_RATIOS,
+  COLUMN_GAP,
 } from './types'
 
 // Themes
 export { THEMES, DEFAULT_THEME_ID, getTheme } from './themes'
 
 // Engine
-export { renderAllPages, canvasToPreviewUrl, canvasToExportUrl } from './engine'
+export { renderAllPages, renderAllPagesAsync, canvasToPreviewUrl, canvasToExportUrl } from './engine'
 export type { EngineOptions } from './engine'
 
 // Layout
@@ -54,6 +67,12 @@ export { layoutPages, getParagraphBlock } from './layout'
 
 // Renderer
 export { renderCard } from './renderer'
+
+// Block renderers
+export { drawCodeBlock, measureCodeBlock, tokenizeCode } from './code-renderer'
+export { drawTableBlock, measureTableBlock } from './table-renderer'
+export { drawMathBlock, measureMathBlock } from './math-renderer'
+export { drawMermaidBlock, renderMermaid } from './mermaid'
 
 // Measure
 export {

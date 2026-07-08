@@ -1,5 +1,23 @@
 <template>
   <div class="flex flex-wrap items-center gap-0.5 px-2 py-1 bg-base-200 border-b border-base-300 select-none">
+    <!-- Undo -->
+    <button
+      class="btn btn-ghost btn-sm btn-square h-7 w-7 min-h-0 tooltip tooltip-bottom"
+      :data-tip="t('toolbar.undo')"
+      :aria-label="t('toolbar.undo')"
+      @mousedown.prevent
+      @click="emit('command', 'undo')"
+    >
+      <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="1 4 1 10 7 10"/>
+        <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>
+      </svg>
+    </button>
+
+    <!-- Separator -->
+    <span class="w-px h-5 bg-base-300/60 mx-0.5"></span>
+
+    <!-- Formatting tools -->
     <div
       v-for="item in toolbarItems"
       :key="item.id"
@@ -9,6 +27,7 @@
       <button
         class="btn btn-ghost btn-sm btn-square h-7 w-7 min-h-0"
         :aria-label="t(item.label)"
+        @mousedown.prevent
         @click="emit('insert', item)"
       >
         <!-- Bold -->
@@ -107,6 +126,7 @@ const { t } = useI18n()
 
 const emit = defineEmits<{
   (e: 'insert', item: ToolbarItem): void
+  (e: 'command', action: 'undo'): void
 }>()
 
 // ── Toolbar config ───────────────────────────────────────────────────

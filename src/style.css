@@ -19,6 +19,8 @@
     font-size: 16px;
     line-height: 1.6;
     transition: background-color 0.3s ease, color 0.3s ease;
+    /* Prevent layout shift when <dialog>.showModal() adds overflow:hidden */
+    scrollbar-gutter: stable;
   }
 
   /* ── Monospace elements ─────────────────────────────────────────── */

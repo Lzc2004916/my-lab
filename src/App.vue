@@ -46,7 +46,7 @@
             :title="t('window.minimize')"
             @click="handleMinimize"
           >
-            <svg class="w-3 h-3" viewBox="0 0 12 12" aria-hidden="true"><rect x="1" y="5.5" width="10" height="1" fill="currentColor"/></svg>
+            <svg class="w-3.5 h-3.5" viewBox="0 0 12 12" aria-hidden="true"><rect x="1" y="5.5" width="10" height="1" fill="currentColor"/></svg>
           </button>
           <button
             class="win-btn win-btn--maximize"
@@ -54,8 +54,8 @@
             :title="isMaximized ? t('window.restore') : t('window.maximize')"
             @click="handleToggleMaximize"
           >
-            <svg v-if="!isMaximized" class="w-3 h-3" viewBox="0 0 12 12" aria-hidden="true"><rect x="1.5" y="1.5" width="9" height="9" rx="1" fill="none" stroke="currentColor" stroke-width="1.2"/></svg>
-            <svg v-else class="w-3 h-3" viewBox="0 0 12 12" aria-hidden="true"><rect x="3" y="0.5" width="8" height="8" rx="1" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="0.5" y="3" width="8" height="8" rx="1" fill="none" stroke="currentColor" stroke-width="1.2"/></svg>
+            <svg v-if="!isMaximized" class="w-3.5 h-3.5" viewBox="0 0 12 12" aria-hidden="true"><rect x="1.5" y="1.5" width="9" height="9" rx="1" fill="none" stroke="currentColor" stroke-width="1.2"/></svg>
+            <svg v-else class="w-3.5 h-3.5" viewBox="0 0 12 12" aria-hidden="true"><rect x="3" y="0.5" width="8" height="8" rx="1" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="0.5" y="3" width="8" height="8" rx="1" fill="none" stroke="currentColor" stroke-width="1.2"/></svg>
           </button>
           <button
             class="win-btn win-btn--close"
@@ -63,7 +63,7 @@
             :title="t('window.close')"
             @click="handleCloseRequest"
           >
-            <svg class="w-3 h-3" viewBox="0 0 12 12" aria-hidden="true"><path d="M1 1l10 10M11 1L1 11" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+            <svg class="w-3.5 h-3.5" viewBox="0 0 12 12" aria-hidden="true"><path d="M1 1l10 10M11 1L1 11" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
           </button>
         </div>
       </div>
@@ -230,9 +230,10 @@
           <div class="flex items-center gap-1">
             <span class="text-xs text-base-content/50">颜色</span>
             <input
-              v-model="titleColor"
+              :value="titleColor || '#000000'"
               type="color"
               class="w-6 h-6 rounded cursor-pointer border border-base-300"
+              @input="titleColor = ($event.target as HTMLInputElement).value"
             />
             <button
               v-if="titleColor"
@@ -271,13 +272,13 @@
         class="flex flex-col overflow-hidden border-r border-base-300"
         :style="{ flexBasis: split + '%' }"
       >
-        <EditorToolbar @insert="onToolbarInsert" />
+        <EditorToolbar @insert="onToolbarInsert" @command="onToolbarCommand" />
         <div class="flex-1 min-h-0">
           <MarkdownEditor
             ref="editorRef"
-            v-model="source"
+            :modelValue="source"
+            @update:modelValue="onSourceUpdate"
             :theme="editorTheme"
-            @scroll="onEditorScroll"
             @ready="onEditorReady"
           />
         </div>
@@ -292,7 +293,6 @@
 
       <!-- Right: Preview -->
       <div
-        ref="previewScrollRef"
         class="flex-1 min-h-0 overflow-auto bg-base-200/60 bg-dot-pattern"
         :style="{ flexBasis: (100 - split) + '%', minWidth: '300px' }"
       >
@@ -379,7 +379,7 @@ import DocumentTabs from '@/components/DocumentTabs.vue'
 import { useMarkdown } from '@/composables/useMarkdown'
 import { useExport } from '@/composables/useExport'
 import { useDocumentsStore } from '@/stores/documents'
-import { useDrafts } from '@/composables/useDrafts'
+import { useDrafts, type AppSettings } from '@/composables/useDrafts'
 import { THEMES } from '@/card'
 import DraftRecoveryModal from '@/components/DraftRecoveryModal.vue'
 import type { TypographySettings, HighlightStyle, TitleFontMode, SubheadingStyle, TitleCustomization, TitleAlignment } from '@/card'
@@ -428,7 +428,7 @@ const store = useDocumentsStore()
 
 // ── Draft recovery ──────────────────────────────────────────────────────
 
-const { hasDrafts, restore, discard, dismissPrompt } = useDrafts()
+const { hasDrafts, restore, discard, dismissPrompt, saveSettings } = useDrafts()
 const showDraftModal = ref<boolean>(false)
 
 if (hasDrafts()) {
@@ -438,7 +438,8 @@ if (hasDrafts()) {
 }
 
 function onDraftRestore(): void {
-  restore()
+  const settings = restore()
+  applySettings(settings)
   showDraftModal.value = false
 }
 
@@ -624,6 +625,57 @@ const wordCount = computed(() => {
 // ── Drag-to-resize ──────────────────────────────────────────────────────
 
 const split = ref<number>(50)
+
+// ── Settings persistence ───────────────────────────────────────────────
+
+/** Snapshot all current UI settings into a plain object for persistence. */
+function collectSettings(): AppSettings {
+  return {
+    manualTitle: manualTitle.value,
+    editorTheme: editorTheme.value,
+    cardTheme: cardTheme.value,
+    titleFontSize: titleFontSize.value,
+    bodyFontSize: bodyFontSize.value,
+    highlightStyle: highlightStyle.value,
+    footerEnabled: footerEnabled.value,
+    titleFontMode: titleFontMode.value,
+    titleColor: titleColor.value,
+    titleAlignment: titleAlignment.value,
+    titleWeight: titleWeight.value,
+    showTitlePanel: showTitlePanel.value,
+    currentLang: currentLang.value,
+    split: split.value,
+  }
+}
+
+/** Apply persisted settings to all reactive refs. */
+function applySettings(s: AppSettings): void {
+  manualTitle.value = s.manualTitle
+  editorTheme.value = s.editorTheme
+  cardTheme.value = s.cardTheme
+  titleFontSize.value = s.titleFontSize
+  bodyFontSize.value = s.bodyFontSize
+  highlightStyle.value = s.highlightStyle as HighlightStyle
+  footerEnabled.value = s.footerEnabled
+  titleFontMode.value = s.titleFontMode as TitleFontMode
+  titleColor.value = s.titleColor
+  titleAlignment.value = s.titleAlignment as TitleAlignment
+  titleWeight.value = s.titleWeight
+  showTitlePanel.value = s.showTitlePanel
+  if (s.currentLang && s.currentLang !== currentLang.value) switchLanguage(s.currentLang)
+  split.value = s.split
+}
+
+// Auto-persist whenever any setting changes (1s debounce inside saveSettings)
+watch(
+  [
+    manualTitle, editorTheme, cardTheme, titleFontSize, bodyFontSize,
+    highlightStyle, footerEnabled, titleFontMode, titleColor, titleAlignment,
+    titleWeight, showTitlePanel, currentLang, split,
+  ],
+  () => saveSettings(collectSettings()),
+)
+
 const dragging = ref<boolean>(false)
 
 function onDragStart(event: MouseEvent): void {
@@ -649,10 +701,13 @@ interface MarkdownEditorAPI {
   wrapSelectionOrInsert: (prefix: string, suffix: string, placeholder: string) => void
   focus: () => void
   undo: () => void
-  redo: () => void
 }
 
 const editorRef = ref<MarkdownEditorAPI | null>(null)
+
+function onSourceUpdate(value: string): void {
+  source.value = value
+}
 
 function onEditorReady(_view: EditorView): void {}
 
@@ -667,16 +722,9 @@ function onToolbarInsert(item: ToolbarItem): void {
   editorRef.value?.focus()
 }
 
-// ── Scroll sync ─────────────────────────────────────────────────────────
-
-const previewScrollRef = ref<HTMLDivElement | null>(null)
-
-function onEditorScroll(ratio: number): void {
-  const el = previewScrollRef.value
-  if (!el) return
-  const maxScroll = el.scrollHeight - el.clientHeight
-  if (maxScroll <= 0) return
-  el.scrollTop = ratio * maxScroll
+function onToolbarCommand(action: 'undo'): void {
+  if (action === 'undo') editorRef.value?.undo()
+  editorRef.value?.focus()
 }
 
 // ── Export ──────────────────────────────────────────────────────────────
@@ -753,8 +801,8 @@ onBeforeUnmount(() => {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  height: 100%;
-  width: 46px;
+  height: 44px;
+  width: 40px;
   border: none;
   background: transparent;
   color: oklch(var(--bc) / 0.55);

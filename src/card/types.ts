@@ -161,7 +161,7 @@ export interface CardPage {
   id: string
   kind: 'cover' | 'body'
   title: string
-  paragraphs: string[]
+  blocks: Block[]
 }
 
 // ── Typography settings ───────────────────────────────────────────────────
@@ -180,7 +180,9 @@ export interface TypographySettings {
 export interface InlineToken {
   text: string
   bold: boolean
+  italic: boolean
   mark: boolean
+  underline: boolean
 }
 
 // ── Inline line (one wrapped line of tokens) ──────────────────────────────
@@ -195,6 +197,68 @@ export interface ParagraphBlock {
   kind: 'body' | 'quote' | 'subheading' | 'divider'
   raw: string
 }
+
+// ── Heading level ──────────────────────────────────────────────────────
+
+export type HeadingLevel = 1 | 2 | 3 | 4 | 5 | 6
+
+// ── Block discriminated union ──────────────────────────────────────────
+
+export interface TextBlock {
+  kind: 'body' | 'quote' | 'subheading' | 'divider'
+  raw: string
+  headingLevel?: HeadingLevel  // set for 'subheading'
+}
+
+export interface CodeBlock {
+  kind: 'code'
+  language: string       // '' if unspecified, e.g. 'javascript', 'python'
+  code: string           // raw source without fences
+  lineCount?: number
+}
+
+export interface MathDisplayBlock {
+  kind: 'mathBlock'
+  formula: string         // LaTeX source without $$ delimiters
+  renderedWidth?: number
+  renderedHeight?: number
+  html2canvasImage?: HTMLCanvasElement
+}
+
+export interface MermaidDisplayBlock {
+  kind: 'mermaid'
+  code: string
+  estimatedHeight: number
+  renderedSvg?: string
+  renderedWidth?: number
+  renderedHeight?: number
+  renderedImage?: HTMLImageElement
+}
+
+export interface TableDisplayBlock {
+  kind: 'table'
+  headers: string[]
+  alignments: ('left' | 'center' | 'right')[]
+  rows: string[][]
+  colWidths?: number[]
+  rowHeights?: number[]
+  totalWidth?: number
+}
+
+export interface ColumnContainerBlock {
+  kind: 'columnContainer'
+  leftBlocks: Block[]
+  rightBlocks: Block[]
+  totalHeight?: number
+}
+
+export type Block =
+  | TextBlock
+  | CodeBlock
+  | MathDisplayBlock
+  | MermaidDisplayBlock
+  | TableDisplayBlock
+  | ColumnContainerBlock
 
 // ── Text range (for title accent ranges) ──────────────────────────────────
 
@@ -368,3 +432,30 @@ export const LEADING_PUNCTUATION = new Set([
   '，', '。', '！', '？', '；', '：', '」', '』', '）', '》', '、',
   ',', '.', '!', '?', ';', ':', ')', ']', '}',
 ])
+
+// ── Code block constants ──────────────────────────────────────────────
+
+export const CODE_FONT_FAMILY =
+  '"JetBrains Mono","Cascadia Code","SF Mono","Fira Code","Consolas",monospace'
+
+/** Code font size relative to bodySize */
+export const CODE_FONT_SIZE_RATIO = 0.92
+
+/** Code block background fill alpha */
+export const CODE_BG_ALPHA = 0.06
+
+// ── Heading size ratios (relative to bodySize) ────────────────────────
+
+export const HEADING_SIZE_RATIOS: Record<number, number> = {
+  1: 1.60,
+  2: 1.40,
+  3: 1.22,
+  4: 1.10,
+  5: 1.04,
+  6: 0.98,
+}
+
+// ── Column layout ─────────────────────────────────────────────────────
+
+/** Gap between left and right columns in px */
+export const COLUMN_GAP = 20

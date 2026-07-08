@@ -15,6 +15,9 @@ import type {
   TitleCustomization,
   TitleAlignment,
   CardCornerMode,
+  TypographySettings,
+  ColumnContainerBlock,
+  Block,
 } from './types'
 import { DEFAULT_TITLE_CUSTOM } from './types'
 import {
@@ -22,6 +25,7 @@ import {
   PAGE_HEIGHT,
   CONTENT_LEFT,
   CONTENT_RIGHT,
+  CONTENT_WIDTH,
   CANVAS_SCALE,
   FOOTER_LINE_LEFT,
   FOOTER_LINE_RIGHT,
@@ -34,6 +38,8 @@ import {
   BODY_FONT_FAMILY,
   FOOTER_FONT_FAMILY,
   TITLE_FONT_MODES,
+  HEADING_SIZE_RATIOS,
+  COLUMN_GAP,
 } from './types'
 import {
   getPosterMetrics,
@@ -45,7 +51,10 @@ import {
   getParagraphVisualHeight,
   getQuoteBoxMetrics,
 } from './measure'
-import { getParagraphBlock } from './layout'
+import { drawCodeBlock, measureCodeBlock } from './code-renderer'
+import { drawTableBlock, measureTableBlock } from './table-renderer'
+import { drawMathBlock, measureMathBlock } from './math-renderer'
+import { drawMermaidBlock } from './mermaid'
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Color utilities
@@ -791,18 +800,128 @@ function getDividerBlockHeight(fontSize: number): number {
   return Math.max(18, fontSize * 0.72)
 }
 
-function getSubheadingFontSize(
-  fontSize: number,
-  style: import('./types').SubheadingStyle,
+// ═══════════════════════════════════════════════════════════════════════════
+// Column container drawing
+// ═══════════════════════════════════════════════════════════════════════════
+
+/**
+ * Draw a column container (:::left / :::right) on the canvas.
+ * Renders left and right blocks side-by-side, then returns the total height
+ * consumed (max of the two columns).
+ */
+function drawColumnContainer(
+  ctx: CanvasRenderingContext2D,
+  colBlock: ColumnContainerBlock,
+  x: number,
+  y: number,
+  metrics: PosterMetrics,
+  theme: ThemeDefinition,
+  settings: TypographySettings,
+  highlightStyle: HighlightStyle,
 ): number {
-  return style === 'large' ? Math.round(fontSize * 1.08) : fontSize
+  const halfWidth = (CONTENT_WIDTH - COLUMN_GAP) / 2
+  const leftX = x
+  const rightX = x + halfWidth + COLUMN_GAP
+
+  // Save/restore clip region so columns don't bleed into each other
+  ctx.save()
+  drawColumnBlocks(ctx, colBlock.leftBlocks, leftX, y, halfWidth, metrics, theme, settings, highlightStyle)
+  const leftHeight = _colDrawnHeight
+  ctx.restore()
+
+  ctx.save()
+  drawColumnBlocks(ctx, colBlock.rightBlocks, rightX, y, halfWidth, metrics, theme, settings, highlightStyle)
+  const rightHeight = _colDrawnHeight
+  ctx.restore()
+
+  // Return the taller column's height + bottom padding
+  return Math.max(leftHeight, rightHeight) + 12
 }
 
-function getSubheadingLineHeight(
-  lineHeight: number,
-  style: import('./types').SubheadingStyle,
-): number {
-  return style === 'large' ? lineHeight * 1.02 : lineHeight
+/** Mutable tracker for the height drawn by drawColumnBlocks. */
+let _colDrawnHeight = 0
+
+/**
+ * Draw a list of blocks within a constrained column width.
+ * Recursively handles text, code, table, math, and mermaid blocks.
+ */
+function drawColumnBlocks(
+  ctx: CanvasRenderingContext2D,
+  blocks: Block[],
+  x: number,
+  y: number,
+  maxWidth: number,
+  metrics: PosterMetrics,
+  theme: ThemeDefinition,
+  settings: TypographySettings,
+  highlightStyle: HighlightStyle,
+): void {
+  let cursorY = y
+  let prevBlock: ParagraphBlock | null = null
+
+  for (const block of blocks) {
+    const gap = prevBlock
+      ? getGapBetweenBlocks(prevBlock, { kind: 'body', raw: '' }, metrics) * 0.7
+      : 0
+    cursorY += gap
+
+    if (block.kind === 'body' || block.kind === 'quote' ||
+        block.kind === 'subheading' || block.kind === 'divider') {
+      const paraBlock = block
+      const { height } = measureParagraphBlock(
+        paraBlock, metrics.bodySize, metrics.bodyLineHeight,
+        maxWidth, theme, settings.subheadingStyle,
+      )
+      drawInlineParagraph(
+        ctx, paraBlock, x, cursorY,
+        metrics.bodySize, metrics.bodyLineHeight, maxWidth,
+        theme, highlightStyle, settings.subheadingStyle,
+      )
+      cursorY += height
+      prevBlock = paraBlock
+    } else if (block.kind === 'code') {
+      const m = measureCodeBlock(block, metrics.bodySize)
+      // Scale code block to column width
+      const scaleFactor = Math.min(1, maxWidth / CONTENT_WIDTH)
+      ctx.save()
+      if (scaleFactor < 1) {
+        ctx.scale(scaleFactor, 1)
+        drawCodeBlock(ctx, block, x / scaleFactor, cursorY, metrics.bodySize, theme)
+      } else {
+        drawCodeBlock(ctx, block, x, cursorY, metrics.bodySize, theme)
+      }
+      ctx.restore()
+      cursorY += m.height
+      prevBlock = { kind: 'body', raw: '' }
+    } else if (block.kind === 'table') {
+      const { totalHeight } = measureTableBlock(block, metrics.bodySize, metrics.bodyLineHeight)
+      const scaleFactor = Math.min(1, maxWidth / CONTENT_WIDTH)
+      ctx.save()
+      if (scaleFactor < 1) {
+        ctx.scale(scaleFactor, 1)
+        drawTableBlock(ctx, block, x / scaleFactor, cursorY,
+          metrics.bodySize, metrics.bodyLineHeight, theme)
+      } else {
+        drawTableBlock(ctx, block, x, cursorY,
+          metrics.bodySize, metrics.bodyLineHeight, theme)
+      }
+      ctx.restore()
+      cursorY += totalHeight
+      prevBlock = { kind: 'body', raw: '' }
+    } else if (block.kind === 'mathBlock') {
+      const m = measureMathBlock(block, metrics.bodySize)
+      drawMathBlock(ctx, block, x, cursorY, metrics.bodySize)
+      cursorY += m.height
+      prevBlock = { kind: 'body', raw: '' }
+    } else if (block.kind === 'mermaid') {
+      const estH = block.estimatedHeight || 180
+      drawMermaidBlock(ctx, block, x, cursorY, metrics.bodySize)
+      cursorY += estH + 16
+      prevBlock = { kind: 'body', raw: '' }
+    }
+  }
+
+  _colDrawnHeight = cursorY - y
 }
 
 function drawInlineParagraph(
@@ -825,11 +944,13 @@ function drawInlineParagraph(
 
   const isQuote = block.kind === 'quote'
   const isSubheading = block.kind === 'subheading'
+  // Use heading level for size differentiation (H1-H6)
+  const headingLevel = (block as any).headingLevel as number | undefined
   const activeFontSize = isSubheading
-    ? getSubheadingFontSize(fontSize, subheadingStyle)
+    ? Math.round(fontSize * (HEADING_SIZE_RATIOS[headingLevel || 2] ?? 1.12))
     : fontSize
   const activeLineHeight = isSubheading
-    ? getSubheadingLineHeight(lineHeight, subheadingStyle)
+    ? lineHeight * 1.02
     : lineHeight
   const quoteMetrics = isQuote
     ? getQuoteBoxMetrics(theme, activeFontSize, maxWidth)
@@ -891,15 +1012,30 @@ function drawInlineParagraph(
             ? QUOTE_TEXT_WEIGHT
             : BODY_TEXT_WEIGHT
 
+      const fontStyle = token.italic ? 'italic ' : ''
+
       ctx.globalCompositeOperation = isDarkTheme(theme)
         ? ('screen' as GlobalCompositeOperation)
         : ('multiply' as GlobalCompositeOperation)
-      ctx.font = `${weight} ${activeFontSize}px ${BODY_FONT_FAMILY}`
+      ctx.font = `${fontStyle}${weight} ${activeFontSize}px ${BODY_FONT_FAMILY}`
       ctx.fillStyle =
         isSubheading && subheadingStyle === 'accent'
           ? theme.palette.accent
           : theme.palette.text
       ctx.fillText(token.text, cursorX, baselineY)
+
+      // Draw underline for ^underline^ tokens
+      if (token.underline) {
+        const ulineY = baselineY + Math.max(2, activeFontSize * 0.08)
+        ctx.strokeStyle = ctx.fillStyle
+        ctx.lineWidth = Math.max(1, activeFontSize * 0.05)
+        ctx.lineCap = 'round'
+        ctx.beginPath()
+        ctx.moveTo(cursorX, ulineY)
+        ctx.lineTo(cursorX + tokenWidth, ulineY)
+        ctx.stroke()
+      }
+
       ctx.restore()
 
       cursorX += tokenWidth
@@ -1124,40 +1260,107 @@ export function renderCard(opts: RenderOptions): HTMLCanvasElement {
     ctx.restore()
   }
 
-  // ── 8. Body paragraphs ──
+  // ── 8. Body blocks (dispatched by block kind) ──
   let paragraphY = metrics.bodyTopY
   let previousBlock: ParagraphBlock | null = null
 
-  for (const paragraph of page.paragraphs) {
-    const block = getParagraphBlock(paragraph)
-    paragraphY += getGapBetweenBlocks(previousBlock, block, metrics)
-    const { height } = measureParagraphBlock(
-      block,
-      metrics.bodySize,
-      metrics.bodyLineHeight,
-      metrics.bodyWidth,
-      theme,
-      settings.subheadingStyle,
-    )
-    const blockBottom = paragraphY + height
+  for (let bi = 0; bi < page.blocks.length; bi++) {
+    const paragraph = page.blocks[bi]!
+    const blockTopWithGap = paragraphY + (previousBlock
+      ? getGapBetweenBlocks(previousBlock, { kind: 'body', raw: '' }, metrics)
+      : 0)
 
-    // Stop if block exceeds bottom boundary
-    if (blockBottom > metrics.bodyBottomY) return canvas
+    // ── Text blocks (body / quote / subheading / divider) ──────────
+    if (paragraph.kind === 'body' || paragraph.kind === 'quote' ||
+        paragraph.kind === 'subheading' || paragraph.kind === 'divider') {
+      const block: ParagraphBlock = paragraph
+      paragraphY = blockTopWithGap
+      const { height } = measureParagraphBlock(
+        block,
+        metrics.bodySize,
+        metrics.bodyLineHeight,
+        metrics.bodyWidth,
+        theme,
+        settings.subheadingStyle,
+      )
+      const blockBottom = paragraphY + height
+      if (blockBottom > metrics.bodyBottomY) return canvas
 
-    drawInlineParagraph(
-      ctx,
-      block,
-      CONTENT_LEFT,
-      paragraphY,
-      metrics.bodySize,
-      metrics.bodyLineHeight,
-      metrics.bodyWidth,
-      theme,
-      highlightStyle,
-      settings.subheadingStyle,
-    )
-    paragraphY = blockBottom
-    previousBlock = block
+      drawInlineParagraph(
+        ctx, block, CONTENT_LEFT, paragraphY,
+        metrics.bodySize, metrics.bodyLineHeight, metrics.bodyWidth,
+        theme, highlightStyle, settings.subheadingStyle,
+      )
+      paragraphY = blockBottom
+      previousBlock = block
+      continue
+    }
+
+    // ── Code blocks ───────────────────────────────────────────────
+    if (paragraph.kind === 'code') {
+      const { height } = measureCodeBlock(paragraph, metrics.bodySize)
+      const blockBottom = blockTopWithGap + height
+      if (blockBottom > metrics.bodyBottomY && page.blocks.indexOf(paragraph) > 0) break
+      paragraphY = blockTopWithGap
+      const drawnH = drawCodeBlock(ctx, paragraph, CONTENT_LEFT, paragraphY, metrics.bodySize, theme)
+      paragraphY += drawnH
+      previousBlock = { kind: 'body', raw: '' }
+      continue
+    }
+
+    // ── Table blocks ──────────────────────────────────────────────
+    if (paragraph.kind === 'table') {
+      const { totalHeight } = measureTableBlock(paragraph, metrics.bodySize, metrics.bodyLineHeight)
+      const blockBottom = blockTopWithGap + totalHeight
+      if (blockBottom > metrics.bodyBottomY && page.blocks.indexOf(paragraph) > 0) break
+      paragraphY = blockTopWithGap
+      const drawnH = drawTableBlock(ctx, paragraph, CONTENT_LEFT, paragraphY,
+        metrics.bodySize, metrics.bodyLineHeight, theme)
+      paragraphY += drawnH
+      previousBlock = { kind: 'body', raw: '' }
+      continue
+    }
+
+    // ── Math blocks ───────────────────────────────────────────────
+    if (paragraph.kind === 'mathBlock') {
+      const m = measureMathBlock(paragraph, metrics.bodySize)
+      const blockBottom = blockTopWithGap + m.height
+      if (blockBottom > metrics.bodyBottomY && page.blocks.indexOf(paragraph) > 0) break
+      paragraphY = blockTopWithGap
+      const drawnH = drawMathBlock(ctx, paragraph, CONTENT_LEFT, paragraphY, metrics.bodySize)
+      paragraphY += drawnH
+      previousBlock = { kind: 'body', raw: '' }
+      continue
+    }
+
+    // ── Mermaid blocks ────────────────────────────────────────────
+    if (paragraph.kind === 'mermaid') {
+      const estH = paragraph.estimatedHeight || 180
+      const blockBottom = blockTopWithGap + estH + 16
+      if (blockBottom > metrics.bodyBottomY && page.blocks.indexOf(paragraph) > 0) break
+      paragraphY = blockTopWithGap
+      const drawnH = drawMermaidBlock(ctx, paragraph, CONTENT_LEFT, paragraphY, metrics.bodySize)
+      paragraphY += drawnH
+      previousBlock = { kind: 'body', raw: '' }
+      continue
+    }
+
+    // ── Column containers ────────────────────────────────────────
+    if (paragraph.kind === 'columnContainer') {
+      const colBlock = paragraph
+      if (colBlock.leftBlocks.length === 0 && colBlock.rightBlocks.length === 0) {
+        continue
+      }
+      paragraphY = blockTopWithGap
+      const drawnH = drawColumnContainer(
+        ctx, colBlock,
+        CONTENT_LEFT, paragraphY,
+        metrics, theme, settings, highlightStyle,
+      )
+      paragraphY += drawnH
+      previousBlock = { kind: 'body', raw: '' }
+      continue
+    }
   }
 
   // ── 9. Footer ──
