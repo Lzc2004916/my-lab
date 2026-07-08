@@ -30,11 +30,9 @@
     "undo": "撤回 (Ctrl+Z)"
   },
   "export": {
-    "png": "PNG 图片",
-    "jpg": "JPG 图片",
+    "batchPNG": "批量导出 PNG",
+    "batchJPG": "批量导出 JPG",
     "pdf": "PDF 文档",
-    "svg": "SVG 矢量",
-    "clipboard": "复制到剪贴板",
     "exporting": "导出中",
     "progress": "{progress}%"
   },
@@ -77,6 +75,12 @@
   },
   "validation": {
     "titleMaxLength": "标题长度不能超过35字符"
+  },
+  "loading": {
+    "rendering": "渲染中…",
+    "loading": "加载中…",
+    "processing": "处理中…",
+    "exporting": "导出中…"
   },
   "window": {
     "minimize": "最小化",

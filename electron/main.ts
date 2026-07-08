@@ -183,6 +183,41 @@ ipcMain.handle(
   },
 )
 
+// ─── IPC: Batch save images to a folder ────────────────────────
+ipcMain.handle(
+  'export:batch-save-images',
+  async (
+    _event,
+    args: { images: { dataUrl: string; filename: string }[] },
+  ): Promise<{ success: boolean; folder?: string; count?: number }> => {
+    const { images } = args
+
+    const result = await dialog.showOpenDialog(win!, {
+      title: 'Select Export Folder',
+      properties: ['openDirectory', 'createDirectory'],
+    })
+
+    if (result.canceled || result.filePaths.length === 0) {
+      return { success: false }
+    }
+
+    const folder = result.filePaths[0]!
+
+    try {
+      for (const img of images) {
+        const base64 = img.dataUrl.replace(/^data:image\/\w+;base64,/, '')
+        const buffer = Buffer.from(base64, 'base64')
+        const filePath = path.join(folder, img.filename)
+        fs.writeFileSync(filePath, buffer)
+      }
+      return { success: true, folder, count: images.length }
+    } catch (error) {
+      console.error('Failed to batch save images:', error)
+      return { success: false }
+    }
+  },
+)
+
 // ─── IPC: Open markdown file ───────────────────────────────────
 ipcMain.handle('file:open', async (): Promise<{
   path: string

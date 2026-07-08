@@ -30,11 +30,9 @@
     "undo": "Undo (Ctrl+Z)"
   },
   "export": {
-    "png": "PNG Image",
-    "jpg": "JPG Image",
+    "batchPNG": "Batch Export PNG",
+    "batchJPG": "Batch Export JPG",
     "pdf": "PDF Document",
-    "svg": "SVG Vector",
-    "clipboard": "Copy to Clipboard",
     "exporting": "Exporting",
     "progress": "{progress}%"
   },
@@ -77,6 +75,12 @@
   },
   "validation": {
     "titleMaxLength": "Title cannot exceed 35 characters"
+  },
+  "loading": {
+    "rendering": "Rendering…",
+    "loading": "Loading…",
+    "processing": "Processing…",
+    "exporting": "Exporting…"
   },
   "window": {
     "minimize": "Minimize",

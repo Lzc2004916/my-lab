@@ -3,13 +3,500 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Rich Text Editor</title>
+    <title>Markdown Card — Rich Text Editor</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400..700;1,14..32,400..700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <!--
+      ═══════════════════════════════════════════════════════════════════════════
+      Splash Screen — Renders instantly before Vue/JS boots.
+      Vue's app.mount('#app') replaces this content naturally on initialization.
+      Design system: DaisyUI tokens, primary blue, Inter + Noto Sans SC.
+      ═══════════════════════════════════════════════════════════════════════════
+    -->
+    <style>
+      /* ── Reset & Base ──────────────────────────────────────────────────── */
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+      html {
+        font-family: 'Inter', 'Noto Sans SC', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        font-size: 16px;
+        line-height: 1.6;
+      }
+
+      body {
+        min-height: 100dvh;
+        /* DaisyUI base-200 light */
+        background-color: oklch(0.95 0.008 260);
+        overflow: hidden;
+      }
+
+      /* ── Dark mode body override ──────────────────────────────────────── */
+      html[data-theme='dark'] body {
+        background-color: oklch(0.22 0.03 260);
+      }
+
+      /* ══════════════════════════════════════════════════════════════════════
+         Splash Container
+         ══════════════════════════════════════════════════════════════════ */
+
+      .splash {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        /* DaisyUI base-200 light */
+        background-color: oklch(0.95 0.008 260);
+        overflow: hidden;
+        z-index: 9999;
+      }
+
+      html[data-theme='dark'] .splash {
+        background-color: oklch(0.22 0.03 260);
+      }
+
+      /* ══════════════════════════════════════════════════════════════════════
+         Ambient Background Orbs
+         Large, blurred, slow-drifting circles for visual depth.
+         ══════════════════════════════════════════════════════════════════ */
+
+      .splash-orb {
+        position: absolute;
+        border-radius: 50%;
+        filter: blur(90px);
+        pointer-events: none;
+      }
+
+      /* Primary blue orb — top-left */
+      .splash-orb--primary {
+        width: 320px;
+        height: 320px;
+        background: oklch(0.62 0.19 250);
+        opacity: 0.10;
+        top: -8%;
+        left: -5%;
+        animation: orb-drift-primary 10s ease-in-out infinite alternate;
+      }
+
+      html[data-theme='dark'] .splash-orb--primary {
+        opacity: 0.14;
+      }
+
+      /* Accent teal orb — bottom-right */
+      .splash-orb--accent {
+        width: 260px;
+        height: 260px;
+        background: oklch(0.70 0.16 180);
+        opacity: 0.08;
+        bottom: -10%;
+        right: -4%;
+        animation: orb-drift-accent 12s ease-in-out infinite alternate;
+      }
+
+      html[data-theme='dark'] .splash-orb--accent {
+        opacity: 0.10;
+      }
+
+      /* Subtle warm orb — center-left */
+      .splash-orb--warm {
+        width: 180px;
+        height: 180px;
+        background: oklch(0.78 0.17 85);
+        opacity: 0.05;
+        top: 55%;
+        left: 10%;
+        animation: orb-drift-warm 14s ease-in-out infinite alternate;
+      }
+
+      @keyframes orb-drift-primary {
+        0%   { transform: translate(0, 0) scale(1); }
+        100% { transform: translate(40px, -30px) scale(1.12); }
+      }
+
+      @keyframes orb-drift-accent {
+        0%   { transform: translate(0, 0) scale(1); }
+        100% { transform: translate(-35px, 25px) scale(1.10); }
+      }
+
+      @keyframes orb-drift-warm {
+        0%   { transform: translate(0, 0) scale(1); }
+        100% { transform: translate(25px, -15px) scale(1.08); }
+      }
+
+      /* ── Subtle dot grid overlay ─────────────────────────────────────── */
+      .splash-grid {
+        position: absolute;
+        inset: 0;
+        background-image: radial-gradient(
+          circle,
+          oklch(0 0 0 / 0.04) 1px,
+          transparent 1px
+        );
+        background-size: 18px 18px;
+        pointer-events: none;
+      }
+
+      html[data-theme='dark'] .splash-grid {
+        background-image: radial-gradient(
+          circle,
+          oklch(1 0 0 / 0.04) 1px,
+          transparent 1px
+        );
+      }
+
+      /* ══════════════════════════════════════════════════════════════════════
+         Central Content
+         ══════════════════════════════════════════════════════════════════ */
+
+      .splash-content {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0;
+        /* Subtle entrance — fades up */
+        animation: content-enter 0.7s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+      }
+
+      @keyframes content-enter {
+        0% {
+          opacity: 0;
+          transform: translateY(18px) scale(0.97);
+        }
+        100% {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+      }
+
+      /* ══════════════════════════════════════════════════════════════════════
+         Brandmark — Stylized markdown-card icon
+         ══════════════════════════════════════════════════════════════════ */
+
+      .splash-brandmark {
+        width: 72px;
+        height: 72px;
+        margin-bottom: 28px;
+        color: oklch(0.62 0.19 250);
+        animation: brandmark-pulse 3s ease-in-out infinite;
+      }
+
+      html[data-theme='dark'] .splash-brandmark {
+        color: oklch(0.70 0.18 250);
+      }
+
+      @keyframes brandmark-pulse {
+        0%, 100% { filter: drop-shadow(0 0 8px oklch(0.62 0.19 250 / 0.25)); }
+        50%      { filter: drop-shadow(0 0 18px oklch(0.62 0.19 250 / 0.45)); }
+      }
+
+      /* ══════════════════════════════════════════════════════════════════════
+         Title & Subtitle
+         ══════════════════════════════════════════════════════════════════ */
+
+      .splash-title {
+        font-family: 'Inter', 'Noto Sans SC', system-ui, sans-serif;
+        font-size: 1.625rem;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        color: oklch(0.20 0.02 260);
+        line-height: 1.2;
+      }
+
+      html[data-theme='dark'] .splash-title {
+        color: oklch(0.88 0.01 260);
+      }
+
+      .splash-subtitle {
+        margin-top: 6px;
+        font-size: 0.875rem;
+        font-weight: 450;
+        color: oklch(0.20 0.02 260 / 0.40);
+        letter-spacing: 0.02em;
+      }
+
+      html[data-theme='dark'] .splash-subtitle {
+        color: oklch(0.88 0.01 260 / 0.40);
+      }
+
+      /* ══════════════════════════════════════════════════════════════════════
+         Spinner — Enhanced SVG arc (consistent with LoadingSpinner.vue)
+         ══════════════════════════════════════════════════════════════════ */
+
+      .splash-spinner-wrap {
+        position: relative;
+        width: 48px;
+        height: 48px;
+        margin-top: 36px;
+      }
+
+      /* Outer subtle ring — slowly pulses */
+      .spinner-outer-ring {
+        position: absolute;
+        inset: -6px;
+        border-radius: 50%;
+        border: 1.5px solid oklch(0.62 0.19 250 / 0.10);
+        animation: ring-breathe 2.4s ease-in-out infinite;
+      }
+
+      html[data-theme='dark'] .spinner-outer-ring {
+        border-color: oklch(0.70 0.18 250 / 0.12);
+      }
+
+      @keyframes ring-breathe {
+        0%, 100% {
+          transform: scale(0.92);
+          opacity: 0.4;
+        }
+        50% {
+          transform: scale(1.08);
+          opacity: 1;
+        }
+      }
+
+      /* Core SVG spinner — arc rotation */
+      .splash-spinner {
+        width: 48px;
+        height: 48px;
+        animation: spinner-rotate 1.05s linear infinite;
+      }
+
+      @keyframes spinner-rotate {
+        100% { transform: rotate(360deg); }
+      }
+
+      .spinner-arc {
+        fill: none;
+        stroke: oklch(0.62 0.19 250);
+        stroke-width: 3;
+        stroke-linecap: round;
+        stroke-dasharray: 78 22;
+        stroke-dashoffset: 0;
+        animation: arc-breathe 2.1s ease-in-out infinite;
+      }
+
+      html[data-theme='dark'] .spinner-arc {
+        stroke: oklch(0.70 0.18 250);
+      }
+
+      @keyframes arc-breathe {
+        0%, 100% { stroke-dasharray: 78 22; }
+        50%      { stroke-dasharray: 68 32; }
+      }
+
+      /* ══════════════════════════════════════════════════════════════════════
+         Loading Label
+         ══════════════════════════════════════════════════════════════════ */
+
+      .splash-loading-text {
+        margin-top: 20px;
+        font-size: 0.8125rem;
+        font-weight: 450;
+        color: oklch(0.20 0.02 260 / 0.38);
+        letter-spacing: 0.03em;
+      }
+
+      html[data-theme='dark'] .splash-loading-text {
+        color: oklch(0.88 0.01 260 / 0.38);
+      }
+
+      /* Sequential dot animation */
+      .splash-loading-text .dot {
+        display: inline-block;
+        animation: dot-fade 1.5s ease-in-out infinite;
+      }
+
+      .splash-loading-text .dot:nth-child(2) { animation-delay: 0.2s; }
+      .splash-loading-text .dot:nth-child(3) { animation-delay: 0.4s; }
+
+      @keyframes dot-fade {
+        0%, 60%, 100% { opacity: 0.15; }
+        30%           { opacity: 0.8; }
+      }
+
+      /* ══════════════════════════════════════════════════════════════════════
+         Version badge
+         ══════════════════════════════════════════════════════════════════ */
+
+      .splash-version {
+        margin-top: 32px;
+        font-size: 0.6875rem;
+        font-weight: 500;
+        letter-spacing: 0.06em;
+        color: oklch(0.20 0.02 260 / 0.22);
+        font-variant-numeric: tabular-nums;
+      }
+
+      html[data-theme='dark'] .splash-version {
+        color: oklch(0.88 0.01 260 / 0.20);
+      }
+
+      /* ══════════════════════════════════════════════════════════════════════
+         Accessibility — Reduce Motion
+         ══════════════════════════════════════════════════════════════════ */
+
+      @media (prefers-reduced-motion: reduce) {
+        .splash-content {
+          animation: none;
+        }
+
+        .splash-orb--primary,
+        .splash-orb--accent,
+        .splash-orb--warm {
+          animation: none;
+        }
+
+        .splash-brandmark {
+          animation: none;
+          filter: none;
+        }
+
+        .splash-spinner {
+          animation: none;
+        }
+
+        .spinner-arc {
+          animation: none;
+          stroke-dasharray: 78 22;
+        }
+
+        .spinner-outer-ring {
+          animation: none;
+          opacity: 0.5;
+        }
+
+        .splash-loading-text .dot {
+          animation: none;
+          opacity: 0.5;
+        }
+      }
+    </style>
+
+    <!--
+      Theme detection — runs before first paint to avoid flash of wrong theme.
+      Checks localStorage first, then system preference.
+    -->
+    <script>
+      (function() {
+        var saved = localStorage.getItem('theme');
+        if (saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+          document.documentElement.setAttribute('data-theme', 'dark');
+        }
+      })();
+    </script>
   </head>
-  <body class="min-h-dvh bg-base-200">
-    <div id="app"></div>
+
+  <body>
+    <!--
+      ═══════════════════════════════════════════════════════════════════════════
+      #app — Vue mounts here, replacing the splash screen on initialization.
+      The splash renders instantly as static HTML; zero JS required.
+      ═══════════════════════════════════════════════════════════════════════════
+    -->
+    <div id="app">
+      <div class="splash" role="status" aria-label="Application loading">
+        <!-- Ambient depth layer — large blurred orbs -->
+        <div class="splash-orb splash-orb--primary" aria-hidden="true"></div>
+        <div class="splash-orb splash-orb--accent" aria-hidden="true"></div>
+        <div class="splash-orb splash-orb--warm" aria-hidden="true"></div>
+
+        <!-- Subtle dot-grid texture -->
+        <div class="splash-grid" aria-hidden="true"></div>
+
+        <!-- Central composition -->
+        <div class="splash-content">
+          <!--
+            Brandmark: A stylized "card" icon suggesting a markdown document.
+            Outer rounded rect = the card; inner lines = markdown content.
+            The accent bar on the left edge hints at a blockquote or heading marker.
+          -->
+          <svg
+            class="splash-brandmark"
+            viewBox="0 0 64 64"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            aria-hidden="true"
+          >
+            <!-- Card body — rounded rectangle with subtle bottom-right fold -->
+            <rect
+              x="7" y="5" width="44" height="52" rx="7"
+              fill="currentColor"
+              opacity="0.12"
+            />
+            <!-- Card border -->
+            <rect
+              x="7" y="5" width="44" height="52" rx="7"
+              stroke="currentColor"
+              stroke-width="2.5"
+              opacity="0.85"
+            />
+            <!-- Corner fold -->
+            <path
+              d="M44 5 L44 17 Q44 22 39 22 L32 22 L32 12 Z"
+              fill="currentColor"
+              opacity="0.18"
+            />
+            <path
+              d="M44 5 L44 17 Q44 22 39 22"
+              stroke="currentColor"
+              stroke-width="2.5"
+              opacity="0.85"
+              fill="none"
+            />
+            <!-- Content lines — representing markdown text -->
+            <!-- Heading (#) accent bar -->
+            <rect x="17" y="17" width="3" height="7" rx="1.5" fill="currentColor" opacity="0.7" />
+            <!-- Heading line -->
+            <rect x="24" y="18" width="16" height="2.5" rx="1.25" fill="currentColor" opacity="0.55" />
+            <!-- Body text lines -->
+            <rect x="17" y="27" width="20" height="2" rx="1" fill="currentColor" opacity="0.28" />
+            <rect x="17" y="33" width="22" height="2" rx="1" fill="currentColor" opacity="0.28" />
+            <rect x="17" y="39" width="16" height="2" rx="1" fill="currentColor" opacity="0.28" />
+            <rect x="17" y="45" width="18" height="2" rx="1" fill="currentColor" opacity="0.20" />
+          </svg>
+
+          <!-- App title -->
+          <h1 class="splash-title">Markdown Card</h1>
+
+          <!-- Subtitle -->
+          <p class="splash-subtitle">Rich Text Editor</p>
+
+          <!-- Spinner — SVG arc + outer breathing ring -->
+          <div class="splash-spinner-wrap">
+            <div class="spinner-outer-ring" aria-hidden="true"></div>
+            <svg
+              class="splash-spinner"
+              viewBox="0 0 48 48"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              aria-hidden="true"
+            >
+              <circle
+                class="spinner-arc"
+                cx="24"
+                cy="24"
+                r="20"
+                pathLength="100"
+              />
+            </svg>
+          </div>
+
+          <!-- Loading text -->
+          <p class="splash-loading-text" aria-hidden="true">
+            Loading<span class="dot">.</span><span class="dot">.</span><span class="dot">.</span>
+          </p>
+
+          <!-- Version -->
+          <p class="splash-version">v1.0.0</p>
+        </div>
+      </div>
+    </div>
+
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

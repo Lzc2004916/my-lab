@@ -23,16 +23,16 @@
         </div>
 
         <!-- Export -->
-        <div class="dropdown dropdown-hover">
+        <div class="dropdown">
           <label tabindex="0" class="btn btn-sm btn-ghost text-xs h-7 min-h-0">
             {{ t('nav.export') }}
             <svg class="w-3 h-3 ml-1 opacity-50" viewBox="0 0 10 6"><path d="M0 0l5 6 5-6z" fill="currentColor"/></svg>
           </label>
           <ul tabindex="0" class="dropdown-content menu p-1.5 shadow bg-base-200 rounded-box w-44 z-50 text-sm">
-            <li><a @click="handleExportPNG">{{ t('export.png') }}</a></li>
-            <li><a @click="handleExportJPG">{{ t('export.jpg') }}</a></li>
+            <li><a @click="handleBatchExportPNG">{{ t('export.batchPNG') }}</a></li>
+            <li><a @click="handleBatchExportJPG">{{ t('export.batchJPG') }}</a></li>
+            <li class="menu-divider" role="separator"></li>
             <li><a @click="handleExportPDF">{{ t('export.pdf') }}</a></li>
-            <li><a @click="handleCopyToClipboard">{{ t('export.clipboard') }}</a></li>
           </ul>
         </div>
       </div>
@@ -284,10 +284,10 @@
         </div>
       </div>
 
-      <!-- Drag bar -->
+      <!-- Drag bar — wider hit area via negative margin pseudo-elements prevents cursor flicker -->
       <div
-        class="w-1 cursor-col-resize select-none shrink-0 transition-colors duration-100 z-10"
-        :class="dragging ? 'bg-primary' : 'bg-base-300 hover:bg-primary'"
+        class="w-1 cursor-col-resize select-none shrink-0 z-10 drag-bar"
+        :class="dragging ? 'bg-primary' : 'bg-base-300'"
         @mousedown="onDragStart"
       ></div>
 
@@ -318,7 +318,13 @@
           <span v-for="tag in activeTags" :key="tag" class="badge badge-xs badge-ghost">{{ tag }}</span>
         </template>
         <template v-if="isExporting">
-          <span>{{ t('export.exporting') }}: {{ progress }}%</span>
+          <LoadingSpinner
+            variant="progress"
+            size="sm"
+            :progress="progress"
+            :show-progress-label="true"
+            inline
+          />
         </template>
       </span>
       <span class="flex items-center gap-3">
@@ -382,6 +388,7 @@ import { useDocumentsStore } from '@/stores/documents'
 import { useDrafts, type AppSettings } from '@/composables/useDrafts'
 import { THEMES } from '@/card'
 import DraftRecoveryModal from '@/components/DraftRecoveryModal.vue'
+import LoadingSpinner from '@/components/LoadingSpinner.vue'
 import type { TypographySettings, HighlightStyle, TitleFontMode, SubheadingStyle, TitleCustomization, TitleAlignment } from '@/card'
 import { DEFAULT_TITLE_CUSTOM } from '@/card'
 
@@ -738,23 +745,19 @@ interface CardPreviewAPI {
 
 const cardPreviewRef = ref<CardPreviewAPI | null>(null)
 
-const { isExporting, progress, exportPNG, exportJPG, exportMultiPDF, copyToClipboard } =
+const { isExporting, progress, exportBatchPNG, exportBatchJPG, exportMultiPDF } =
   useExport()
 
-function getCanvas(): HTMLCanvasElement | null {
-  return cardPreviewRef.value?.getActiveCanvas() ?? null
+async function handleBatchExportPNG(): Promise<void> {
+  const canvases = cardPreviewRef.value?.getAllCanvases()
+  if (!canvases || canvases.length === 0) return
+  try { await exportBatchPNG(canvases) } catch (e) { console.error('Batch PNG export failed:', e) }
 }
 
-async function handleExportPNG(): Promise<void> {
-  const c = getCanvas()
-  if (!c) return
-  try { await exportPNG(c) } catch (e) { console.error('PNG export failed:', e) }
-}
-
-async function handleExportJPG(): Promise<void> {
-  const c = getCanvas()
-  if (!c) return
-  try { await exportJPG(c) } catch (e) { console.error('JPG export failed:', e) }
+async function handleBatchExportJPG(): Promise<void> {
+  const canvases = cardPreviewRef.value?.getAllCanvases()
+  if (!canvases || canvases.length === 0) return
+  try { await exportBatchJPG(canvases) } catch (e) { console.error('Batch JPG export failed:', e) }
 }
 
 async function handleExportPDF(): Promise<void> {
@@ -765,12 +768,6 @@ async function handleExportPDF(): Promise<void> {
   } catch (e) {
     console.error('PDF export failed:', e)
   }
-}
-
-async function handleCopyToClipboard(): Promise<void> {
-  const c = getCanvas()
-  if (!c) return
-  try { await copyToClipboard(c) } catch (e) { console.error('Copy failed:', e) }
 }
 
 // ── Keyboard shortcuts ──────────────────────────────────────────────────
@@ -836,5 +833,28 @@ onBeforeUnmount(() => {
 .win-btn--close:active {
   background-color: #bf0f1b;
   color: #fff;
+}
+
+/* ── Drag bar: invisible hit-area padding via pseudo-elements ────────── */
+
+.drag-bar {
+  position: relative;
+}
+
+.drag-bar::before,
+.drag-bar::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 6px;
+}
+
+.drag-bar::before {
+  right: 100%;
+}
+
+.drag-bar::after {
+  left: 100%;
 }
 </style>

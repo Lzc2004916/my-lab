@@ -37,10 +37,11 @@
       class="empty-state"
       :style="canvasDisplayStyle"
     >
-      <span class="flex items-center gap-2">
-        <svg class="w-4 h-4 animate-pulse" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
-        渲染中…
-      </span>
+      <LoadingSpinner
+        variant="spinner"
+        size="lg"
+        :text="t('loading.rendering')"
+      />
     </div>
 
     <!-- Page indicator -->
@@ -54,8 +55,12 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, nextTick, onMounted, onBeforeUnmount } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { renderAllPagesAsync, renderAllPages, PAGE_WIDTH, PAGE_HEIGHT } from '@/card'
 import type { HighlightStyle, FooterRightMode, CardCornerMode, TypographySettings } from '@/card'
+import LoadingSpinner from '@/components/LoadingSpinner.vue'
+
+const { t } = useI18n()
 
 // ── Props ───────────────────────────────────────────────────────────────
 
@@ -427,16 +432,6 @@ defineExpose({
     0 4px 12px oklch(0 0 0 / 0.06),
     0 8px 28px oklch(0 0 0 / 0.05),
     0 0 0 1px oklch(0 0 0 / 0.04);
-  transition: box-shadow 0.3s ease, transform 0.2s ease;
-}
-
-.card-canvas:hover {
-  box-shadow:
-    0 2px 6px oklch(0 0 0 / 0.06),
-    0 6px 18px oklch(0 0 0 / 0.08),
-    0 12px 36px oklch(0 0 0 / 0.06),
-    0 0 0 1px oklch(0 0 0 / 0.06);
-  transform: translateY(-2px);
 }
 
 /* ── Empty state placeholder ──────────────────────────────────────────── */

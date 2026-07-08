@@ -34,6 +34,12 @@ interface ElectronAPI {
   saveImage: (dataUrl: string, defaultName: string) => Promise<SaveImageResult>
 
   /**
+   * Open a folder picker and batch-save multiple images into the chosen directory
+   * with their specified filenames.
+   */
+  saveImagesToFolder: (images: { dataUrl: string; filename: string }[]) => Promise<{ success: boolean; folder?: string; count?: number }>
+
+  /**
    * Open a native file picker filtered to `.md` / `.markdown` and return the
    * selected file's path and content.
    */

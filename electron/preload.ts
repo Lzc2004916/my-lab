@@ -37,6 +37,18 @@ contextBridge.exposeInMainWorld('electronAPI', {
     return ipcRenderer.invoke('export:save-image', { dataUrl, defaultName })
   },
 
+  /**
+   * Open a native folder picker and batch-save multiple images with
+   * sequential filenames into the chosen directory.
+   * @param images - Array of { dataUrl, filename } objects.
+   * @returns Success status, target folder path, and file count.
+   */
+  saveImagesToFolder: (
+    images: { dataUrl: string; filename: string }[],
+  ): Promise<{ success: boolean; folder?: string; count?: number }> => {
+    return ipcRenderer.invoke('export:batch-save-images', { images })
+  },
+
   // ── File I/O ────────────────────────────────────────────────
   /**
    * Open a native file picker filtered to .md / .markdown files.

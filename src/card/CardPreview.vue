@@ -36,7 +36,11 @@
       class="flex items-center justify-center"
       :style="{ width: canvasStyle.width, height: canvasStyle.height }"
     >
-      <span class="text-base-content/40 text-sm">渲染中…</span>
+      <LoadingSpinner
+        variant="spinner"
+        size="md"
+        :text="t('loading.rendering')"
+      />
     </div>
 
     <!-- ═══════════════════════════════════════════════════════════════════
@@ -52,6 +56,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, nextTick, onBeforeUnmount } from 'vue'
+import { useI18n } from 'vue-i18n'
 import type {
   CardPage,
   HighlightStyle,
@@ -61,6 +66,9 @@ import type {
 } from './types'
 import { PAGE_WIDTH, PAGE_HEIGHT } from './types'
 import { renderAllPages } from './engine'
+import LoadingSpinner from '@/components/LoadingSpinner.vue'
+
+const { t } = useI18n()
 
 // ── Props ───────────────────────────────────────────────────────────────
 

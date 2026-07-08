@@ -29,6 +29,8 @@ export function useExport(): {
   progress: Ref<number>
   exportPNG: (canvas: HTMLCanvasElement) => Promise<void>
   exportJPG: (canvas: HTMLCanvasElement) => Promise<void>
+  exportBatchPNG: (canvases: HTMLCanvasElement[]) => Promise<void>
+  exportBatchJPG: (canvases: HTMLCanvasElement[]) => Promise<void>
   exportPDF: (canvas: HTMLCanvasElement, opts: PDFOptions) => Promise<void>
   exportMultiPDF: (canvases: HTMLCanvasElement[], opts: PDFOptions) => Promise<void>
   copyToClipboard: (canvas: HTMLCanvasElement) => Promise<void>
@@ -81,6 +83,75 @@ export function useExport(): {
       }
     } catch (e) {
       throw new Error(`JPG export failed: ${e instanceof Error ? e.message : String(e)}`)
+    } finally {
+      resetState()
+    }
+  }
+
+  // ── Batch PNG — folder picker → write all sequentially-named files ──
+
+  async function exportBatchPNG(canvases: HTMLCanvasElement[]): Promise<void> {
+    try {
+      isExporting.value = true
+      progress.value = 0
+
+      const pad = String(canvases.length).length
+      const images = canvases.map((canvas, i) => ({
+        dataUrl: canvas.toDataURL('image/png'),
+        filename: `card-${String(i + 1).padStart(pad, '0')}.png`,
+      }))
+
+      if (window.electronAPI?.saveImagesToFolder) {
+        progress.value = 30
+        const result = await window.electronAPI.saveImagesToFolder(images)
+        if (!result.success) return
+        progress.value = 100
+      } else {
+        // Browser fallback: sequential direct download
+        for (let i = 0; i < images.length; i++) {
+          downloadURL(images[i]!.dataUrl, images[i]!.filename)
+          progress.value = Math.round(((i + 1) / images.length) * 100)
+          if (i < images.length - 1) {
+            await new Promise((r) => setTimeout(r, 120))
+          }
+        }
+      }
+    } catch (e) {
+      throw new Error(`Batch PNG export failed: ${e instanceof Error ? e.message : String(e)}`)
+    } finally {
+      resetState()
+    }
+  }
+
+  // ── Batch JPG — folder picker → write all sequentially-named files ──
+
+  async function exportBatchJPG(canvases: HTMLCanvasElement[]): Promise<void> {
+    try {
+      isExporting.value = true
+      progress.value = 0
+
+      const pad = String(canvases.length).length
+      const images = canvases.map((canvas, i) => ({
+        dataUrl: canvas.toDataURL('image/jpeg', 0.95),
+        filename: `card-${String(i + 1).padStart(pad, '0')}.jpg`,
+      }))
+
+      if (window.electronAPI?.saveImagesToFolder) {
+        progress.value = 30
+        const result = await window.electronAPI.saveImagesToFolder(images)
+        if (!result.success) return
+        progress.value = 100
+      } else {
+        for (let i = 0; i < images.length; i++) {
+          downloadURL(images[i]!.dataUrl, images[i]!.filename)
+          progress.value = Math.round(((i + 1) / images.length) * 100)
+          if (i < images.length - 1) {
+            await new Promise((r) => setTimeout(r, 120))
+          }
+        }
+      }
+    } catch (e) {
+      throw new Error(`Batch JPG export failed: ${e instanceof Error ? e.message : String(e)}`)
     } finally {
       resetState()
     }
@@ -237,6 +308,8 @@ export function useExport(): {
     progress,
     exportPNG,
     exportJPG,
+    exportBatchPNG,
+    exportBatchJPG,
     exportPDF,
     exportMultiPDF,
     copyToClipboard,
