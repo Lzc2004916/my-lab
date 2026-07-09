@@ -331,7 +331,7 @@ defineExpose({
 .markdown-editor {
   height: 100%;
   width: 100%;
-  overflow: hidden;
+  overflow: clip;
 }
 
 .markdown-editor :deep(.cm-editor) {
@@ -350,6 +350,14 @@ defineExpose({
     monospace;
   font-size: 14px;
   line-height: 1.6;
+}
+
+/* Code blocks: break long tokens (URLs, strings, long identifiers)
+   that would otherwise overflow the editor panel.
+   `anywhere` ensures wrapping at any character when necessary,
+   while normal text still wraps at word boundaries first. */
+.markdown-editor :deep(.cm-content) {
+  overflow-wrap: anywhere;
 }
 
 .markdown-editor :deep(.cm-editor:focus),

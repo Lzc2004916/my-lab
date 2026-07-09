@@ -4,10 +4,10 @@
     <section class="w-full max-w-5xl mx-auto px-8 py-20 lg:py-32">
       <div class="max-w-2xl">
         <h1 class="text-5xl lg:text-6xl font-extrabold tracking-tight text-base-content leading-none mb-4">
-          {{ $t('app.title') }}
+          Markdown Card
         </h1>
         <p class="text-xl text-base-content/60 leading-relaxed max-w-lg mb-10">
-          {{ $t('app.tagline') }}
+          Rich Text Editor
         </p>
 
         <div class="flex items-center gap-4">

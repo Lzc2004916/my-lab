@@ -131,6 +131,7 @@ const typography = computed<TypographySettings>(() => ({
   bodySize: settings.bodyFontSize.value,
   lineHeight: 1.84,
   titleFontMode: settings.titleFontMode.value,
+  bodyFontMode: 'wenkai' as const,
   subheadingStyle: settings.subheadingStyle.value,
   titleCustom: {
     color: settings.titleColor.value,

@@ -112,19 +112,103 @@ function mergeAdjacentTokens(tokens: PrismToken[]): PrismToken[] {
 // Measurement
 // ═══════════════════════════════════════════════════════════════════════════
 
+const PADDING_X = 18
+const PADDING_TOP = 16
+const PADDING_BOTTOM = 16
+
 /** Compute monospace font size and line height from body font size. */
 export function getCodeMetrics(bodySize: number): {
   fontSize: number
   lineHeight: number
   font: string
+  fontFamily: string
 } {
   const fontSize = Math.round(bodySize * CODE_FONT_SIZE_RATIO)
   const lineHeight = fontSize * 1.5
-  const font = `${fontSize}px "JetBrains Mono","Cascadia Code","SF Mono","Fira Code","Consolas",monospace`
-  return { fontSize, lineHeight, font }
+  const fontFamily = '"JetBrains Mono","Cascadia Code","SF Mono","Fira Code","Consolas",monospace'
+  const font = `${fontSize}px ${fontFamily}`
+  return { fontSize, lineHeight, font, fontFamily }
 }
 
-/** Measure the total height of a code block. */
+/**
+ * Wrap a single token array into multiple visual lines so that
+ * no visual line exceeds `maxTextWidth` pixels.
+ *
+ * Algorithm:
+ *  1. Token fits on current line → append and advance cursor
+ *  2. Token is wider than entire line → flush current line, then split
+ *     the wide token character-by-character across visual lines
+ *  3. Token doesn't fit (but isn't extra-wide) → wrap to next line
+ *
+ * Uses the provided canvas context for accurate text measurement.
+ */
+function wrapTokenLine(
+  tokens: PrismToken[],
+  maxTextWidth: number,
+  measureCtx: CanvasRenderingContext2D,
+): PrismToken[][] {
+  const visualLines: PrismToken[][] = []
+  let currentLine: PrismToken[] = []
+  let cursorX = 0
+
+  for (const token of tokens) {
+    const tokenWidth = measureCtx.measureText(token.content).width
+
+    // ── Case 1: Token fits on current line ──────────────────────────
+    if (cursorX + tokenWidth <= maxTextWidth) {
+      currentLine.push(token)
+      cursorX += tokenWidth
+      continue
+    }
+
+    // ── Case 2: Token alone is wider than the entire line ───────────
+    // Flush current line first, then split the wide token
+    if (tokenWidth > maxTextWidth) {
+      if (currentLine.length > 0) {
+        visualLines.push(currentLine)
+        currentLine = []
+        cursorX = 0
+      }
+
+      const { content, type } = token
+      let charBuf = ''
+      let charWidth = 0
+
+      for (const ch of content) {
+        const cw = measureCtx.measureText(ch).width
+        if (cursorX + charWidth + cw > maxTextWidth && charBuf.length > 0) {
+          currentLine.push({ type, content: charBuf })
+          visualLines.push(currentLine)
+          currentLine = []
+          cursorX = 0
+          charBuf = ''
+          charWidth = 0
+        }
+        charBuf += ch
+        charWidth += cw
+      }
+      if (charBuf) {
+        currentLine.push({ type, content: charBuf })
+        cursorX += charWidth
+      }
+      continue
+    }
+
+    // ── Case 3: Token doesn't fit on current line → wrap ───────────
+    visualLines.push(currentLine)
+    currentLine = [token]
+    cursorX = tokenWidth
+  }
+
+  // Flush remaining line
+  if (currentLine.length > 0) {
+    visualLines.push(currentLine)
+  }
+
+  return visualLines
+}
+
+/** Measure the total height of a code block (with wrapping). */
 export function measureCodeBlock(block: CodeBlock, _bodySize: number): {
   lineCount: number
   height: number
@@ -132,18 +216,34 @@ export function measureCodeBlock(block: CodeBlock, _bodySize: number): {
   fontSize: number
   lineHeight: number
 } {
-  const { fontSize, lineHeight } = getCodeMetrics(_bodySize)
-  const lines = block.code.split('\n')
-  const lineCount = lines.length
-  const paddingTop = 16
-  const paddingBottom = 16
-  const height = paddingTop + lineCount * lineHeight + paddingBottom
+  const { fontSize, lineHeight, fontFamily } = getCodeMetrics(_bodySize)
 
-  let maxLineLen = 0
-  for (const line of lines) {
-    if (line.length > maxLineLen) maxLineLen = line.length
+  // Max text width available inside the code block
+  const maxTextWidth = CONTENT_WIDTH - PADDING_X * 2
+
+  // Tokenize and measure with wrapping
+  const tokenLines = tokenizeCode(block.code, block.language)
+
+  // Set up measurement context
+  const measureCanvas = document.createElement('canvas')
+  const measureCtx = measureCanvas.getContext('2d')
+  if (measureCtx) {
+    measureCtx.font = `${fontSize}px ${fontFamily}`
   }
-  const codeWidth = Math.min(CONTENT_WIDTH, maxLineLen * fontSize * 0.62)
+
+  let totalVisualLines = 0
+  for (const line of tokenLines) {
+    if (measureCtx) {
+      const wrapped = wrapTokenLine(line, maxTextWidth, measureCtx)
+      totalVisualLines += wrapped.length
+    } else {
+      totalVisualLines += 1 // fallback
+    }
+  }
+
+  const lineCount = totalVisualLines
+  const height = PADDING_TOP + totalVisualLines * lineHeight + PADDING_BOTTOM
+  const codeWidth = CONTENT_WIDTH
 
   block.lineCount = lineCount
   return { lineCount, height, codeWidth, fontSize, lineHeight }
@@ -153,7 +253,9 @@ export function measureCodeBlock(block: CodeBlock, _bodySize: number): {
 // Drawing
 // ═══════════════════════════════════════════════════════════════════════════
 
-/** Draw a code block on the canvas. */
+const BG_RADIUS = 8
+
+/** Draw a code block on the canvas. Long lines wrap automatically. */
 export function drawCodeBlock(
   ctx: CanvasRenderingContext2D,
   block: CodeBlock,
@@ -162,59 +264,59 @@ export function drawCodeBlock(
   bodySize: number,
   theme: ThemeDefinition,
 ): number {
-  const { fontSize, lineHeight, height } = measureCodeBlock(block, bodySize)
+  const { fontSize, lineHeight, fontFamily } = getCodeMetrics(bodySize)
   const colors = getCodeColors(theme)
   const tokenLines = tokenizeCode(block.code, block.language)
-  const paddingX = 18
-  const paddingTop = 16
+  const blockWidth = CONTENT_WIDTH
+  const maxTextWidth = CONTENT_WIDTH - PADDING_X * 2
 
-  // Calculate block width from longest line
-  let blockWidth = CONTENT_WIDTH
-  const ctx2 = document.createElement('canvas').getContext('2d')
-  if (ctx2) {
-    ctx2.font = `${fontSize}px "JetBrains Mono",monospace`
-    let maxW = 0
-    for (const line of tokenLines) {
-      let w = 0
-      for (const token of line) {
-        w += ctx2.measureText(token.content).width
-      }
-      if (w > maxW) maxW = w
+  // Pre-wrap all lines to compute total visual line count + height
+  let totalVisualLines = 0
+  const allWrappedLines: PrismToken[][] = []
+
+  // Use ctx for measurement (font is already set or will be set below)
+  ctx.save()
+  ctx.font = `${fontSize}px ${fontFamily}`
+
+  for (const line of tokenLines) {
+    const wrapped = wrapTokenLine(line, maxTextWidth, ctx)
+    for (const wl of wrapped) {
+      allWrappedLines.push(wl)
     }
-    blockWidth = Math.min(CONTENT_WIDTH, maxW + paddingX * 2 + 20)
+    totalVisualLines += wrapped.length
   }
 
-  // Background
-  ctx.save()
+  const totalHeight = PADDING_TOP + totalVisualLines * lineHeight + PADDING_BOTTOM
+
+  // ── Background ──────────────────────────────────────────────────────
   ctx.fillStyle = `rgba(0,0,0,${CODE_BG_ALPHA})`
-  const radius = 8
   ctx.beginPath()
-  ctx.moveTo(x + radius, y)
-  ctx.lineTo(x + blockWidth - radius, y)
-  ctx.arcTo(x + blockWidth, y, x + blockWidth, y + radius, radius)
-  ctx.lineTo(x + blockWidth, y + height - radius)
-  ctx.arcTo(x + blockWidth, y + height, x - radius + blockWidth, y + height, radius)
-  ctx.lineTo(x + radius, y + height)
-  ctx.arcTo(x, y + height, x, y + height - radius, radius)
-  ctx.lineTo(x, y + radius)
-  ctx.arcTo(x, y, x + radius, y, radius)
+  ctx.moveTo(x + BG_RADIUS, y)
+  ctx.lineTo(x + blockWidth - BG_RADIUS, y)
+  ctx.arcTo(x + blockWidth, y, x + blockWidth, y + BG_RADIUS, BG_RADIUS)
+  ctx.lineTo(x + blockWidth, y + totalHeight - BG_RADIUS)
+  ctx.arcTo(x + blockWidth, y + totalHeight, x + blockWidth - BG_RADIUS, y + totalHeight, BG_RADIUS)
+  ctx.lineTo(x + BG_RADIUS, y + totalHeight)
+  ctx.arcTo(x, y + totalHeight, x, y + totalHeight - BG_RADIUS, BG_RADIUS)
+  ctx.lineTo(x, y + BG_RADIUS)
+  ctx.arcTo(x, y, x + BG_RADIUS, y, BG_RADIUS)
   ctx.fill()
 
-  // Language label (top-right)
+  // ── Language label (top-right) ─────────────────────────────────────
   if (block.language) {
     ctx.font = `500 ${Math.round(fontSize * 0.78)}px monospace`
     ctx.fillStyle = theme.palette.muted
     ctx.textAlign = 'right'
-    ctx.fillText(block.language, x + blockWidth - 12, y + paddingTop + fontSize * 0.7)
+    ctx.fillText(block.language, x + blockWidth - 12, y + PADDING_TOP + fontSize * 0.7)
     ctx.textAlign = 'left'
   }
 
-  // Draw each line
-  ctx.font = `${fontSize}px "JetBrains Mono",monospace`
-  for (let li = 0; li < tokenLines.length; li++) {
-    const tokens = tokenLines[li]!
-    let cursorX = x + paddingX
-    const lineY = y + paddingTop + fontSize * 0.84 + li * lineHeight
+  // ── Draw each visual line ───────────────────────────────────────────
+  ctx.font = `${fontSize}px ${fontFamily}`
+  for (let vi = 0; vi < allWrappedLines.length; vi++) {
+    const tokens = allWrappedLines[vi]!
+    let cursorX = x + PADDING_X
+    const lineY = y + PADDING_TOP + fontSize * 0.84 + vi * lineHeight
 
     for (const token of tokens) {
       const color = (colors as Record<string, string>)[token.type] || theme.palette.text
@@ -225,5 +327,5 @@ export function drawCodeBlock(
   }
 
   ctx.restore()
-  return height
+  return totalHeight
 }

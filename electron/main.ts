@@ -25,17 +25,60 @@ let win: BrowserWindow | null = null
 let tray: Tray | null = null
 let forceClose = false
 
+// ─── Window bounds persistence ────────────────────────────────
+
+const BOUNDS_PATH = path.join(app.getPath('userData'), 'window-bounds.json')
+
+interface WindowBounds {
+  x: number
+  y: number
+  width: number
+  height: number
+}
+
+function loadWindowBounds(): WindowBounds | null {
+  try {
+    if (fs.existsSync(BOUNDS_PATH)) {
+      const raw = fs.readFileSync(BOUNDS_PATH, 'utf-8')
+      return JSON.parse(raw) as WindowBounds
+    }
+  } catch {
+    // Corrupted file — ignore and use defaults
+  }
+  return null
+}
+
+function saveWindowBounds(): void {
+  if (!win || win.isMaximized() || win.isMinimized()) return
+  const bounds = win.getBounds()
+  try {
+    fs.writeFileSync(BOUNDS_PATH, JSON.stringify(bounds), 'utf-8')
+  } catch {
+    // Non-critical — silently ignore write failures
+  }
+}
+
 // ─── Window ────────────────────────────────────────────────────
+
+/** Default window dimensions — used on first launch only. */
+const DEFAULT_BOUNDS: WindowBounds = { x: 0, y: 0, width: 1400, height: 900 }
+
 function createWindow(): void {
+  const saved = loadWindowBounds()
+  const bounds = saved ?? DEFAULT_BOUNDS
+
   win = new BrowserWindow({
-    width: 1400,
-    height: 900,
+    x: bounds.x,
+    y: bounds.y,
+    width: bounds.width,
+    height: bounds.height,
     minWidth: 900,
     minHeight: 600,
-    center: true,
+    center: !saved,           // only center on first launch
     title: 'Markdown Card',
     icon: ICON_PATH,
-    frame: false,            // 无边框窗口 — 去掉系统标题栏
+    frame: false,             // 无边框窗口 — 去掉系统标题栏
+    useContentSize: true,     // width/height 代表渲染进程内容区域
     webPreferences: {
       preload: PRELOAD_PATH,
       nodeIntegration: false,
@@ -65,6 +108,15 @@ function createWindow(): void {
   win.on('unmaximize', () => {
     win?.webContents.send('window:state-changed', { isMaximized: false })
   })
+
+  // ── Save bounds on move / resize (debounced) ──────────────────
+  let saveTimer: ReturnType<typeof setTimeout> | null = null
+  const debouncedSave = (): void => {
+    if (saveTimer) clearTimeout(saveTimer)
+    saveTimer = setTimeout(saveWindowBounds, 300)
+  }
+  win.on('resize', debouncedSave)
+  win.on('move', debouncedSave)
 
   // ── Close interception for unsaved-changes prompt ─────────────
   win.on('close', (e: Electron.Event) => {

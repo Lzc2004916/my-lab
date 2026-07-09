@@ -40,7 +40,7 @@
       <LoadingSpinner
         variant="spinner"
         size="lg"
-        :text="t('loading.rendering')"
+        text="渲染中…"
       />
     </div>
 
@@ -55,12 +55,9 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, nextTick, onMounted, onBeforeUnmount } from 'vue'
-import { useI18n } from 'vue-i18n'
 import { renderAllPagesAsync, renderAllPages, PAGE_WIDTH, PAGE_HEIGHT } from '@/card'
 import type { HighlightStyle, FooterRightMode, CardCornerMode, TypographySettings } from '@/card'
 import LoadingSpinner from '@/components/LoadingSpinner.vue'
-
-const { t } = useI18n()
 
 // ── Props ───────────────────────────────────────────────────────────────
 
@@ -85,7 +82,7 @@ interface Props {
   footerEnabled?: boolean
   /** Card corner mode */
   cardCornerMode?: CardCornerMode
-  /** Preview scale factor (0-1, default 0.95). Acts as max scale cap. */
+  /** Preview scale factor (0-1, default 1.0). Acts as max scale cap. */
   previewScale?: number
 }
 
@@ -98,6 +95,7 @@ const props = withDefaults(defineProps<Props>(), {
     bodySize: 30,
     lineHeight: 1.84,
     titleFontMode: 'serif' as const,
+    bodyFontMode: 'wenkai' as const,
     subheadingStyle: 'large' as const,
     titleCustom: { color: '', alignment: 'left' as const, fontWeight: 0, letterSpacing: 0 },
   }),
@@ -106,7 +104,7 @@ const props = withDefaults(defineProps<Props>(), {
   footerRightMode: 'page' as FooterRightMode,
   footerEnabled: true,
   cardCornerMode: 'square' as CardCornerMode,
-  previewScale: 0.95,
+  previewScale: 1.0,
 })
 
 // ── Emits ────────────────────────────────────────────────────────────────
@@ -121,6 +119,8 @@ const emit = defineEmits<{
 const MIN_CARD_WIDTH = 260
 /** Horizontal padding inside .preview-root (1.5rem × 2 sides at 16px base). */
 const ROOT_PADDING_X = 48
+/** Vertical padding inside .preview-root (1rem × 2 sides at 16px base). */
+const ROOT_PADDING_Y = 32
 /** Gap between cards in scroll mode (px). */
 const CARD_GAP = 24
 
@@ -134,23 +134,29 @@ const singleCanvasRef = ref<HTMLCanvasElement | null>(null)
 const canvasRefs = ref<Record<number, HTMLCanvasElement | null>>({})
 const activeIdx = ref(props.currentPage)
 
-/** Current pixel width of the .preview-root container (from ResizeObserver). */
+/** Current pixel dimensions of the right panel (from ResizeObserver on the parent). */
 const containerWidth = ref(0)
+const containerHeight = ref(0)
 
-// ── ResizeObserver — track container width for responsive sizing ─────────
+// ── ResizeObserver — track parent (right panel) size for responsive fit ──
 
 let resizeObserver: ResizeObserver | null = null
 
 function setupResizeObserver(): void {
   if (typeof ResizeObserver === 'undefined') return
-  const el = containerRef.value
+  // Observe the right panel (parent of .preview-root) so we know
+  // exactly how much space is available for the card.
+  const el = containerRef.value?.parentElement
   if (!el) return
 
   resizeObserver = new ResizeObserver((entries) => {
     for (const entry of entries) {
-      const w = entry.contentRect.width
-      if (w > 0 && w !== containerWidth.value) {
-        containerWidth.value = w
+      const { width, height } = entry.contentRect
+      if (width > 0 && width !== containerWidth.value) {
+        containerWidth.value = width
+      }
+      if (height > 0 && height !== containerHeight.value) {
+        containerHeight.value = height
       }
     }
   })
@@ -167,28 +173,28 @@ function teardownResizeObserver(): void {
 /**
  * Compute the optimal display scale for the card canvas.
  *
- * Logic (priority order):
- *  1. If container is wide enough → use previewScale as-is (max quality)
- *  2. If container is narrower → scale down to fit, but not below floor
- *  3. If ResizeObserver hasn't fired yet → use previewScale as initial guess
+ * Fills the available space in BOTH dimensions (fit-to-container):
+ *  1. Compute scale that fits the card within available width & height
+ *  2. Cap at previewScale (max quality) and floor at MIN_CARD_WIDTH
+ *  3. Falls back to previewScale when ResizeObserver hasn't fired yet
  */
 const displayScale = computed(() => {
   const maxScale = props.previewScale
   const availableWidth = containerWidth.value - ROOT_PADDING_X
+  const availableHeight = containerHeight.value - ROOT_PADDING_Y
 
   // ResizeObserver hasn't fired yet — use prop as fallback
-  if (availableWidth <= 0) return maxScale
+  if (availableWidth <= 0 || availableHeight <= 0) return maxScale
 
-  const maxCardWidth = PAGE_WIDTH * maxScale
+  // Fit to BOTH dimensions (maintain aspect ratio)
+  const fitScaleW = availableWidth / PAGE_WIDTH
+  const fitScaleH = availableHeight / PAGE_HEIGHT
+  const fitScale = Math.min(fitScaleW, fitScaleH)
 
-  // Container is wide enough for full-size card
-  if (availableWidth >= maxCardWidth) return maxScale
-
-  // Container is narrow — scale down
-  const fitScale = availableWidth / PAGE_WIDTH
-
-  // Clamp to readability floor
-  return Math.max(MIN_CARD_WIDTH / PAGE_WIDTH, fitScale)
+  // Cap at maxScale (prevents over-scaling on huge screens)
+  // Floor at MIN_CARD_WIDTH for readability
+  const floor = MIN_CARD_WIDTH / PAGE_WIDTH
+  return Math.max(floor, Math.min(maxScale, fitScale))
 })
 
 /** CSS width/height for the canvas display element. */
@@ -413,7 +419,7 @@ defineExpose({
   min-height: 100%;
   padding: 1rem;
   border-radius: 0.75rem;
-  background-color: oklch(0.95 0.008 260 / 0.5);
+  background-color: oklch(0.95 0.008 260);
 
   /* Enable container queries for progressive enhancement */
   container-type: inline-size;

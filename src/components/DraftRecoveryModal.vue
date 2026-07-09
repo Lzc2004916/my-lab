@@ -9,16 +9,16 @@
           </svg>
         </div>
         <div>
-          <h3 class="text-base font-semibold">{{ t('drafts.modalTitle') }}</h3>
-          <p class="text-sm text-base-content/60 mt-1">{{ t('drafts.modalBody') }}</p>
+          <h3 class="text-base font-semibold">检测到未保存的草稿</h3>
+          <p class="text-sm text-base-content/60 mt-1">上次编辑的内容还未保存，是否恢复到之前的编辑状态？</p>
         </div>
       </div>
       <div class="modal-action mt-5">
         <button class="btn btn-ghost btn-sm h-8 min-h-0 text-xs" @click="onDiscard">
-          {{ t('drafts.discard') }}
+          忽略
         </button>
         <button class="btn btn-primary btn-sm h-8 min-h-0 text-xs" @click="onRestore">
-          {{ t('drafts.restore') }}
+          恢复
         </button>
       </div>
     </div>
@@ -27,9 +27,6 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { useI18n } from 'vue-i18n'
-
-const { t } = useI18n()
 
 const emit = defineEmits<{
   (e: 'restore'): void

@@ -16,7 +16,7 @@
       <div class="w-80 min-h-full bg-base-200 text-base-content overflow-y-auto">
         <!-- ── Header ──────────────────────────────────────────── -->
         <div class="sticky top-0 z-10 flex items-center justify-between bg-base-200/80 backdrop-blur-sm px-6 py-4 border-b border-base-300/60">
-          <h2 class="text-lg font-bold tracking-tight">{{ t('settings.title') }}</h2>
+          <h2 class="text-lg font-bold tracking-tight">设置</h2>
           <label
             for="settings-drawer-toggle"
             class="btn btn-sm btn-ghost btn-circle h-8 w-8 min-h-0"
@@ -31,11 +31,11 @@
           <!-- ── Theme preview ─────────────────────────────────── -->
           <div class="form-control">
             <label class="label pb-2">
-              <span class="label-text font-medium">{{ t('settings.themePreview') }}</span>
+              <span class="label-text font-medium">主题预览</span>
             </label>
             <div class="grid grid-cols-2 gap-3">
               <button
-                v-for="theme in THEME_PREVIEWS"
+                v-for="theme in themePreviews"
                 :key="theme.id"
                 class="flex flex-col gap-2 p-3 rounded-lg border transition-all duration-200"
                 :class="{
@@ -49,7 +49,7 @@
                   :style="{ background: theme.color, border: '1px solid ' + theme.border }"
                 ></div>
                 <span class="text-xs text-base-content/60 truncate w-full text-center">
-                  {{ t(theme.labelKey) }}
+                  {{ theme.name }}
                 </span>
               </button>
             </div>
@@ -61,12 +61,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
-import { useI18n } from 'vue-i18n'
-
-// ── i18n ────────────────────────────────────────────────────────────
-
-const { t } = useI18n()
+import { ref, watch, computed } from 'vue'
+import { THEMES } from '@/card/themes'
 
 // ── Props / Emits ───────────────────────────────────────────────────
 
@@ -100,14 +96,14 @@ function onToggleCheckbox(event: Event): void {
 
 // ── Theme preview grid ──────────────────────────────────────────────
 
-const THEME_PREVIEWS = [
-  { id: 'apple-note',     labelKey: 'themes.appleNote',     color: '#ffffff',              border: '#e5e5ea' },
-  { id: 'cyberpunk',      labelKey: 'themes.cyberpunk',     color: '#0c001a',              border: '#00ffff' },
-  { id: 'pop-art',        labelKey: 'themes.popArt',        color: '#fff740',              border: '#1a1a2e' },
-  { id: 'glassmorphism',  labelKey: 'themes.glassmorphism', color: 'rgba(255,255,255,0.4)', border: '#6c63ff' },
-  { id: 'warm-minimal',   labelKey: 'themes.warmMinimal',   color: '#fdfaf5',              border: '#e0d6c8' },
-  { id: 'dark-tech',      labelKey: 'themes.darkTech',      color: '#1e1e2e',              border: '#313244' },
-] as const
+const themePreviews = computed(() =>
+  THEMES.map((t) => ({
+    id: t.id,
+    name: t.name,
+    color: t.palette.page,
+    border: t.palette.border,
+  })),
+)
 
 function selectTheme(themeId: string): void {
   emit('theme-change', themeId)

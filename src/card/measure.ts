@@ -27,6 +27,7 @@ import {
   BODY_BOTTOM_WITH_FOOTER,
   BODY_BOTTOM_WITHOUT_FOOTER,
   HEADING_SIZE_RATIOS,
+  getBodyFontFamily,
 } from './types'
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -63,10 +64,11 @@ function explodeInlineTokens(tokens: InlineToken[]): InlineToken[] {
 }
 
 /** Measure the canvas width of a single body token. */
-export function getBodyTokenWidth(token: InlineToken, fontSize: number): number {
+export function getBodyTokenWidth(token: InlineToken, fontSize: number, fontFamily?: string): number {
   if (token.text === '\n') return 0
   const weight = token.bold ? BODY_BOLD_WEIGHT : BODY_TEXT_WEIGHT
-  const font = `${weight} ${fontSize}px ${BODY_FONT_FAMILY}`
+  const family = fontFamily ?? BODY_FONT_FAMILY
+  const font = `${weight} ${fontSize}px ${family}`
   return getMeasureCtx(font).measureText(token.text).width
 }
 
@@ -83,8 +85,9 @@ function splitOversizedUnit(
   token: InlineToken,
   fontSize: number,
   maxWidth: number,
+  fontFamily?: string,
 ): InlineToken[] {
-  if (token.text.length <= 1 || getBodyTokenWidth(token, fontSize) <= maxWidth)
+  if (token.text.length <= 1 || getBodyTokenWidth(token, fontSize, fontFamily) <= maxWidth)
     return [token]
   return Array.from(token.text).map((char) => ({ ...token, text: char }))
 }
@@ -94,6 +97,7 @@ export function wrapInlineTokensByWidth(
   tokens: InlineToken[],
   fontSize: number,
   maxWidth: number,
+  fontFamily?: string,
 ): InlineLine[] {
   const charTokens = explodeInlineTokens(tokens)
   const lines: InlineLine[] = []
@@ -109,7 +113,7 @@ export function wrapInlineTokensByWidth(
   }
 
   for (const sourceToken of charTokens) {
-    const splitTokens = splitOversizedUnit(sourceToken, fontSize, maxWidth)
+    const splitTokens = splitOversizedUnit(sourceToken, fontSize, maxWidth, fontFamily)
     for (const token of splitTokens) {
       if (token.text === '\n') {
         pushLine()
@@ -118,7 +122,7 @@ export function wrapInlineTokensByWidth(
       // Skip leading whitespace on a new line
       if (currentLine.length === 0 && isWhitespaceToken(token.text)) continue
 
-      const tokenWidth = getBodyTokenWidth(token, fontSize)
+      const tokenWidth = getBodyTokenWidth(token, fontSize, fontFamily)
 
       if (currentLine.length > 0 && currentWidth + tokenWidth > maxWidth) {
         if (!isLeadingPunctuation(token.text)) {
@@ -528,6 +532,7 @@ export function measureParagraphBlock(
   maxWidth: number,
   theme: ThemeDefinition,
   subheadingStyle: SubheadingStyle,
+  fontFamily?: string,
 ): { lines: InlineLine[]; height: number } {
   if (block.kind === 'divider') {
     return { lines: [], height: getDividerBlockHeight(fontSize) }
@@ -551,6 +556,7 @@ export function measureParagraphBlock(
     parseInlineMarkdown(block.raw),
     activeFontSize,
     quoteWidth,
+    fontFamily,
   )
   const textHeight = getParagraphVisualHeight(
     lines.length,
@@ -665,6 +671,7 @@ export function getPosterMetrics(
     bodySize,
     bodyLineHeight,
     bodyParagraphGap,
+    bodyFontFamily: getBodyFontFamily(settings.bodyFontMode),
     titleLines: titleBlock?.titleLines ?? [],
     titleAccentRanges: parsedTitle?.accentRanges ?? [],
     titleStartY,

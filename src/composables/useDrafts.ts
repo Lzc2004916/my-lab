@@ -10,16 +10,17 @@ export interface AppSettings {
   manualTitle: string
   editorTheme: string
   cardTheme: string
+  bodyFontMode: string
+  titleFontMode: string
   titleFontSize: number
   bodyFontSize: number
   highlightStyle: string
   footerEnabled: boolean
-  titleFontMode: string
   titleColor: string
   titleAlignment: string
   titleWeight: number
+  showThemePanel: boolean
   showTitlePanel: boolean
-  currentLang: string
   split: number
 }
 
@@ -34,16 +35,17 @@ export const DEFAULT_SETTINGS: AppSettings = {
   manualTitle: '',
   editorTheme: 'one-dark',
   cardTheme: 'moss-paper',
+  bodyFontMode: 'wenkai',
+  titleFontMode: 'kaiti',
   titleFontSize: 75,
   bodyFontSize: 30,
   highlightStyle: 'underline',
   footerEnabled: true,
-  titleFontMode: 'serif',
   titleColor: '',
   titleAlignment: 'left',
   titleWeight: 0,
+  showThemePanel: false,
   showTitlePanel: false,
-  currentLang: 'zh',
   split: 50,
 }
 

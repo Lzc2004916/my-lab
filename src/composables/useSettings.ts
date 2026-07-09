@@ -8,16 +8,8 @@ export type CardSizePreset = 'small' | 'medium' | 'large'
 /** Page-splitting strategy for the card preview. */
 export type SplitMode = 'noSplit' | 'xiaohongshu' | 'hrSplit'
 
-/** Card theme identifier. */
-export type CardThemeId =
-  | 'moss-paper'
-  | 'warm-editor'
-  | 'peach-cloud'
-  | 'lemon-note'
-  | 'sage-dawn'
-  | 'swiss-modern'
-  | 'forest-archive'
-  | 'deep-obsidian'
+/** Card theme identifier — any registered theme ID string. */
+export type CardThemeId = string
 
 export interface AppSettings {
   cardSize: CardSizePreset

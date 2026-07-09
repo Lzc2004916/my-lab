@@ -3,8 +3,8 @@
     <!-- Undo -->
     <button
       class="btn btn-ghost btn-sm btn-square h-7 w-7 min-h-0 tooltip tooltip-bottom"
-      :data-tip="t('toolbar.undo')"
-      :aria-label="t('toolbar.undo')"
+      data-tip="撤回 (Ctrl+Z)"
+      aria-label="撤回 (Ctrl+Z)"
       @mousedown.prevent
       @click="emit('command', 'undo')"
     >
@@ -22,11 +22,11 @@
       v-for="item in toolbarItems"
       :key="item.id"
       class="tooltip tooltip-bottom"
-      :data-tip="t(item.label)"
+      :data-tip="item.label"
     >
       <button
         class="btn btn-ghost btn-sm btn-square h-7 w-7 min-h-0"
-        :aria-label="t(item.label)"
+        :aria-label="item.label"
         @mousedown.prevent
         @click="emit('insert', item)"
       >
@@ -94,8 +94,6 @@
 </template>
 
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n'
-
 // ── Types ────────────────────────────────────────────────────────────
 
 export interface ToolbarItem {
@@ -103,7 +101,7 @@ export interface ToolbarItem {
   id: string
   /** Icon displayed inside the button (raw HTML for SVG / Unicode). */
   icon: string
-  /** i18n key for the tooltip / aria-label. */
+  /** Display label for the tooltip / aria-label. */
   label: string
   /** Markdown template emitted to the parent on click (fallback for non-wrap items). */
   template: string
@@ -117,10 +115,6 @@ export interface ToolbarItem {
     placeholder: string
   }
 }
-
-// ── i18n ────────────────────────────────────────────────────────────
-
-const { t } = useI18n()
 
 // ── Emits ────────────────────────────────────────────────────────────
 
@@ -136,42 +130,40 @@ const emit = defineEmits<{
  *
  * To add a new tool, insert an entry into this array — the template
  * loop picks it up automatically.  No template / script changes needed.
- *
- * Each `label` is an i18n key resolved at render time via `t()`.
  */
 const toolbarItems: readonly ToolbarItem[] = [
   // ── Text formatting ──
-  { id: 'bold',        icon: '<strong>B</strong>', label: 'toolbar.bold',        template: '**粗体文本**',
+  { id: 'bold',        icon: '<strong>B</strong>', label: '加粗', template: '**粗体文本**',
     wrap: { prefix: '**', suffix: '**', placeholder: '粗体文本' } },
-  { id: 'italic',      icon: '<em>I</em>',          label: 'toolbar.italic',      template: '*斜体文本*',
+  { id: 'italic',      icon: '<em>I</em>',          label: '斜体', template: '*斜体文本*',
     wrap: { prefix: '*',  suffix: '*',  placeholder: '斜体文本' } },
-  { id: 'heading',     icon: '<strong>H</strong>',  label: 'toolbar.heading',     template: '## 标题',
+  { id: 'heading',     icon: '<strong>H</strong>',  label: '标题', template: '## 标题',
     wrap: { prefix: '## ', suffix: '',   placeholder: '标题' } },
-  { id: 'highlight',   icon: '🖊',                   label: 'toolbar.highlight',   template: '==高亮文本==',
+  { id: 'highlight',   icon: '🖊',                   label: '高亮', template: '==高亮文本==',
     wrap: { prefix: '==', suffix: '==', placeholder: '高亮文本' } },
-  { id: 'underline',   icon: '<u>U</u>',            label: 'toolbar.underline',   template: '^下划线文本^',
+  { id: 'underline',   icon: '<u>U</u>',            label: '下划线', template: '^下划线文本^',
     wrap: { prefix: '^',  suffix: '^',  placeholder: '下划线文本' } },
 
   // ── Link & media ──
-  { id: 'link',        icon: '🔗',                   label: 'toolbar.link',        template: '[链接文本](url)' },
-  { id: 'image',       icon: '🖼',                   label: 'toolbar.image',       template: '![图片描述](url)' },
+  { id: 'link',        icon: '🔗',                   label: '链接', template: '[链接文本](url)' },
+  { id: 'image',       icon: '🖼',                   label: '图片', template: '![图片描述](url)' },
 
   // ── Code & math ──
-  { id: 'code',        icon: '⟨⟩',                   label: 'toolbar.code',        template: '```\n代码\n```' },
-  { id: 'math',        icon: '𝑓',                    label: 'toolbar.math',        template: '$$\n公式\n$$' },
+  { id: 'code',        icon: '⟨⟩',                   label: '代码块', template: '```\n代码\n```' },
+  { id: 'math',        icon: '𝑓',                    label: '公式', template: '$$\n公式\n$$' },
 
   // ── Diagrams ──
-  { id: 'mermaid',     icon: '🔷',                   label: 'toolbar.mermaid',     template: '```mermaid\ngraph TD\n  A --> B\n```' },
+  { id: 'mermaid',     icon: '🔷',                   label: 'Mermaid', template: '```mermaid\ngraph TD\n  A --> B\n```' },
 
   // ── Table ──
-  { id: 'table',       icon: '⊞',                    label: 'toolbar.table',       template: '| 列1 | 列2 | 列3 |\n| --- | --- | --- |\n| 内容 | 内容 | 内容 |' },
+  { id: 'table',       icon: '⊞',                    label: '表格', template: '| 列1 | 列2 | 列3 |\n| --- | --- | --- |\n| 内容 | 内容 | 内容 |' },
 
   // ── Separator ──
-  { id: 'divider',     icon: '—',                    label: 'toolbar.divider',     template: '\n---\n' },
+  { id: 'divider',     icon: '—',                    label: '分割线', template: '\n---\n' },
 
   // ── Layout ──
-  { id: 'left-column',  icon: '◧',                   label: 'toolbar.leftColumn',  template: ':::left\n左栏内容\n:::' },
-  { id: 'right-column', icon: '◨',                   label: 'toolbar.rightColumn', template: ':::right\n右栏内容\n:::' },
+  { id: 'left-column',  icon: '◧',                   label: '左分栏', template: ':::left\n左栏内容\n:::' },
+  { id: 'right-column', icon: '◨',                   label: '右分栏', template: ':::right\n右栏内容\n:::' },
 ]
 </script>
 

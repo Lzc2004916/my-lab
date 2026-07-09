@@ -12,7 +12,7 @@
         @click="store.setActive(doc.id)"
       >
         <span class="truncate">
-          {{ doc.title || t('documents.untitled') }}
+          {{ doc.title || '未命名' }}
         </span>
         <span
           v-if="store.documents.length > 1"
@@ -29,8 +29,8 @@
     <!-- ── New tab button ──────────────────────────────────────── -->
     <button
       class="btn btn-ghost btn-sm btn-square h-7 w-7 min-h-0 shrink-0"
-      :aria-label="t('documents.new')"
-      :title="t('documents.newTooltip')"
+      aria-label="新建文档"
+      title="新建文档 (Ctrl+T)"
       @click="handleAdd"
     >
       <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
@@ -41,10 +41,8 @@
 </template>
 
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n'
 import { useDocumentsStore } from '@/stores/documents'
 
-const { t } = useI18n()
 const store = useDocumentsStore()
 
 function handleAdd(): void {

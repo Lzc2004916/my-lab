@@ -12,7 +12,7 @@ import type {
 } from './types'
 import { layoutPages } from './layout'
 import { renderCard } from './renderer'
-import { getTheme } from './themes'
+import { getTheme } from './theme-registry'
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Engine options

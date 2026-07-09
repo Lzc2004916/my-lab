@@ -55,6 +55,7 @@ import { drawCodeBlock, measureCodeBlock } from './code-renderer'
 import { drawTableBlock, measureTableBlock } from './table-renderer'
 import { drawMathBlock, measureMathBlock } from './math-renderer'
 import { drawMermaidBlock } from './mermaid'
+import { drawDecor } from './decor-renderer'
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Color utilities
@@ -98,11 +99,27 @@ function mixHexColors(fromHex: string, toHex: string, ratio: number): string {
 // ═══════════════════════════════════════════════════════════════════════════
 
 function isDarkTheme(theme: ThemeDefinition): boolean {
-  return theme.mode === 'obsidian' || theme.mode === 'archive'
+  return theme.mode === 'obsidian' || theme.mode === 'archive' || theme.mode === 'cyber'
 }
 
 function isDigitalEditorTheme(theme: ThemeDefinition): boolean {
   return theme.id === 'warm-editor'
+}
+
+function isBrutalTheme(theme: ThemeDefinition): boolean {
+  return theme.mode === 'brutal'
+}
+
+function isGlassTheme(theme: ThemeDefinition): boolean {
+  return theme.mode === 'glass'
+}
+
+function isFrostTheme(theme: ThemeDefinition): boolean {
+  return theme.mode === 'frost'
+}
+
+function isLuxeTheme(theme: ThemeDefinition): boolean {
+  return theme.mode === 'luxe'
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -162,6 +179,32 @@ function drawBackground(
     gradient.addColorStop(0, theme.palette.pageAlt)
     gradient.addColorStop(0.55, theme.palette.page)
     gradient.addColorStop(1, '#0e0d0c')
+  } else if (theme.mode === 'cyber') {
+    gradient.addColorStop(0, '#0f0c1a')
+    gradient.addColorStop(0.5, theme.palette.page)
+    gradient.addColorStop(1, '#06040d')
+  } else if (theme.mode === 'brutal') {
+    // Solid background — no gradient for brutalist
+    gradient.addColorStop(0, theme.palette.page)
+    gradient.addColorStop(1, theme.palette.page)
+  } else if (theme.mode === 'luxe') {
+    gradient.addColorStop(0, theme.palette.pageAlt)
+    gradient.addColorStop(0.6, theme.palette.page)
+    gradient.addColorStop(1, '#f0e8d4')
+  } else if (theme.mode === 'frost') {
+    gradient.addColorStop(0, theme.palette.pageAlt)
+    gradient.addColorStop(0.5, theme.palette.page)
+    gradient.addColorStop(1, '#e8f0f6')
+  } else if (theme.mode === 'glass') {
+    // Layered diagonal gradient for glass effect
+    const glassGrad = ctx.createLinearGradient(0, 0, PAGE_WIDTH, PAGE_HEIGHT)
+    glassGrad.addColorStop(0, 'rgba(255,255,255,0.6)')
+    glassGrad.addColorStop(0.3, '#f5f0ff')
+    glassGrad.addColorStop(0.7, '#f8f5ff')
+    glassGrad.addColorStop(1, 'rgba(240,235,255,0.7)')
+    ctx.fillStyle = glassGrad
+    ctx.fill()
+    return
   } else if (theme.mode === 'swiss') {
     gradient.addColorStop(0, theme.palette.page)
     gradient.addColorStop(1, theme.palette.page)
@@ -338,9 +381,64 @@ function paintAtmosphere(
       1,
       theme.mode === 'archive'
         ? 'rgba(0,0,0,0.18)'
-        : 'rgba(0,0,0,0.24)',
+        : theme.mode === 'cyber'
+          ? 'rgba(0,0,0,0.35)'
+          : 'rgba(0,0,0,0.24)',
     )
     ctx.fillStyle = darkVignette
+    ctx.fillRect(0, 0, PAGE_WIDTH, PAGE_HEIGHT)
+  }
+
+  // Cyber scanlines
+  if (theme.mode === 'cyber') {
+    ctx.globalAlpha = 0.04
+    for (let y = 0; y < PAGE_HEIGHT; y += 4) {
+      ctx.fillStyle = '#00f0ff'
+      ctx.fillRect(0, y, PAGE_WIDTH, 2)
+    }
+    ctx.globalAlpha = theme.surface.washStrength
+  }
+
+  // Frost crystalline shimmer
+  if (isFrostTheme(theme)) {
+    ctx.globalAlpha = 0.06
+    ctx.fillStyle = theme.palette.accent
+    const cx = PAGE_WIDTH * 0.3
+    const cy = PAGE_HEIGHT * 0.25
+    for (let i = 0; i < 8; i++) {
+      const angle = (i / 8) * Math.PI * 2
+      const r = 80 + i * 28
+      ctx.beginPath()
+      ctx.arc(cx + Math.cos(angle) * r * 0.3, cy + Math.sin(angle) * r * 0.3, 3, 0, Math.PI * 2)
+      ctx.fill()
+    }
+    ctx.globalAlpha = theme.surface.washStrength
+  }
+
+  // Luxe gold foil specks
+  if (isLuxeTheme(theme)) {
+    ctx.globalAlpha = 0.08
+    ctx.fillStyle = theme.palette.accent
+    const seed = 42
+    for (let i = 0; i < 60; i++) {
+      const pseudoX = ((seed * (i + 1) * 17) % PAGE_WIDTH)
+      const pseudoY = ((seed * (i + 1) * 31) % PAGE_HEIGHT)
+      const size = (i % 3 === 0) ? 2.5 : 1.2
+      ctx.beginPath()
+      ctx.arc(pseudoX, pseudoY, size, 0, Math.PI * 2)
+      ctx.fill()
+    }
+    ctx.globalAlpha = theme.surface.washStrength
+  }
+
+  // Glass overlay — soft translucent gradient
+  if (isGlassTheme(theme)) {
+    const glassOverlay = ctx.createLinearGradient(0, 0, PAGE_WIDTH, PAGE_HEIGHT)
+    glassOverlay.addColorStop(0, 'rgba(255,255,255,0.25)')
+    glassOverlay.addColorStop(0.4, 'rgba(255,255,255,0.05)')
+    glassOverlay.addColorStop(0.6, 'rgba(108,92,231,0.04)')
+    glassOverlay.addColorStop(1, 'rgba(255,255,255,0.15)')
+    ctx.fillStyle = glassOverlay
     ctx.fillRect(0, 0, PAGE_WIDTH, PAGE_HEIGHT)
   }
 
@@ -369,18 +467,22 @@ function applyNoiseTexture(
   ctx: CanvasRenderingContext2D,
   theme: ThemeDefinition,
 ): void {
+  // Skip texture entirely for brutalist and glass themes
+  if (isBrutalTheme(theme) || isGlassTheme(theme)) return
   if (theme.surface.grainAlpha <= 0) return
 
   const [r, g, b] = hexToRgb(theme.palette.text)
   const density = isDigitalEditorTheme(theme)
     ? 760
     : isDarkTheme(theme)
-      ? 2200
+      ? (theme.mode === 'cyber' ? 900 : 2200)
       : theme.mode === 'vintage'
         ? 1700
         : theme.mode === 'paper'
           ? 1900
-          : 1500
+          : theme.mode === 'luxe' || theme.mode === 'frost'
+            ? 800
+            : 1500
 
   ctx.save()
   ctx.globalCompositeOperation = isDarkTheme(theme)
@@ -430,6 +532,78 @@ function applyNoiseTexture(
 // 6. Cover ornament
 // ═══════════════════════════════════════════════════════════════════════════
 
+// ── Gradient text title (cyber, glass themes) ────────────────────────────
+
+function drawGradientTitle(
+  ctx: CanvasRenderingContext2D,
+  titleLines: string[],
+  titleSize: number,
+  titleFontMode: TitleFontMode,
+  titleStartY: number,
+  titleLineHeight: number,
+  gradientColors: [string, string],
+  alignment: TitleAlignment,
+  custom?: TitleCustomization,
+): void {
+  ctx.save()
+
+  // Create gradient across full title area
+  const colors = gradientColors
+  const gradient = ctx.createLinearGradient(CONTENT_LEFT, titleStartY - titleSize * 0.3, CONTENT_RIGHT, titleStartY + titleLineHeight * titleLines.length)
+  gradient.addColorStop(0, colors[0])
+  gradient.addColorStop(0.5, colors[1])
+  gradient.addColorStop(1, colors[0])
+
+  ctx.fillStyle = gradient
+  ctx.globalCompositeOperation = 'source-over'
+
+  const weight = getTitleFontWeight(titleFontMode, custom)
+
+  for (let li = 0; li < titleLines.length; li++) {
+    const line = titleLines[li]!
+    const lineY = titleStartY + li * titleLineHeight
+
+    // Center the title for gradient themes
+    ctx.font = `${weight} ${titleSize}px ${resolveTitleFontFamily(titleFontMode, true)}`
+    let x = alignment === 'center' ? (PAGE_WIDTH - ctx.measureText(line).width) / 2 : CONTENT_LEFT
+
+    ctx.fillText(line, x, lineY)
+  }
+
+  ctx.restore()
+}
+
+// ── Drop cap rendering ──────────────────────────────────────────────────
+
+function drawDropCap(
+  ctx: CanvasRenderingContext2D,
+  firstChar: string,
+  restOfLine: string,
+  x: number,
+  y: number,
+  fontSize: number,
+  _lineHeight: number,
+  theme: ThemeDefinition,
+): number {
+  const dropCapSize = fontSize * 2.6
+  const dropCapColor = theme.palette.accent
+  const mode = theme.editor.titleFontMode
+
+  ctx.save()
+  ctx.fillStyle = hexToRgba(dropCapColor, 0.85)
+  ctx.font = `700 ${dropCapSize}px ${resolveTitleFontFamily(mode, /[A-Za-z]/.test(firstChar))}`
+  ctx.fillText(firstChar, x, y + dropCapSize * 0.7)
+
+  // Draw rest of line normally
+  const capWidth = ctx.measureText(firstChar).width + 6
+  ctx.fillStyle = theme.palette.text
+  ctx.font = `400 ${fontSize}px ${BODY_FONT_FAMILY}`
+  ctx.fillText(restOfLine, x + capWidth, y + fontSize * 0.84)
+
+  ctx.restore()
+  return capWidth
+}
+
 function drawCoverOrnament(
   ctx: CanvasRenderingContext2D,
   theme: ThemeDefinition,
@@ -437,7 +611,7 @@ function drawCoverOrnament(
   titleFontMode: TitleFontMode,
   alignment: TitleAlignment,
 ): void {
-  if (theme.mode === 'swiss' || isDigitalEditorTheme(theme)) return
+  if (theme.mode === 'swiss' || theme.mode === 'brutal' || theme.mode === 'cyber' || theme.mode === 'glass' || isDigitalEditorTheme(theme)) return
   ctx.save()
   ctx.fillStyle = isDarkTheme(theme)
     ? hexToRgba(theme.palette.text, 0.08)
@@ -472,6 +646,9 @@ function drawCoverOrnament(
 
 function getTitleFontWeight(mode: TitleFontMode, custom?: TitleCustomization): number {
   if (custom && custom.fontWeight > 0) return custom.fontWeight
+  if (mode === 'display') return 800
+  if (mode === 'handwriting') return 500
+  if (mode === 'monoTitle') return 700
   return mode === 'retroSerif' || mode === 'sans' || mode === 'puhuiti'
     ? 700
     : 600
@@ -480,6 +657,9 @@ function getTitleFontWeight(mode: TitleFontMode, custom?: TitleCustomization): n
 function getTitleTracking(size: number, mode: TitleFontMode, custom?: TitleCustomization): number {
   if (custom && custom.letterSpacing > 0) return custom.letterSpacing
   if (mode === 'retroSerif') return Math.max(2, size * 0.03)
+  if (mode === 'display') return Math.max(-1, -size * 0.01)
+  if (mode === 'handwriting') return Math.max(1, size * 0.015)
+  if (mode === 'monoTitle') return 0
   return 0
 }
 
@@ -871,11 +1051,12 @@ function drawColumnBlocks(
       const { height } = measureParagraphBlock(
         paraBlock, metrics.bodySize, metrics.bodyLineHeight,
         maxWidth, theme, settings.subheadingStyle,
+        metrics.bodyFontFamily,
       )
       drawInlineParagraph(
         ctx, paraBlock, x, cursorY,
         metrics.bodySize, metrics.bodyLineHeight, maxWidth,
-        theme, highlightStyle, settings.subheadingStyle,
+        theme, highlightStyle, settings.subheadingStyle, metrics.bodyFontFamily,
       )
       cursorY += height
       prevBlock = paraBlock
@@ -894,16 +1075,16 @@ function drawColumnBlocks(
       cursorY += m.height
       prevBlock = { kind: 'body', raw: '' }
     } else if (block.kind === 'table') {
-      const { totalHeight } = measureTableBlock(block, metrics.bodySize, metrics.bodyLineHeight)
+      const { totalHeight } = measureTableBlock(block, metrics.bodySize, metrics.bodyLineHeight, metrics.bodyFontFamily)
       const scaleFactor = Math.min(1, maxWidth / CONTENT_WIDTH)
       ctx.save()
       if (scaleFactor < 1) {
         ctx.scale(scaleFactor, 1)
         drawTableBlock(ctx, block, x / scaleFactor, cursorY,
-          metrics.bodySize, metrics.bodyLineHeight, theme)
+          metrics.bodySize, metrics.bodyLineHeight, theme, metrics.bodyFontFamily)
       } else {
         drawTableBlock(ctx, block, x, cursorY,
-          metrics.bodySize, metrics.bodyLineHeight, theme)
+          metrics.bodySize, metrics.bodyLineHeight, theme, metrics.bodyFontFamily)
       }
       ctx.restore()
       cursorY += totalHeight
@@ -935,6 +1116,7 @@ function drawInlineParagraph(
   theme: ThemeDefinition,
   highlightStyle: HighlightStyle,
   subheadingStyle: import('./types').SubheadingStyle,
+  fontFamily?: string,
 ): number {
   if (block.kind === 'divider') {
     const h = getDividerBlockHeight(fontSize)
@@ -1017,7 +1199,7 @@ function drawInlineParagraph(
       ctx.globalCompositeOperation = isDarkTheme(theme)
         ? ('screen' as GlobalCompositeOperation)
         : ('multiply' as GlobalCompositeOperation)
-      ctx.font = `${fontStyle}${weight} ${activeFontSize}px ${BODY_FONT_FAMILY}`
+      ctx.font = `${fontStyle}${weight} ${activeFontSize}px ${fontFamily ?? BODY_FONT_FAMILY}`
       ctx.fillStyle =
         isSubheading && subheadingStyle === 'accent'
           ? theme.palette.accent
@@ -1148,15 +1330,39 @@ export function renderCard(opts: RenderOptions): HTMLCanvasElement {
   const metrics = getPosterMetrics(page, settings, footerEnabled)
 
   // ── 1-3. Background + shape + clip ──
-  ctx.shadowColor = theme.palette.shadow
-  ctx.shadowBlur = theme.mode === 'swiss' ? 18 : 40
-  ctx.shadowOffsetY = theme.mode === 'swiss' ? 12 : 24
+  if (isBrutalTheme(theme)) {
+    // Brutalist: no shadow, thick border drawn after fill
+    ctx.shadowColor = 'transparent'
+    ctx.shadowBlur = 0
+    ctx.shadowOffsetY = 0
+  } else if (isGlassTheme(theme)) {
+    // Glass: extra glow
+    ctx.shadowColor = theme.palette.shadow
+    ctx.shadowBlur = 32
+    ctx.shadowOffsetY = 16
+  } else {
+    ctx.shadowColor = theme.palette.shadow
+    ctx.shadowBlur = theme.mode === 'swiss' ? 18 : 40
+    ctx.shadowOffsetY = theme.mode === 'swiss' ? 12 : 24
+  }
 
-  traceCardShape(ctx, 0, 0, PAGE_WIDTH, PAGE_HEIGHT, cardCornerMode, 36)
+  traceCardShape(ctx, 0, 0, PAGE_WIDTH, PAGE_HEIGHT, cardCornerMode,
+    isBrutalTheme(theme) ? 0 : 36)
   drawBackground(ctx, theme)
 
+  // Brutalist: draw thick border stroke
+  if (isBrutalTheme(theme)) {
+    ctx.save()
+    traceCardShape(ctx, 0, 0, PAGE_WIDTH, PAGE_HEIGHT, cardCornerMode, 0)
+    ctx.strokeStyle = theme.palette.border
+    ctx.lineWidth = 4
+    ctx.stroke()
+    ctx.restore()
+  }
+
   ctx.save()
-  traceCardShape(ctx, 0, 0, PAGE_WIDTH, PAGE_HEIGHT, cardCornerMode, 36)
+  traceCardShape(ctx, 0, 0, PAGE_WIDTH, PAGE_HEIGHT, cardCornerMode,
+    isBrutalTheme(theme) ? 0 : 36)
   ctx.clip()
   ctx.shadowColor = 'transparent'
   ctx.shadowBlur = 0
@@ -1169,6 +1375,9 @@ export function renderCard(opts: RenderOptions): HTMLCanvasElement {
   applyNoiseTexture(ctx, theme)
 
   ctx.restore()
+
+  // ── 6.5 Decor ornaments ──
+  drawDecor(ctx, theme, metrics.titleStartY + metrics.titleLineHeight * metrics.titleLines.length)
 
   // ── 7. Cover title ──
   if (page.kind === 'cover' && page.title.trim()) {
@@ -1201,6 +1410,25 @@ export function renderCard(opts: RenderOptions): HTMLCanvasElement {
     // Compute title X position from alignment
     const alignment = titleCustom.alignment
     drawCoverOrnament(ctx, theme, metrics, settings.titleFontMode, alignment)
+
+    // Gradient title for cyber and glass themes
+    if (theme.mode === 'cyber' || theme.mode === 'glass') {
+      drawGradientTitle(
+        ctx,
+        metrics.titleLines,
+        metrics.titleSize,
+        settings.titleFontMode,
+        metrics.titleStartY,
+        metrics.titleLineHeight,
+        theme.mode === 'cyber'
+          ? ['#00f0ff', '#b400ff']
+          : ['#6c5ce7', '#a29bfe'],
+        alignment,
+        titleCustom,
+      )
+      ctx.restore()
+      // Skip normal title rendering below
+    } else {
 
     ctx.save()
     ctx.globalCompositeOperation = isDarkTheme(theme)
@@ -1258,11 +1486,13 @@ export function renderCard(opts: RenderOptions): HTMLCanvasElement {
       )
     }
     ctx.restore()
+    } // end else (non-gradient title path)
   }
 
   // ── 8. Body blocks (dispatched by block kind) ──
   let paragraphY = metrics.bodyTopY
   let previousBlock: ParagraphBlock | null = null
+  let firstBodyDrawn = false
 
   for (let bi = 0; bi < page.blocks.length; bi++) {
     const paragraph = page.blocks[bi]!
@@ -1282,6 +1512,7 @@ export function renderCard(opts: RenderOptions): HTMLCanvasElement {
         metrics.bodyWidth,
         theme,
         settings.subheadingStyle,
+        metrics.bodyFontFamily,
       )
       const blockBottom = paragraphY + height
       if (blockBottom > metrics.bodyBottomY) return canvas
@@ -1289,8 +1520,21 @@ export function renderCard(opts: RenderOptions): HTMLCanvasElement {
       drawInlineParagraph(
         ctx, block, CONTENT_LEFT, paragraphY,
         metrics.bodySize, metrics.bodyLineHeight, metrics.bodyWidth,
-        theme, highlightStyle, settings.subheadingStyle,
+        theme, highlightStyle, settings.subheadingStyle, metrics.bodyFontFamily,
       )
+
+      // Drop cap for first body paragraph in luxe / botanical / ink-wash themes
+      if (!firstBodyDrawn && block.kind === 'body' && block.raw.length > 0 &&
+          (isLuxeTheme(theme) || theme.id === 'botanical-field' || theme.id === 'ink-wash')) {
+        const firstChar = Array.from(block.raw)[0] ?? ''
+        const restText = block.raw.length > 1 ? block.raw.slice(Array.from(block.raw)[0]!.length) : ''
+        if (firstChar && !/\s/.test(firstChar)) {
+          drawDropCap(ctx, firstChar, restText.slice(0, 40),
+            CONTENT_LEFT, paragraphY, metrics.bodySize, metrics.bodyLineHeight, theme)
+        }
+        firstBodyDrawn = true
+      }
+
       paragraphY = blockBottom
       previousBlock = block
       continue
@@ -1310,12 +1554,12 @@ export function renderCard(opts: RenderOptions): HTMLCanvasElement {
 
     // ── Table blocks ──────────────────────────────────────────────
     if (paragraph.kind === 'table') {
-      const { totalHeight } = measureTableBlock(paragraph, metrics.bodySize, metrics.bodyLineHeight)
+      const { totalHeight } = measureTableBlock(paragraph, metrics.bodySize, metrics.bodyLineHeight, metrics.bodyFontFamily)
       const blockBottom = blockTopWithGap + totalHeight
       if (blockBottom > metrics.bodyBottomY && page.blocks.indexOf(paragraph) > 0) break
       paragraphY = blockTopWithGap
       const drawnH = drawTableBlock(ctx, paragraph, CONTENT_LEFT, paragraphY,
-        metrics.bodySize, metrics.bodyLineHeight, theme)
+        metrics.bodySize, metrics.bodyLineHeight, theme, metrics.bodyFontFamily)
       paragraphY += drawnH
       previousBlock = { kind: 'body', raw: '' }
       continue

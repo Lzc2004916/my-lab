@@ -4,11 +4,11 @@
 
 // ── Theme mode ────────────────────────────────────────────────────────────
 
-export type ThemeMode = 'paper' | 'sage' | 'vintage' | 'obsidian' | 'archive' | 'swiss'
+export type ThemeMode = 'paper' | 'sage' | 'vintage' | 'obsidian' | 'archive' | 'swiss' | 'cyber' | 'glass' | 'brutal' | 'luxe' | 'frost'
 
 // ── Title font modes ──────────────────────────────────────────────────────
 
-export type TitleFontMode = 'serif' | 'kai' | 'sans' | 'puhuiti' | 'retroSerif'
+export type TitleFontMode = 'serif' | 'kai' | 'sans' | 'puhuiti' | 'retroSerif' | 'display' | 'handwriting' | 'monoTitle'
 
 // ── Subheading style ──────────────────────────────────────────────────────
 
@@ -141,6 +141,21 @@ export interface ThemeEditor {
   highlightStyle: HighlightStyle
 }
 
+// ── Decor ornament system ──────────────────────────────────────────────────
+
+export type DecorKind = 'none' | 'cornerBracket' | 'topRule' | 'watermark' | 'geometricPattern' | 'leafMotif' | 'circuitTrace' | 'goldFoil' | 'auroraGlow'
+
+export interface ThemeDecor {
+  /** Which ornament to render */
+  kind: DecorKind
+  /** Opacity multiplier (0-1) */
+  opacity: number
+  /** Optional override color (uses theme accent if empty) */
+  color?: string
+  /** Scale factor (1 = default) */
+  scale?: number
+}
+
 export interface ThemeDefinition {
   id: string
   name: string
@@ -153,6 +168,10 @@ export interface ThemeDefinition {
   surface: ThemeSurface
   components: ThemeComponents
   editor: ThemeEditor
+  /** Theme category for grouping in the selector UI */
+  category?: 'light' | 'dark' | 'artistic' | 'professional'
+  /** Decorative ornament configuration */
+  decor?: ThemeDecor
 }
 
 // ── Card page ─────────────────────────────────────────────────────────────
@@ -171,6 +190,7 @@ export interface TypographySettings {
   bodySize: number
   lineHeight: number
   titleFontMode: TitleFontMode
+  bodyFontMode: BodyFontMode
   subheadingStyle: SubheadingStyle
   titleCustom: TitleCustomization
 }
@@ -275,6 +295,7 @@ export interface PosterMetrics {
   bodySize: number
   bodyLineHeight: number
   bodyParagraphGap: number
+  bodyFontFamily: string
   titleLines: string[]
   titleAccentRanges: TextRange[]
   titleStartY: number
@@ -391,6 +412,26 @@ export const SUBHEADING_TEXT_WEIGHT = 600
 export const BODY_FONT_FAMILY =
   '"LXGW WenKai","Noto Serif SC","Songti SC","SimSun",serif'
 
+// ── Body font modes ─────────────────────────────────────────────────────
+
+export type BodyFontMode = 'wenkai' | 'yahei' | 'simsun' | 'kaiti' | 'dengxian' | 'fangsong'
+
+export const BODY_FONT_MODES: Record<BodyFontMode, { family: string; label: string }> = {
+  wenkai:   { family: '"LXGW WenKai","KaiTi","STKaiti",serif',                       label: '霞鹜文楷' },
+  yahei:    { family: '"Microsoft YaHei","PingFang SC","Helvetica Neue",sans-serif', label: '微软雅黑' },
+  simsun:   { family: '"SimSun","Songti SC","Noto Serif SC",serif',                  label: '宋体' },
+  kaiti:    { family: '"KaiTi","STKaiti","LXGW WenKai",serif',                       label: '楷体' },
+  dengxian: { family: '"DengXian","PingFang SC","Microsoft YaHei",sans-serif',       label: '等线' },
+  fangsong: { family: '"FangSong","STFangsong","Noto Serif SC",serif',               label: '仿宋' },
+}
+
+export const DEFAULT_BODY_FONT_MODE: BodyFontMode = 'wenkai'
+
+/** Resolve a body font mode to its CSS font-family string. */
+export function getBodyFontFamily(mode: BodyFontMode): string {
+  return BODY_FONT_MODES[mode]?.family ?? BODY_FONT_MODES[DEFAULT_BODY_FONT_MODE].family
+}
+
 export const FOOTER_FONT_FAMILY =
   '"LXGW WenKai","Noto Serif SC","PingFang SC","Microsoft YaHei",sans-serif'
 
@@ -423,6 +464,21 @@ export const TITLE_FONT_MODES: Record<
     family: '"Noto Serif SC","Songti SC","SimSun",serif',
     latinFamily: '"Playfair Display","Cormorant Garamond","Times New Roman",serif',
     tracking: 2,
+  },
+  display: {
+    family: '"PingFang SC","Microsoft YaHei","Helvetica Neue",sans-serif',
+    latinFamily: '"Inter","Helvetica Neue","Arial Black",sans-serif',
+    tracking: -1,
+  },
+  handwriting: {
+    family: '"KaiTi","STKaiti","LXGW WenKai",cursive',
+    latinFamily: '"Caveat","Dancing Script","Brush Script MT",cursive',
+    tracking: 1,
+  },
+  monoTitle: {
+    family: '"JetBrains Mono","Cascadia Code","SF Mono","Consolas",monospace',
+    latinFamily: '"JetBrains Mono","Cascadia Code","SF Mono","Consolas",monospace',
+    tracking: 0,
   },
 }
 

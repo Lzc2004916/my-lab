@@ -26,6 +26,7 @@ export function measureTableBlock(
   block: TableDisplayBlock,
   fontSize: number,
   lineHeight: number,
+  fontFamily?: string,
 ): { colWidths: number[]; rowHeights: number[]; totalWidth: number; totalHeight: number } {
   const numCols = block.headers.length
   if (numCols === 0) {
@@ -40,7 +41,7 @@ export function measureTableBlock(
     for (let ci = 0; ci < Math.min(numCols, row.length); ci++) {
       const cellText = row[ci] ?? ''
       // Use measure canvas for accurate width
-      const font = `${BODY_BOLD_WEIGHT} ${fontSize}px ${BODY_FONT_FAMILY}`
+      const font = `${BODY_BOLD_WEIGHT} ${fontSize}px ${fontFamily ?? BODY_FONT_FAMILY}`
       const ctx = document.createElement('canvas').getContext('2d')
       if (ctx) {
         ctx.font = font
@@ -114,17 +115,18 @@ export function drawTableBlock(
   fontSize: number,
   lineHeight: number,
   theme: ThemeDefinition,
+  fontFamily?: string,
 ): number {
   const numCols = block.headers.length
   if (numCols === 0) return 0
 
   // Ensure measurements are computed
   const colWidths = block.colWidths ?? (() => {
-    const m = measureTableBlock(block, fontSize, lineHeight)
+    const m = measureTableBlock(block, fontSize, lineHeight, fontFamily)
     return m.colWidths
   })()
   const rowHeights = block.rowHeights ?? (() => {
-    const m = measureTableBlock(block, fontSize, lineHeight)
+    const m = measureTableBlock(block, fontSize, lineHeight, fontFamily)
     return m.rowHeights
   })()
   const totalWidth = colWidths.reduce((a: number, b: number) => a + b, 0)
@@ -150,7 +152,7 @@ export function drawTableBlock(
     const fontWeight = isBold ? BODY_BOLD_WEIGHT : BODY_TEXT_WEIGHT
 
     ctx.save()
-    ctx.font = `${fontWeight} ${fontSize}px ${BODY_FONT_FAMILY}`
+    ctx.font = `${fontWeight} ${fontSize}px ${fontFamily ?? BODY_FONT_FAMILY}`
     ctx.fillStyle = theme.palette.text
     ctx.textBaseline = 'alphabetic'
 

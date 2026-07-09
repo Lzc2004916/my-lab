@@ -1,9 +1,9 @@
 <template>
-  <div class="h-dvh flex flex-col overflow-hidden bg-base-200">
+  <div class="h-screen flex flex-col overflow-hidden bg-base-200">
     <!-- ═══ Navbar (draggable) ═══════════════════════════════════════ -->
     <div class="navbar bg-base-100 border-b border-base-300/60 z-20 shrink-0 min-h-0 py-0 h-11">
       <div class="navbar-start">
-        <span class="text-primary font-bold text-lg ml-2 tracking-tight">{{ t('app.title') }}</span>
+        <span class="text-primary font-bold text-lg ml-2 tracking-tight">Markdown Card</span>
       </div>
 
       <div class="navbar-center flex items-center gap-0.5">
@@ -24,34 +24,35 @@
 
         <!-- Export -->
         <div class="dropdown">
-          <label tabindex="0" class="btn btn-sm btn-ghost text-xs h-7 min-h-0">
-            {{ t('nav.export') }}
-            <svg class="w-3 h-3 ml-1 opacity-50" viewBox="0 0 10 6"><path d="M0 0l5 6 5-6z" fill="currentColor"/></svg>
+          <label tabindex="0" class="btn btn-sm btn-ghost text-xs h-7 min-h-0 gap-1">
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            导出
+            <svg class="w-3 h-3 ml-0.5 opacity-50" viewBox="0 0 10 6"><path d="M0 0l5 6 5-6z" fill="currentColor"/></svg>
           </label>
           <ul tabindex="0" class="dropdown-content menu p-1.5 shadow bg-base-200 rounded-box w-44 z-50 text-sm">
-            <li><a @click="handleBatchExportPNG">{{ t('export.batchPNG') }}</a></li>
-            <li><a @click="handleBatchExportJPG">{{ t('export.batchJPG') }}</a></li>
+            <li><a @click="handleBatchExportPNG">批量导出 PNG</a></li>
+            <li><a @click="handleBatchExportJPG">批量导出 JPG</a></li>
             <li class="menu-divider" role="separator"></li>
-            <li><a @click="handleExportPDF">{{ t('export.pdf') }}</a></li>
+            <li><a @click="handleExportPDF">PDF 文档</a></li>
           </ul>
         </div>
       </div>
 
       <div class="navbar-end">
         <!-- Window controls (frameless) -->
-        <div class="flex items-center h-full win-controls" role="group" :aria-label="isMaximized ? t('window.restore') : t('window.maximize')">
+        <div class="flex items-center h-full win-controls" role="group" :aria-label="isMaximized ? '还原' : '最大化'">
           <button
             class="win-btn win-btn--minimize"
-            :aria-label="t('window.minimize')"
-            :title="t('window.minimize')"
+            aria-label="最小化"
+            title="最小化"
             @click="handleMinimize"
           >
             <svg class="w-3.5 h-3.5" viewBox="0 0 12 12" aria-hidden="true"><rect x="1" y="5.5" width="10" height="1" fill="currentColor"/></svg>
           </button>
           <button
             class="win-btn win-btn--maximize"
-            :aria-label="isMaximized ? t('window.restore') : t('window.maximize')"
-            :title="isMaximized ? t('window.restore') : t('window.maximize')"
+            :aria-label="isMaximized ? '还原' : '最大化'"
+            :title="isMaximized ? '还原' : '最大化'"
             @click="handleToggleMaximize"
           >
             <svg v-if="!isMaximized" class="w-3.5 h-3.5" viewBox="0 0 12 12" aria-hidden="true"><rect x="1.5" y="1.5" width="9" height="9" rx="1" fill="none" stroke="currentColor" stroke-width="1.2"/></svg>
@@ -59,8 +60,8 @@
           </button>
           <button
             class="win-btn win-btn--close"
-            :aria-label="t('window.close')"
-            :title="t('window.close')"
+            aria-label="关闭"
+            title="关闭"
             @click="handleCloseRequest"
           >
             <svg class="w-3.5 h-3.5" viewBox="0 0 12 12" aria-hidden="true"><path d="M1 1l10 10M11 1L1 11" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
@@ -72,20 +73,10 @@
     <!-- ═══ Control bar ═══════════════════════════════════════════════ -->
     <div class="bg-base-100/70 border-b border-base-300/60 select-none shadow-sm">
       <!-- Row 1: Quick settings ────────────────────────────────────── -->
-      <div class="flex items-center gap-x-3 gap-y-1 px-4 py-2 flex-wrap">
-        <!-- Card Theme -->
-        <div class="flex items-center gap-1.5">
-          <span class="text-[10px] font-semibold text-base-content/35 uppercase tracking-widest whitespace-nowrap">{{ t('nav.cardTheme') }}</span>
-          <select v-model="cardTheme" class="select select-sm select-bordered w-36 text-xs h-7 min-h-0">
-            <option v-for="t in CARD_THEMES" :key="t.id" :value="t.id">{{ t.name }}</option>
-          </select>
-        </div>
-
-        <span class="w-px h-4 bg-base-300/60"></span>
-
+      <div class="flex items-center gap-x-4 gap-y-1 px-4 py-2 flex-wrap">
         <!-- Body font size -->
-        <div class="flex items-center gap-1">
-          <span class="text-xs text-base-content/50 whitespace-nowrap">{{ t('settings.bodyFontSize') }}</span>
+        <div class="flex items-center gap-1.5">
+          <span class="text-xs text-base-content/50 whitespace-nowrap">正文字号</span>
           <input
             v-model.number="bodyFontSize"
             type="range" min="20" max="40" step="1"
@@ -94,8 +85,11 @@
           <span class="text-xs tabular-nums w-6 text-right text-base-content/60">{{ bodyFontSize }}</span>
         </div>
 
+        <span class="w-px h-4 bg-base-300/50"></span>
+
         <!-- Highlight style -->
-        <div class="flex items-center gap-1">
+        <div class="flex items-center gap-1.5">
+          <span class="text-xs text-base-content/50 whitespace-nowrap">高亮</span>
           <div class="join">
             <button
               v-for="hs in HIGHLIGHT_STYLES"
@@ -109,6 +103,8 @@
           </div>
         </div>
 
+        <span class="w-px h-4 bg-base-300/50"></span>
+
         <!-- Footer toggle -->
         <div class="flex items-center gap-1">
           <label class="flex items-center gap-1.5 cursor-pointer">
@@ -117,25 +113,26 @@
           </label>
         </div>
 
-        <span class="w-px h-4 bg-base-300/60"></span>
-
-        <!-- Language -->
-        <div class="flex items-center gap-1">
-          <div class="join">
-            <button
-              v-for="lang in LANGUAGES"
-              :key="lang.code"
-              class="btn btn-sm join-item px-3 h-7 min-h-0 text-xs"
-              :class="{ 'btn-primary': currentLang === lang.code, 'btn-ghost': currentLang !== lang.code }"
-              @click="switchLanguage(lang.code)"
-            >
-              {{ t(lang.labelKey) }}
-            </button>
-          </div>
-        </div>
-
         <!-- Spacer -->
         <div class="flex-1"></div>
+
+        <!-- Content Font — inline dropdown -->
+        <FontPicker v-model="bodyFontMode" :fonts="BODY_FONT_OPTIONS" />
+
+        <span class="w-px h-4 bg-base-300/50"></span>
+
+        <!-- Card Theme toggle -->
+        <button
+          class="btn btn-sm btn-ghost text-base-content/50 gap-1.5 h-7 min-h-0 text-xs"
+          @click="showThemePanel = !showThemePanel"
+        >
+          <span>卡片主题</span>
+          <svg
+            class="w-3 h-3 transition-transform duration-200"
+            :class="{ 'rotate-180': showThemePanel }"
+            viewBox="0 0 10 6"
+          ><path d="M0 0l5 6 5-6z" fill="currentColor"/></svg>
+        </button>
 
         <!-- Title settings toggle -->
         <button
@@ -149,6 +146,16 @@
             viewBox="0 0 10 6"
           ><path d="M0 0l5 6 5-6z" fill="currentColor"/></svg>
         </button>
+      </div>
+
+      <!-- Row 1b: Card Theme selector (collapsible) ──────────────────── -->
+      <div
+        class="border-t border-base-300/40 bg-base-200/50"
+        :class="showThemePanel ? '' : 'hidden'"
+      >
+        <div class="px-4 pt-2.5 pb-2.5">
+          <ThemeSelector v-model="cardTheme" :themes="THEMES" />
+        </div>
       </div>
 
       <!-- Row 2: Title customization (collapsible) ──────────────────── -->
@@ -182,7 +189,7 @@
               id="title-error-msg"
               role="alert"
               class="text-[10px] text-error leading-none pl-0.5"
-            >{{ t('validation.titleMaxLength') }}</p>
+            >标题长度不能超过35字符</p>
           </div>
           <button
             class="btn btn-sm btn-ghost text-base-content/40 h-7 min-h-0 text-xs shrink-0"
@@ -190,16 +197,13 @@
           >↺ 重置</button>
         </div>
 
+        <!-- Title font selector -->
+        <div class="px-4 pb-1.5">
+          <FontPicker v-model="titleFontMode" :fonts="BODY_FONT_OPTIONS" label="标题字体" />
+        </div>
+
         <!-- Formatting controls — compact row below -->
         <div class="flex items-center gap-x-3 gap-y-1 px-4 pb-2 flex-wrap">
-          <!-- Font mode -->
-          <div class="flex items-center gap-1">
-            <span class="text-xs text-base-content/50">字体</span>
-            <select v-model="titleFontMode" class="select select-sm select-bordered w-20 text-xs h-7 min-h-0">
-              <option v-for="opt in TITLE_FONT_OPTIONS" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
-            </select>
-          </div>
-
           <!-- Font size -->
           <div class="flex items-center gap-1">
             <span class="text-xs text-base-content/50">字号</span>
@@ -269,7 +273,7 @@
     <div class="flex-1 flex overflow-hidden">
       <!-- Left: Editor -->
       <div
-        class="flex flex-col overflow-hidden border-r border-base-300"
+        class="flex flex-col overflow-hidden border-r border-base-300 min-w-[200px]"
         :style="{ flexBasis: split + '%' }"
       >
         <EditorToolbar @insert="onToolbarInsert" @command="onToolbarCommand" />
@@ -291,10 +295,9 @@
         @mousedown="onDragStart"
       ></div>
 
-      <!-- Right: Preview -->
+      <!-- Right: Preview — fills remaining space after left panel + drag bar -->
       <div
-        class="flex-1 min-h-0 overflow-auto bg-base-200/60 bg-dot-pattern"
-        :style="{ flexBasis: (100 - split) + '%', minWidth: '300px' }"
+        class="flex-1 min-w-[300px] min-h-0 overflow-auto bg-base-200/60 bg-dot-pattern"
       >
         <CardPreview
           ref="cardPreviewRef"
@@ -312,8 +315,8 @@
     <!-- ═══ Status bar ═══════════════════════════════════════════════ -->
     <div class="h-8 shrink-0 flex items-center justify-between px-4 text-xs bg-base-100/80 backdrop-blur-sm text-base-content/50 border-t border-base-300/60 select-none">
       <span class="tabular-nums flex items-center gap-3">
-        <span>{{ t('status.words') }}: {{ wordCount }}</span>
-        <span>{{ t('status.lines') }}: {{ lineCount }}</span>
+        <span>字数: {{ wordCount }}</span>
+        <span>行数: {{ lineCount }}</span>
         <template v-if="activeTags.length > 0">
           <span v-for="tag in activeTags" :key="tag" class="badge badge-xs badge-ghost">{{ tag }}</span>
         </template>
@@ -329,10 +332,10 @@
       </span>
       <span class="flex items-center gap-3">
         <span v-if="pageCount > 1" class="tabular-nums">
-          {{ t('status.page', { current: currentPage + 1, total: pageCount }) }}
+          第 {{ currentPage + 1 }} / {{ pageCount }} 页
         </span>
-        <span class="tabular-nums">{{ t('status.theme') }}: {{ editorTheme }}</span>
-        <span class="tabular-nums">{{ t('status.split') }}: {{ split }}%</span>
+        <span class="tabular-nums">卡片: {{ currentCardThemeName }}</span>
+        <span class="tabular-nums">分栏: {{ split }}%</span>
       </span>
     </div>
 
@@ -347,27 +350,27 @@
     <dialog
       ref="closeDialogRef"
       class="modal"
-      :aria-label="t('window.closeTitle')"
+      aria-label="确认关闭"
       @close="onCloseDialogDismiss"
     >
       <div class="modal-box w-96 max-w-[90vw]">
-        <h3 id="close-dialog-title" class="font-bold text-base mb-3">{{ t('window.closeTitle') }}</h3>
-        <p class="text-sm text-base-content/70 mb-5">{{ t('window.closeMessage') }}</p>
+        <h3 id="close-dialog-title" class="font-bold text-base mb-3">确认关闭</h3>
+        <p class="text-sm text-base-content/70 mb-5">确定要关闭窗口吗？未保存的更改将丢失。</p>
         <div class="modal-action mt-0 gap-2">
           <button
             ref="cancelBtnRef"
             class="btn btn-sm btn-ghost"
             @click="handleCancelClose"
-          >{{ t('window.cancel') }}</button>
+          >取消</button>
           <button
             ref="confirmBtnRef"
             class="btn btn-sm btn-error"
             @click="handleConfirmClose"
-          >{{ t('window.confirmClose') }}</button>
+          >确定关闭</button>
         </div>
       </div>
       <form method="dialog" class="modal-backdrop">
-        <button>{{ t('window.cancel') }}</button>
+        <button>取消</button>
       </form>
     </dialog>
   </div>
@@ -375,7 +378,6 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
-import { useI18n } from 'vue-i18n'
 import type { EditorView } from '@codemirror/view'
 import MarkdownEditor from '@/components/editor/MarkdownEditor.vue'
 import EditorToolbar from '@/components/editor/EditorToolbar.vue'
@@ -386,15 +388,13 @@ import { useMarkdown } from '@/composables/useMarkdown'
 import { useExport } from '@/composables/useExport'
 import { useDocumentsStore } from '@/stores/documents'
 import { useDrafts, type AppSettings } from '@/composables/useDrafts'
-import { THEMES } from '@/card'
+import { THEMES, BODY_FONT_MODES, type BodyFontMode } from '@/card'
 import DraftRecoveryModal from '@/components/DraftRecoveryModal.vue'
 import LoadingSpinner from '@/components/LoadingSpinner.vue'
+import ThemeSelector from '@/components/ThemeSelector.vue'
+import FontPicker from '@/components/FontPicker.vue'
 import type { TypographySettings, HighlightStyle, TitleFontMode, SubheadingStyle, TitleCustomization, TitleAlignment } from '@/card'
 import { DEFAULT_TITLE_CUSTOM } from '@/card'
-
-// ── i18n ────────────────────────────────────────────────────────────────
-
-const { t, locale } = useI18n()
 
 // ── Theme configs ───────────────────────────────────────────────────────
 
@@ -407,27 +407,15 @@ const editorThemeLabel = computed(
   () => EDITOR_THEMES.find((t) => t.value === editorTheme.value)?.label ?? 'Dark',
 )
 
-// Card themes from the canvas engine
-const CARD_THEMES = THEMES.map((t) => ({ id: t.id, name: t.name }))
+const currentCardThemeName = computed(
+  () => THEMES.find((t) => t.id === cardTheme.value)?.name ?? '苔绿纸书',
+)
 
 const HIGHLIGHT_STYLES: { value: HighlightStyle; label: string }[] = [
   { value: 'underline', label: '下划线' },
   { value: 'marker', label: '荧光笔' },
   { value: 'border', label: '边框' },
 ]
-
-const LANGUAGES = [
-  { code: 'zh', labelKey: 'settings.languageOptions.zh' },
-  { code: 'en', labelKey: 'settings.languageOptions.en' },
-] as const
-
-const currentLang = ref<string>(localStorage.getItem('lang') || locale.value || 'zh')
-
-function switchLanguage(lang: string): void {
-  currentLang.value = lang
-  locale.value = lang
-  localStorage.setItem('lang', lang)
-}
 
 // ── Document store ──────────────────────────────────────────────────────
 
@@ -470,9 +458,17 @@ const activeTags = computed<string[]>(() => store.activeDocument?.tags ?? [])
 
 const editorTheme = ref<string>('one-dark')
 const cardTheme = ref<string>('moss-paper')
+const bodyFontMode = ref<BodyFontMode>('wenkai')
+
+const BODY_FONT_OPTIONS = Object.entries(BODY_FONT_MODES).map(([id, def]) => ({
+  id,
+  label: def.label,
+  family: def.family,
+}))
 
 // ── UI state ─────────────────────────────────────────────────────────────
 
+const showThemePanel = ref<boolean>(false)
 const showTitlePanel = ref<boolean>(false)
 
 // ── Card rendering settings ─────────────────────────────────────────────
@@ -571,19 +567,22 @@ onMounted(() => {
   initWindowControls()
 })
 
-const titleFontMode = ref<TitleFontMode>('serif')
+/** Map body font mode to the closest title font mode (for the rendering engine). */
+const BODY_TO_TITLE_FONT: Record<BodyFontMode, TitleFontMode> = {
+  wenkai: 'kai',
+  yahei: 'sans',
+  simsun: 'serif',
+  kaiti: 'kai',
+  dengxian: 'sans',
+  fangsong: 'serif',
+}
+
+const titleFontMode = ref<BodyFontMode>('kaiti')
+
 const titleColor = ref<string>('')
 const titleAlignment = ref<TitleAlignment>('left')
 const titleWeight = ref<number>(0)
 const titleSpacing = ref<number>(0)
-
-const TITLE_FONT_OPTIONS: { value: TitleFontMode; label: string }[] = [
-  { value: 'serif', label: '衬线' },
-  { value: 'kai', label: '楷体' },
-  { value: 'sans', label: '黑体' },
-  { value: 'puhuiti', label: '普惠体' },
-  { value: 'retroSerif', label: '复古' },
-]
 
 const TITLE_ALIGN_OPTIONS: { value: TitleAlignment; label: string; icon: string }[] = [
   { value: 'left', label: '左对齐', icon: '⫷' },
@@ -602,7 +601,8 @@ const typography = computed<TypographySettings>(() => ({
   titleSize: titleFontSize.value,
   bodySize: bodyFontSize.value,
   lineHeight: 1.84,
-  titleFontMode: titleFontMode.value,
+  titleFontMode: BODY_TO_TITLE_FONT[titleFontMode.value] ?? 'serif',
+  bodyFontMode: bodyFontMode.value,
   subheadingStyle: 'large' as SubheadingStyle,
   titleCustom: titleCustom.value,
 }))
@@ -641,16 +641,17 @@ function collectSettings(): AppSettings {
     manualTitle: manualTitle.value,
     editorTheme: editorTheme.value,
     cardTheme: cardTheme.value,
+    bodyFontMode: bodyFontMode.value,
+    titleFontMode: titleFontMode.value,
     titleFontSize: titleFontSize.value,
     bodyFontSize: bodyFontSize.value,
     highlightStyle: highlightStyle.value,
     footerEnabled: footerEnabled.value,
-    titleFontMode: titleFontMode.value,
     titleColor: titleColor.value,
     titleAlignment: titleAlignment.value,
     titleWeight: titleWeight.value,
+    showThemePanel: showThemePanel.value,
     showTitlePanel: showTitlePanel.value,
-    currentLang: currentLang.value,
     split: split.value,
   }
 }
@@ -660,25 +661,26 @@ function applySettings(s: AppSettings): void {
   manualTitle.value = s.manualTitle
   editorTheme.value = s.editorTheme
   cardTheme.value = s.cardTheme
+  bodyFontMode.value = (s.bodyFontMode as BodyFontMode) || 'wenkai'
+  titleFontMode.value = (s.titleFontMode as BodyFontMode) || 'kaiti'
   titleFontSize.value = s.titleFontSize
   bodyFontSize.value = s.bodyFontSize
   highlightStyle.value = s.highlightStyle as HighlightStyle
   footerEnabled.value = s.footerEnabled
-  titleFontMode.value = s.titleFontMode as TitleFontMode
   titleColor.value = s.titleColor
   titleAlignment.value = s.titleAlignment as TitleAlignment
   titleWeight.value = s.titleWeight
+  showThemePanel.value = s.showThemePanel
   showTitlePanel.value = s.showTitlePanel
-  if (s.currentLang && s.currentLang !== currentLang.value) switchLanguage(s.currentLang)
   split.value = s.split
 }
 
 // Auto-persist whenever any setting changes (1s debounce inside saveSettings)
 watch(
   [
-    manualTitle, editorTheme, cardTheme, titleFontSize, bodyFontSize,
-    highlightStyle, footerEnabled, titleFontMode, titleColor, titleAlignment,
-    titleWeight, showTitlePanel, currentLang, split,
+    manualTitle, editorTheme, cardTheme, bodyFontMode, titleFontMode, titleFontSize, bodyFontSize,
+    highlightStyle, footerEnabled, titleColor, titleAlignment,
+    titleWeight, showThemePanel, showTitlePanel, split,
   ],
   () => saveSettings(collectSettings()),
 )

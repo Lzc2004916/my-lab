@@ -10,8 +10,8 @@
             </svg>
           </label>
           <ul tabindex="0" class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52">
-            <li><router-link :to="{ name: 'home' }">{{ $t('nav.home') }}</router-link></li>
-            <li><router-link :to="{ name: 'editor' }">{{ $t('nav.editor') }}</router-link></li>
+            <li><router-link :to="{ name: 'home' }">首页</router-link></li>
+            <li><router-link :to="{ name: 'editor' }">编辑器</router-link></li>
           </ul>
         </div>
         <router-link :to="{ name: 'home' }" class="btn btn-ghost text-lg tracking-tight h-8 min-h-0">
@@ -26,7 +26,7 @@
               class="px-3 py-1.5 text-[13px] rounded-md transition-colors leading-none"
               :class="$route.name === 'home' ? 'text-base-content font-medium bg-base-200/80' : 'text-base-content/60 hover:text-base-content hover:bg-base-200/40'"
             >
-              {{ $t('nav.home') }}
+              首页
             </router-link>
           </li>
           <li>
@@ -35,26 +35,12 @@
               class="px-3 py-1.5 text-[13px] rounded-md transition-colors leading-none"
               :class="$route.name === 'editor' ? 'text-base-content font-medium bg-base-200/80' : 'text-base-content/60 hover:text-base-content hover:bg-base-200/40'"
             >
-              {{ $t('nav.editor') }}
+              编辑器
             </router-link>
           </li>
         </ul>
       </div>
-      <div class="navbar-end">
-        <div class="dropdown dropdown-end">
-          <label tabindex="0" class="btn btn-ghost btn-circle btn-sm h-8 w-8 min-h-0">
-            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="12" r="10"/>
-              <line x1="2" y1="12" x2="22" y2="12"/>
-              <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
-            </svg>
-          </label>
-          <ul tabindex="0" class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-40">
-            <li><a :class="{ active: appStore.locale === 'en' }" @click="switchLocale('en')">English</a></li>
-            <li><a :class="{ active: appStore.locale === 'zh' }" @click="switchLocale('zh')">中文</a></li>
-          </ul>
-        </div>
-      </div>
+      <div class="navbar-end"></div>
     </div>
 
     <!-- Main Content -->
@@ -72,14 +58,7 @@
 </template>
 
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n'
 import { useAppStore } from '@/stores/app'
 
-const { locale } = useI18n()
 const appStore = useAppStore()
-
-function switchLocale(lang: string) {
-  locale.value = lang
-  appStore.setLocale(lang)
-}
 </script>

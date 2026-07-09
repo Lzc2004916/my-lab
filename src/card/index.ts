@@ -10,6 +10,8 @@ export type {
   ThemeComponents,
   ThemeEditor,
   ThemeMode,
+  ThemeDecor,
+  DecorKind,
   CardPage,
   TypographySettings,
   TitleAlignment,
@@ -31,6 +33,7 @@ export type {
   RenderOptions,
   LayoutOptions,
   TitleFontMode,
+  BodyFontMode,
   SubheadingStyle,
   HighlightStyle,
   HighlightTreatment,
@@ -39,7 +42,7 @@ export type {
   FooterRightMode,
 } from './types'
 
-export { DEFAULT_TITLE_CUSTOM } from './types'
+export { DEFAULT_TITLE_CUSTOM, BODY_FONT_MODES, DEFAULT_BODY_FONT_MODE, getBodyFontFamily } from './types'
 
 export {
   PAGE_WIDTH,
@@ -57,6 +60,27 @@ export {
 
 // Themes
 export { THEMES, DEFAULT_THEME_ID, getTheme } from './themes'
+
+// Dynamic theme registry
+export {
+  registerTheme,
+  unregisterTheme,
+  getTheme as getThemeFromRegistry,
+  getAllThemes,
+  hasTheme,
+  getThemeCount,
+  onRegistryChange,
+  resetRegistry,
+} from './theme-registry'
+
+// Theme JSON config
+export {
+  validateThemeConfig,
+  loadThemeFromJSON,
+  loadThemesFromJSON,
+  themeToJSON,
+} from './theme-config'
+export type { ValidationResult, ThemeConfigJSON } from './theme-config'
 
 // Engine
 export { renderAllPages, renderAllPagesAsync, canvasToPreviewUrl, canvasToExportUrl } from './engine'

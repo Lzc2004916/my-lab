@@ -23,6 +23,8 @@ import {
   measureParagraphBlock,
   getParagraphMaxLines,
 } from './measure'
+import { measureCodeBlock } from './code-renderer'
+import { getBodyFontFamily } from './types'
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Markdown block classification
@@ -447,10 +449,18 @@ function estimateBlockHeight(block: Block, bodySize: number): number {
   switch (block.kind) {
     case 'code': {
       const cb = block as CodeBlock
-      const lineCount = cb.code.split('\n').length
-      const monoSize = bodySize * 0.92
-      const monoLineHeight = monoSize * 1.5
-      return 32 + lineCount * monoLineHeight
+      // Use measureCodeBlock which now accounts for line wrapping.
+      // This ensures the layout engine and renderer agree on height.
+      try {
+        const { height } = measureCodeBlock(cb, bodySize)
+        return height
+      } catch {
+        // Fallback: rough estimate if measurement fails
+        const lineCount = cb.code.split('\n').length
+        const monoSize = bodySize * 0.92
+        const monoLineHeight = monoSize * 1.5
+        return 32 + lineCount * monoLineHeight
+      }
     }
     case 'mathBlock':
       return 60 // placeholder — will be refined during measurement
@@ -506,6 +516,7 @@ function parseTitleMarkupForPlain(raw: string): string {
  */
 export function layoutPages(opts: LayoutOptions): CardPage[] {
   const { source, manualTitle, settings, theme, footerEnabled } = opts
+  const bodyFontFamily = getBodyFontFamily(settings.bodyFontMode)
 
   const allBlocks = parseInputBlocks(source)
   const title = manualTitle.trim()
@@ -656,6 +667,7 @@ export function layoutPages(opts: LayoutOptions): CardPage[] {
         metrics.bodyWidth,
         theme,
         settings.subheadingStyle,
+        bodyFontFamily,
       )
       const blockTop = cursorY + leadingGap
       const blockBottom = blockTop + height
@@ -780,7 +792,7 @@ export function layoutPages(opts: LayoutOptions): CardPage[] {
               page.blocks.push(getParagraphBlock(fillTaken))
               cursorY = blockTop + (measureParagraphBlock(
                 getParagraphBlock(fillTaken), metrics.bodySize, metrics.bodyLineHeight,
-                metrics.bodyWidth, theme, settings.subheadingStyle,
+                metrics.bodyWidth, theme, settings.subheadingStyle, bodyFontFamily,
               )).height
               previousBlock = getParagraphBlock(fillTaken)
               const fillRest = restRaw(paraBlock.kind)
@@ -816,7 +828,7 @@ export function layoutPages(opts: LayoutOptions): CardPage[] {
         const takenBlock = getParagraphBlock(taken)
         cursorY = blockTop + (measureParagraphBlock(
           takenBlock, metrics.bodySize, metrics.bodyLineHeight,
-          metrics.bodyWidth, theme, settings.subheadingStyle,
+          metrics.bodyWidth, theme, settings.subheadingStyle, bodyFontFamily,
         )).height
         previousBlock = takenBlock
       }
