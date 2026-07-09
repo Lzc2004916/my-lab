@@ -573,37 +573,6 @@ function drawGradientTitle(
   ctx.restore()
 }
 
-// ── Drop cap rendering ──────────────────────────────────────────────────
-
-function drawDropCap(
-  ctx: CanvasRenderingContext2D,
-  firstChar: string,
-  restOfLine: string,
-  x: number,
-  y: number,
-  fontSize: number,
-  _lineHeight: number,
-  theme: ThemeDefinition,
-): number {
-  const dropCapSize = fontSize * 2.6
-  const dropCapColor = theme.palette.accent
-  const mode = theme.editor.titleFontMode
-
-  ctx.save()
-  ctx.fillStyle = hexToRgba(dropCapColor, 0.85)
-  ctx.font = `700 ${dropCapSize}px ${resolveTitleFontFamily(mode, /[A-Za-z]/.test(firstChar))}`
-  ctx.fillText(firstChar, x, y + dropCapSize * 0.7)
-
-  // Draw rest of line normally
-  const capWidth = ctx.measureText(firstChar).width + 6
-  ctx.fillStyle = theme.palette.text
-  ctx.font = `400 ${fontSize}px ${BODY_FONT_FAMILY}`
-  ctx.fillText(restOfLine, x + capWidth, y + fontSize * 0.84)
-
-  ctx.restore()
-  return capWidth
-}
-
 function drawCoverOrnament(
   ctx: CanvasRenderingContext2D,
   theme: ThemeDefinition,
@@ -1492,8 +1461,6 @@ export function renderCard(opts: RenderOptions): HTMLCanvasElement {
   // ── 8. Body blocks (dispatched by block kind) ──
   let paragraphY = metrics.bodyTopY
   let previousBlock: ParagraphBlock | null = null
-  let firstBodyDrawn = false
-
   for (let bi = 0; bi < page.blocks.length; bi++) {
     const paragraph = page.blocks[bi]!
     const blockTopWithGap = paragraphY + (previousBlock
@@ -1523,17 +1490,6 @@ export function renderCard(opts: RenderOptions): HTMLCanvasElement {
         theme, highlightStyle, settings.subheadingStyle, metrics.bodyFontFamily,
       )
 
-      // Drop cap for first body paragraph in luxe / botanical / ink-wash themes
-      if (!firstBodyDrawn && block.kind === 'body' && block.raw.length > 0 &&
-          (isLuxeTheme(theme) || theme.id === 'botanical-field' || theme.id === 'ink-wash')) {
-        const firstChar = Array.from(block.raw)[0] ?? ''
-        const restText = block.raw.length > 1 ? block.raw.slice(Array.from(block.raw)[0]!.length) : ''
-        if (firstChar && !/\s/.test(firstChar)) {
-          drawDropCap(ctx, firstChar, restText.slice(0, 40),
-            CONTENT_LEFT, paragraphY, metrics.bodySize, metrics.bodyLineHeight, theme)
-        }
-        firstBodyDrawn = true
-      }
 
       paragraphY = blockBottom
       previousBlock = block

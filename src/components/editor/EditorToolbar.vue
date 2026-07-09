@@ -24,7 +24,59 @@
       class="tooltip tooltip-bottom"
       :data-tip="item.label"
     >
+      <!-- ── Highlight split button (WPS-style): main → insert, caret ▼ → dropdown ── -->
+      <template v-if="item.id === 'highlight'">
+        <div class="hl-dropdown" :class="{ 'hl-dropdown--open': hlDropdownOpen }">
+          <div class="highlight-split">
+            <!-- Main button: click to insert highlight markdown -->
+            <button
+              class="btn btn-ghost btn-sm h-7 min-h-0 px-1.5 highlight-main-btn"
+              :aria-label="item.label"
+              @mousedown.prevent
+              @click="emit('insert', item)"
+            >
+              <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 3l-1 4"/><path d="M15 3l1 4"/><rect x="2" y="7" width="20" height="6" rx="1"/><path d="M5 13v7h14v-7"/><line x1="12" y1="17" x2="12" y2="21"/>
+              </svg>
+            </button>
+            <!-- Caret: click to toggle style dropdown -->
+            <button
+              class="highlight-caret-btn"
+              aria-label="选择高亮样式"
+              @click.stop="hlDropdownOpen = !hlDropdownOpen"
+            >
+              <svg
+                class="highlight-caret-icon"
+                viewBox="0 0 10 6"
+                fill="currentColor"
+                :style="{ color: highlightStyleColor }"
+              >
+                <path d="M0 0l5 6 5-6z"/>
+              </svg>
+            </button>
+          </div>
+          <!-- Dropdown menu -->
+          <ul
+            v-show="hlDropdownOpen"
+            class="hl-dropdown-menu menu p-1.5 shadow bg-base-200 rounded-box w-32 z-50 text-xs"
+          >
+            <li class="menu-title"><span class="text-[10px] opacity-50">渲染样式</span></li>
+            <li v-for="hs in HIGHLIGHT_STYLES" :key="hs.value">
+              <a
+                :class="{ active: highlightStyle === hs.value }"
+                @click="onStyleSelect(hs.value)"
+              >
+                <span class="w-3 h-3 rounded-full mr-1.5 inline-block flex-shrink-0" :style="{ background: hs.color }"></span>
+                {{ hs.label }}
+              </a>
+            </li>
+          </ul>
+        </div>
+      </template>
+
+      <!-- ── Normal button (non-highlight items) ── -->
       <button
+        v-else
         class="btn btn-ghost btn-sm btn-square h-7 w-7 min-h-0"
         :aria-label="item.label"
         @mousedown.prevent
@@ -41,10 +93,6 @@
         <!-- Heading -->
         <svg v-else-if="item.id === 'heading'" class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <path d="M6 4v16"/><path d="M18 4v16"/><path d="M6 12h12"/><line x1="6" y1="4" x2="18" y2="4"/>
-        </svg>
-        <!-- Highlight -->
-        <svg v-else-if="item.id === 'highlight'" class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M9 3l-1 4"/><path d="M15 3l1 4"/><rect x="2" y="7" width="20" height="6" rx="1"/><path d="M5 13v7h14v-7"/><line x1="12" y1="17" x2="12" y2="21"/>
         </svg>
         <!-- Underline -->
         <svg v-else-if="item.id === 'underline'" class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -94,6 +142,8 @@
 </template>
 
 <script setup lang="ts">
+import { computed, ref } from 'vue'
+
 // ── Types ────────────────────────────────────────────────────────────
 
 export interface ToolbarItem {
@@ -116,12 +166,47 @@ export interface ToolbarItem {
   }
 }
 
+// ── Highlight style types ────────────────────────────────────────────
+
+export type HighlightStyle = 'underline' | 'marker' | 'border'
+
+// ── Props ────────────────────────────────────────────────────────────
+
+const props = defineProps<{
+  /** Currently active highlight render style. */
+  highlightStyle?: HighlightStyle
+}>()
+
 // ── Emits ────────────────────────────────────────────────────────────
 
 const emit = defineEmits<{
   (e: 'insert', item: ToolbarItem): void
   (e: 'command', action: 'undo'): void
+  (e: 'update:highlightStyle', style: HighlightStyle): void
 }>()
+
+// ── Dropdown toggle logic ────────────────────────────────────────────
+
+const hlDropdownOpen = ref(false)
+
+/** Select a style and close the dropdown. */
+function onStyleSelect(style: HighlightStyle): void {
+  emit('update:highlightStyle', style)
+  hlDropdownOpen.value = false
+}
+
+// ── Highlight style config ───────────────────────────────────────────
+
+const HIGHLIGHT_STYLES: { value: HighlightStyle; label: string; color: string }[] = [
+  { value: 'underline', label: '下划线', color: '#3b82f6' },
+  { value: 'marker',    label: '荧光笔', color: '#f59e0b' },
+  { value: 'border',    label: '边框',   color: '#8b5cf6' },
+]
+
+const highlightStyleColor = computed(() => {
+  const found = HIGHLIGHT_STYLES.find((hs) => hs.value === (props.highlightStyle ?? 'underline'))
+  return found?.color ?? '#3b82f6'
+})
 
 // ── Toolbar config ───────────────────────────────────────────────────
 
@@ -177,5 +262,60 @@ const toolbarItems: readonly ToolbarItem[] = [
   font-size: 13px;
   line-height: 1;
   pointer-events: none;
+}
+
+/* ── Highlight split button ─────────────────────────────────────────────── */
+
+.hl-dropdown {
+  position: relative;
+}
+
+.highlight-split {
+  display: inline-flex;
+  align-items: center;
+  height: 28px;
+  border-radius: 0.375rem;
+}
+
+.highlight-main-btn {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  border-right: none;
+}
+
+.highlight-caret-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 28px;
+  cursor: pointer;
+  border: none;
+  border-top-right-radius: 0.375rem;
+  border-bottom-right-radius: 0.375rem;
+  background: transparent;
+  flex-shrink: 0;
+  padding: 0;
+  color: inherit;
+}
+
+.highlight-caret-btn:hover {
+  background-color: oklch(var(--bc) / 0.06);
+}
+
+.highlight-caret-icon {
+  width: 7px;
+  height: 4px;
+  pointer-events: none;
+}
+
+/* ── Dropdown menu ──────────────────────────────────────────────────────── */
+
+.hl-dropdown-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 4px;
+  white-space: nowrap;
 }
 </style>

@@ -85,25 +85,6 @@
           <span class="text-xs tabular-nums w-6 text-right text-base-content/60">{{ bodyFontSize }}</span>
         </div>
 
-        <span class="w-px h-4 bg-base-300/50"></span>
-
-        <!-- Highlight style -->
-        <div class="flex items-center gap-1.5">
-          <span class="text-xs text-base-content/50 whitespace-nowrap">高亮</span>
-          <div class="join">
-            <button
-              v-for="hs in HIGHLIGHT_STYLES"
-              :key="hs.value"
-              class="btn btn-sm join-item px-3 h-7 min-h-0 text-xs"
-              :class="{ 'btn-primary': highlightStyle === hs.value, 'btn-ghost': highlightStyle !== hs.value }"
-              @click="highlightStyle = hs.value"
-            >
-              {{ hs.label }}
-            </button>
-          </div>
-        </div>
-
-        <span class="w-px h-4 bg-base-300/50"></span>
 
         <!-- Footer toggle -->
         <div class="flex items-center gap-1">
@@ -276,7 +257,12 @@
         class="flex flex-col overflow-hidden border-r border-base-300 min-w-[200px]"
         :style="{ flexBasis: split + '%' }"
       >
-        <EditorToolbar @insert="onToolbarInsert" @command="onToolbarCommand" />
+        <EditorToolbar
+          :highlightStyle="highlightStyle"
+          @update:highlightStyle="highlightStyle = $event"
+          @insert="onToolbarInsert"
+          @command="onToolbarCommand"
+        />
         <div class="flex-1 min-h-0">
           <MarkdownEditor
             ref="editorRef"
@@ -410,12 +396,6 @@ const editorThemeLabel = computed(
 const currentCardThemeName = computed(
   () => THEMES.find((t) => t.id === cardTheme.value)?.name ?? '苔绿纸书',
 )
-
-const HIGHLIGHT_STYLES: { value: HighlightStyle; label: string }[] = [
-  { value: 'underline', label: '下划线' },
-  { value: 'marker', label: '荧光笔' },
-  { value: 'border', label: '边框' },
-]
 
 // ── Document store ──────────────────────────────────────────────────────
 
