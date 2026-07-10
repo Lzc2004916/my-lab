@@ -20,7 +20,7 @@ export interface AppSettings {
   /** Card theme ID (Canvas-based themes) */
   cardTheme: CardThemeId
   /** Highlight style */
-  highlightStyle: 'underline' | 'marker' | 'border'
+  highlightStyle: 'underline' | 'marker' | 'border' | 'highlight'
   /** Footer left text */
   footerLeft: string
   /** Footer right display mode */
@@ -30,7 +30,9 @@ export interface AppSettings {
   /** Card corner mode */
   cardCornerMode: 'rounded' | 'square'
   /** Card title font mode */
-  titleFontMode: 'serif' | 'kai' | 'sans' | 'puhuiti' | 'retroSerif'
+  titleFontMode: 'serif' | 'kai' | 'sans' | 'puhuiti' | 'retroSerif' | 'display' | 'handwriting' | 'monoTitle'
+  /** Body font mode */
+  bodyFontMode: 'wenkai' | 'yahei' | 'simsun' | 'kaiti' | 'dengxian' | 'fangsong'
   /** Subheading style */
   subheadingStyle: 'large' | 'accent'
 }
@@ -59,8 +61,8 @@ const splitMode = ref<SplitMode>(
 const cardTheme = ref<CardThemeId>(
   (localStorage.getItem(STORAGE_PREFIX + 'cardTheme') as CardThemeId) || 'moss-paper',
 )
-const highlightStyle = ref<'underline' | 'marker' | 'border'>(
-  (localStorage.getItem(STORAGE_PREFIX + 'highlightStyle') as 'underline' | 'marker' | 'border') || 'underline',
+const highlightStyle = ref<'underline' | 'marker' | 'border' | 'highlight'>(
+  (localStorage.getItem(STORAGE_PREFIX + 'highlightStyle') as 'underline' | 'marker' | 'border' | 'highlight') || 'underline',
 )
 const footerLeft = ref<string>(
   localStorage.getItem(STORAGE_PREFIX + 'footerLeft') || '',
@@ -74,11 +76,14 @@ const footerEnabled = ref<boolean>(
 const cardCornerMode = ref<'rounded' | 'square'>(
   (localStorage.getItem(STORAGE_PREFIX + 'cardCornerMode') as 'rounded' | 'square') || 'square',
 )
-const titleFontMode = ref<'serif' | 'kai' | 'sans' | 'puhuiti' | 'retroSerif'>(
-  (localStorage.getItem(STORAGE_PREFIX + 'titleFontMode') as 'serif' | 'kai' | 'sans' | 'puhuiti' | 'retroSerif') || 'serif',
+const titleFontMode = ref<'serif' | 'kai' | 'sans' | 'puhuiti' | 'retroSerif' | 'display' | 'handwriting' | 'monoTitle'>(
+  (localStorage.getItem(STORAGE_PREFIX + 'titleFontMode') as 'serif' | 'kai' | 'sans' | 'puhuiti' | 'retroSerif' | 'display' | 'handwriting' | 'monoTitle') || 'serif',
 )
 const subheadingStyle = ref<'large' | 'accent'>(
   (localStorage.getItem(STORAGE_PREFIX + 'subheadingStyle') as 'large' | 'accent') || 'large',
+)
+const bodyFontMode = ref<'wenkai' | 'yahei' | 'simsun' | 'kaiti' | 'dengxian' | 'fangsong'>(
+  (localStorage.getItem(STORAGE_PREFIX + 'bodyFontMode') as 'wenkai' | 'yahei' | 'simsun' | 'kaiti' | 'dengxian' | 'fangsong') || 'wenkai',
 )
 
 // Title customization
@@ -110,6 +115,7 @@ watch(footerEnabled, (v) => localStorage.setItem(STORAGE_PREFIX + 'footerEnabled
 watch(cardCornerMode, (v) => localStorage.setItem(STORAGE_PREFIX + 'cardCornerMode', v))
 watch(titleFontMode, (v) => localStorage.setItem(STORAGE_PREFIX + 'titleFontMode', v))
 watch(subheadingStyle, (v) => localStorage.setItem(STORAGE_PREFIX + 'subheadingStyle', v))
+watch(bodyFontMode, (v) => localStorage.setItem(STORAGE_PREFIX + 'bodyFontMode', v))
 watch(titleColor, (v) => localStorage.setItem(STORAGE_PREFIX + 'titleColor', v))
 watch(titleAlignment, (v) => localStorage.setItem(STORAGE_PREFIX + 'titleAlignment', v))
 watch(titleCustomWeight, (v) => localStorage.setItem(STORAGE_PREFIX + 'titleCustomWeight', String(v)))
@@ -131,6 +137,7 @@ export function useSettings(): {
   cardCornerMode: typeof cardCornerMode
   titleFontMode: typeof titleFontMode
   subheadingStyle: typeof subheadingStyle
+  bodyFontMode: typeof bodyFontMode
   titleColor: typeof titleColor
   titleAlignment: typeof titleAlignment
   titleCustomWeight: typeof titleCustomWeight
@@ -150,6 +157,7 @@ export function useSettings(): {
     cardCornerMode,
     titleFontMode,
     subheadingStyle,
+    bodyFontMode,
     titleColor,
     titleAlignment,
     titleCustomWeight,

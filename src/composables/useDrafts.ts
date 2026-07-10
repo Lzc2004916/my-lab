@@ -22,6 +22,7 @@ export interface AppSettings {
   showThemePanel: boolean
   showTitlePanel: boolean
   split: number
+  gradientConfig?: { enabled: boolean; color1: string; color2: string; angle: number }
 }
 
 interface DraftPayload {
@@ -47,6 +48,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   showThemePanel: false,
   showTitlePanel: false,
   split: 50,
+  gradientConfig: { enabled: false, color1: '#6c5ce7', color2: '#a29bfe', angle: 135 },
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────

@@ -56,50 +56,39 @@ import { drawTableBlock, measureTableBlock } from './table-renderer'
 import { drawMathBlock, measureMathBlock } from './math-renderer'
 import { drawMermaidBlock } from './mermaid'
 import { drawDecor } from './decor-renderer'
-
-// ═══════════════════════════════════════════════════════════════════════════
-// Color utilities
-// ═══════════════════════════════════════════════════════════════════════════
-
-function hexToRgba(hex: string, alpha: number): string {
-  const value = hex.replace('#', '')
-  if (value.length !== 6) return `rgba(36,52,70,${alpha})`
-  const r = parseInt(value.slice(0, 2), 16)
-  const g = parseInt(value.slice(2, 4), 16)
-  const b = parseInt(value.slice(4, 6), 16)
-  return `rgba(${r},${g},${b},${alpha})`
-}
-
-function hexToRgb(hex: string): readonly [number, number, number] {
-  const value = hex.replace('#', '')
-  if (value.length !== 6) return [36, 52, 70]
-  return [
-    parseInt(value.slice(0, 2), 16),
-    parseInt(value.slice(2, 4), 16),
-    parseInt(value.slice(4, 6), 16),
-  ]
-}
-
-function mixHexColors(fromHex: string, toHex: string, ratio: number): string {
-  const from = fromHex.replace('#', '')
-  const to = toHex.replace('#', '')
-  if (from.length !== 6 || to.length !== 6) return toHex
-  const fr = parseInt(from.slice(0, 2), 16)
-  const fg = parseInt(from.slice(2, 4), 16)
-  const fb = parseInt(from.slice(4, 6), 16)
-  const tr = parseInt(to.slice(0, 2), 16)
-  const tg = parseInt(to.slice(2, 4), 16)
-  const tb = parseInt(to.slice(4, 6), 16)
-  const mix = (s: number, e: number) => Math.round(s + (e - s) * ratio)
-  return `rgb(${mix(fr, tr)},${mix(fg, tg)},${mix(fb, tb)})`
-}
+import { hexToRgba, hexToRgb, mixHexColors, gradientAngleToPoints } from './color-utils'
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Theme helpers
 // ═══════════════════════════════════════════════════════════════════════════
 
 function isDarkTheme(theme: ThemeDefinition): boolean {
-  return theme.mode === 'obsidian' || theme.mode === 'archive' || theme.mode === 'cyber'
+  // Mode-based fast path
+  if (theme.mode === 'obsidian' || theme.mode === 'archive' || theme.mode === 'cyber') return true
+  // Luminance-based detection — catches dark luxe/glass/brutal themes
+  return getPageLuminance(theme) < 0.35
+}
+
+/** Perceived brightness of the page background (0–1, 0 = black). */
+function getPageLuminance(theme: ThemeDefinition): number {
+  const raw = theme.palette.page
+  // rgb/rgba strings
+  const rgbaMatch = raw.match(/rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/)
+  if (rgbaMatch) {
+    const r = parseInt(rgbaMatch[1]!) / 255
+    const g = parseInt(rgbaMatch[2]!) / 255
+    const b = parseInt(rgbaMatch[3]!) / 255
+    const linearize = (c: number) => c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4)
+    return 0.2126 * linearize(r) + 0.7152 * linearize(g) + 0.0722 * linearize(b)
+  }
+  // hex
+  const hex = raw.replace('#', '')
+  if (hex.length < 6) return 0.5
+  const r = parseInt(hex.slice(0, 2), 16) / 255
+  const g = parseInt(hex.slice(2, 4), 16) / 255
+  const b = parseInt(hex.slice(4, 6), 16) / 255
+  const linearize = (c: number) => c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4)
+  return 0.2126 * linearize(r) + 0.7152 * linearize(g) + 0.0722 * linearize(b)
 }
 
 function isDigitalEditorTheme(theme: ThemeDefinition): boolean {
@@ -215,6 +204,33 @@ function drawBackground(
 
   ctx.fillStyle = gradient
   ctx.fill()
+}
+
+// ── Gradient overlay ──────────────────────────────────────────────────────
+
+/**
+ * Draw a soft two-color gradient overlay over the entire card.
+ * Blends with the existing background using a low-opacity screen/multiply.
+ * Uses the CSS gradient angle convention (0deg = bottom→top).
+ */
+function drawGradientOverlay(
+  ctx: CanvasRenderingContext2D,
+  color1: string,
+  color2: string,
+  angle = 135,
+): void {
+  ctx.save()
+  ctx.globalAlpha = 0.28
+
+  const { x0, y0, x1, y1 } = gradientAngleToPoints(angle, PAGE_WIDTH, PAGE_HEIGHT)
+  const gradient = ctx.createLinearGradient(x0, y0, x1, y1)
+  gradient.addColorStop(0, color1)
+  gradient.addColorStop(1, color2)
+
+  ctx.fillStyle = gradient
+  ctx.fillRect(0, 0, PAGE_WIDTH, PAGE_HEIGHT)
+
+  ctx.restore()
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -740,6 +756,7 @@ function resolveHighlightTreatment(
 ): HighlightTreatment {
   if (highlightStyle === theme.editor.highlightStyle)
     return theme.components.highlightTreatment
+  if (highlightStyle === 'highlight') return 'boldAccent'
   if (highlightStyle === 'border') return 'swissRule'
   if (highlightStyle === 'marker')
     return isDarkTheme(theme) ? 'darkGlow' : 'warmSwipe'
@@ -760,7 +777,12 @@ function drawHighlightMark(
 
   ctx.save()
 
-  if (treatment === 'editorMark') {
+  if (treatment === 'boldAccent') {
+    // No background mark — text styling (bold + accent color) is handled
+    // by drawInlineParagraph.
+    ctx.restore()
+    return
+  } else if (treatment === 'editorMark') {
     ctx.fillStyle = hexToRgba(
       accent,
       Math.max(theme.components.highlightMarkerAlpha, 0.28),
@@ -1130,6 +1152,9 @@ function drawInlineParagraph(
     drawQuoteBlock(ctx, theme, x, y, maxWidth, blockHeight, quoteMetrics)
   }
 
+  // Resolve highlight treatment once for this paragraph
+  const treatment = resolveHighlightTreatment(theme, highlightStyle)
+
   // Draw each line
   for (let li = 0; li < lines.length; li++) {
     const line = lines[li]!
@@ -1141,7 +1166,7 @@ function drawInlineParagraph(
     for (const token of line.tokens) {
       const tokenWidth = getBodyTokenWidth(token, activeFontSize)
 
-      // Draw highlight mark behind text
+      // Draw highlight mark behind text (no-op for 'boldAccent')
       if (token.mark) {
         drawHighlightMark(
           ctx,
@@ -1155,9 +1180,11 @@ function drawInlineParagraph(
       }
 
       ctx.save()
+      // 'boldAccent' treatment: marked text is rendered bold + accent color
+      const markBoldAccent = token.mark && treatment === 'boldAccent'
       const weight = isSubheading
         ? SUBHEADING_TEXT_WEIGHT
-        : token.bold
+        : (token.bold || markBoldAccent)
           ? BODY_BOLD_WEIGHT
           : isQuote
             ? QUOTE_TEXT_WEIGHT
@@ -1172,7 +1199,9 @@ function drawInlineParagraph(
       ctx.fillStyle =
         isSubheading && subheadingStyle === 'accent'
           ? theme.palette.accent
-          : theme.palette.text
+          : markBoldAccent
+            ? theme.palette.accent
+            : theme.palette.text
       ctx.fillText(token.text, cursorX, baselineY)
 
       // Draw underline for ^underline^ tokens
@@ -1342,6 +1371,11 @@ export function renderCard(opts: RenderOptions): HTMLCanvasElement {
 
   // ── 5. Texture ──
   applyNoiseTexture(ctx, theme)
+
+  // ── 5.5 Gradient overlay ──
+  if (opts.gradientConfig?.enabled) {
+    drawGradientOverlay(ctx, opts.gradientConfig.color1, opts.gradientConfig.color2, opts.gradientConfig.angle)
+  }
 
   ctx.restore()
 

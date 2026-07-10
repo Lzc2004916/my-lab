@@ -55,8 +55,8 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, nextTick, onMounted, onBeforeUnmount } from 'vue'
-import { renderAllPagesAsync, renderAllPages, PAGE_WIDTH, PAGE_HEIGHT } from '@/card'
-import type { HighlightStyle, FooterRightMode, CardCornerMode, TypographySettings } from '@/card'
+import { renderAllPagesAsync, renderAllPages, PAGE_WIDTH, PAGE_HEIGHT, getTheme, extractTokens, applyTokensToElement } from '@/card'
+import type { HighlightStyle, FooterRightMode, CardCornerMode, TypographySettings, GradientConfig } from '@/card'
 import LoadingSpinner from '@/components/LoadingSpinner.vue'
 
 // ── Props ───────────────────────────────────────────────────────────────
@@ -72,6 +72,8 @@ interface Props {
   themeId?: string
   /** Typography settings */
   typography?: TypographySettings
+  /** Background gradient config */
+  gradientConfig?: GradientConfig
   /** Highlight style */
   highlightStyle?: HighlightStyle
   /** Footer left text */
@@ -105,6 +107,7 @@ const props = withDefaults(defineProps<Props>(), {
   footerEnabled: true,
   cardCornerMode: 'square' as CardCornerMode,
   previewScale: 1.0,
+  gradientConfig: () => ({ enabled: false, color1: '#6c5ce7', color2: '#a29bfe', angle: 135 }),
 })
 
 // ── Emits ────────────────────────────────────────────────────────────────
@@ -249,6 +252,7 @@ async function doRender(): Promise<void> {
       footerRightMode: props.footerRightMode,
       footerEnabled: props.footerEnabled,
       cardCornerMode: props.cardCornerMode,
+      gradientConfig: props.gradientConfig,
     })
 
     canvases.value = result.canvases
@@ -271,6 +275,7 @@ async function doRender(): Promise<void> {
         footerRightMode: props.footerRightMode,
         footerEnabled: props.footerEnabled,
         cardCornerMode: props.cardCornerMode,
+        gradientConfig: props.gradientConfig,
       })
       canvases.value = result.canvases
     } catch { /* both failed */ }
@@ -288,6 +293,7 @@ watch(
     props.footerRightMode,
     props.footerEnabled,
     props.cardCornerMode,
+    props.gradientConfig,
   ] as const,
   scheduleRender,
   { immediate: true, deep: true },
@@ -366,6 +372,25 @@ watch(
       activeIdx.value = page
     }, 350)
   },
+)
+
+// ── CSS Design Tokens ────────────────────────────────────────────────────
+
+/** Apply design tokens as CSS custom properties on the preview root element. */
+watch(
+  () => [props.themeId, props.gradientConfig, props.typography?.titleCustom] as const,
+  () => {
+    const theme = getTheme(props.themeId ?? 'moss-paper')
+    const tokens = extractTokens(
+      theme,
+      props.gradientConfig,
+      props.typography?.titleCustom,
+    )
+    if (containerRef.value) {
+      applyTokensToElement(containerRef.value, tokens)
+    }
+  },
+  { immediate: true, deep: true },
 )
 
 // ── Lifecycle ────────────────────────────────────────────────────────────

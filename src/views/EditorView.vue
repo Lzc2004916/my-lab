@@ -71,7 +71,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import type { EditorView } from '@codemirror/view'
 import MarkdownEditor from '@/components/editor/MarkdownEditor.vue'
 import EditorToolbar from '@/components/editor/EditorToolbar.vue'
@@ -80,8 +80,8 @@ import CardPreview from '@/components/CardPreview.vue'
 import { useMarkdown } from '@/composables/useMarkdown'
 import { useSettings } from '@/composables/useSettings'
 import { useExport } from '@/composables/useExport'
-import { PAGE_WIDTH, PAGE_HEIGHT } from '@/card'
-import type { TypographySettings } from '@/card'
+import { PAGE_WIDTH, PAGE_HEIGHT, getTheme } from '@/card'
+import type { TypographySettings, TitleFontMode } from '@/card'
 
 // ── Settings ─────────────────────────────────────────────────────────────
 
@@ -124,22 +124,36 @@ function greet(name) {
 Enjoy writing! 😊
 `)
 
-// ── Typography (derived from settings) ───────────────────────────────────
+// ── Typography (derived from theme + user settings) ──────────────────────
 
-const typography = computed<TypographySettings>(() => ({
-  titleSize: settings.titleFontSize.value,
-  bodySize: settings.bodyFontSize.value,
-  lineHeight: 1.84,
-  titleFontMode: settings.titleFontMode.value,
-  bodyFontMode: 'wenkai' as const,
-  subheadingStyle: settings.subheadingStyle.value,
-  titleCustom: {
-    color: settings.titleColor.value,
-    alignment: settings.titleAlignment.value,
-    fontWeight: settings.titleCustomWeight.value,
-    letterSpacing: settings.titleCustomSpacing.value,
-  },
-}))
+const typography = computed<TypographySettings>(() => {
+  const theme = getTheme(settings.cardTheme.value)
+  return {
+    titleSize: settings.titleFontSize.value,
+    bodySize: settings.bodyFontSize.value,
+    lineHeight: 1.84,
+    titleFontMode: settings.titleFontMode.value,
+    bodyFontMode: settings.bodyFontMode.value || (theme.editor.bodyFontMode ?? 'wenkai'),
+    subheadingStyle: settings.subheadingStyle.value || (theme.editor.subheadingStyle ?? 'large'),
+    titleCustom: {
+      color: settings.titleColor.value,
+      alignment: settings.titleAlignment.value,
+      fontWeight: settings.titleCustomWeight.value,
+      letterSpacing: settings.titleCustomSpacing.value,
+    },
+  }
+})
+
+// Sync font settings to theme defaults when the theme changes
+watch(() => settings.cardTheme.value, (newThemeId) => {
+  const theme = getTheme(newThemeId)
+  if (theme.editor.bodyFontMode) {
+    settings.bodyFontMode.value = theme.editor.bodyFontMode
+  }
+  if (theme.editor.titleFontMode) {
+    settings.titleFontMode.value = theme.editor.titleFontMode as TitleFontMode
+  }
+})
 
 // ── Markdown processing ─────────────────────────────────────────────────
 

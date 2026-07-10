@@ -102,6 +102,9 @@
 
         <span class="w-px h-4 bg-base-300/50"></span>
 
+        <!-- Gradient picker -->
+        <GradientPicker v-model="gradientConfig" />
+
         <!-- Card Theme toggle -->
         <button
           class="btn btn-sm btn-ghost text-base-content/50 gap-1.5 h-7 min-h-0 text-xs"
@@ -214,15 +217,22 @@
           <!-- Color -->
           <div class="flex items-center gap-1">
             <span class="text-xs text-base-content/50">颜色</span>
-            <input
-              :value="titleColor || '#000000'"
-              type="color"
-              class="w-6 h-6 rounded cursor-pointer border border-base-300"
-              @input="titleColor = ($event.target as HTMLInputElement).value"
-            />
+            <div class="relative">
+              <input
+                :value="titleColor || effectiveTitleColor"
+                type="color"
+                class="w-6 h-6 rounded cursor-pointer border border-base-300"
+                @input="titleColor = ($event.target as HTMLInputElement).value"
+              />
+              <span
+                v-if="!titleColor"
+                class="absolute -bottom-0.5 left-1/2 -translate-x-1/2 text-[8px] leading-none text-base-content/25 pointer-events-none select-none"
+              >auto</span>
+            </div>
             <button
               v-if="titleColor"
               class="btn btn-xs btn-ghost h-6 min-h-0 px-1"
+              title="重置为自动"
               @click="titleColor = ''"
             ><svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
           </div>
@@ -294,6 +304,7 @@
           :typography="typography"
           :highlight-style="highlightStyle"
           :footer-enabled="footerEnabled"
+          :gradient-config="gradientConfig"
         />
       </div>
     </div>
@@ -374,11 +385,13 @@ import { useMarkdown } from '@/composables/useMarkdown'
 import { useExport } from '@/composables/useExport'
 import { useDocumentsStore } from '@/stores/documents'
 import { useDrafts, type AppSettings } from '@/composables/useDrafts'
-import { THEMES, BODY_FONT_MODES, type BodyFontMode } from '@/card'
+import { THEMES, BODY_FONT_MODES, getTheme, mixHexColors, type BodyFontMode } from '@/card'
 import DraftRecoveryModal from '@/components/DraftRecoveryModal.vue'
 import LoadingSpinner from '@/components/LoadingSpinner.vue'
 import ThemeSelector from '@/components/ThemeSelector.vue'
 import FontPicker from '@/components/FontPicker.vue'
+import GradientPicker from '@/components/GradientPicker.vue'
+import type { GradientConfig } from '@/card'
 import type { TypographySettings, HighlightStyle, TitleFontMode, SubheadingStyle, TitleCustomization, TitleAlignment } from '@/card'
 import { DEFAULT_TITLE_CUSTOM } from '@/card'
 
@@ -440,6 +453,38 @@ const editorTheme = ref<string>('one-dark')
 const cardTheme = ref<string>('moss-paper')
 const bodyFontMode = ref<BodyFontMode>('wenkai')
 
+// Map theme titleFontMode → closest BodyFontMode for the UI picker
+const TITLE_TO_BODY_PICKER: Partial<Record<TitleFontMode, BodyFontMode>> = {
+  serif: 'simsun',
+  kai: 'kaiti',
+  sans: 'yahei',
+  puhuiti: 'dengxian',
+  retroSerif: 'simsun',
+  display: 'dengxian',
+  handwriting: 'kaiti',
+  monoTitle: 'dengxian',
+}
+
+// Sync font refs + gradient to theme defaults when the theme changes
+watch(cardTheme, (newThemeId) => {
+  const theme = getTheme(newThemeId)
+  if (theme.editor.bodyFontMode) {
+    bodyFontMode.value = theme.editor.bodyFontMode
+  }
+  if (theme.editor.titleFontMode) {
+    titleFontMode.value = TITLE_TO_BODY_PICKER[theme.editor.titleFontMode] ?? theme.editor.bodyFontMode ?? 'wenkai'
+  }
+  // Sync gradient colors + angle to theme — preserve user's enabled preference
+  if (theme.gradient) {
+    gradientConfig.value = {
+      enabled: gradientConfig.value.enabled,
+      color1: theme.gradient.color1,
+      color2: theme.gradient.color2,
+      angle: theme.gradient.angle ?? 135,
+    }
+  }
+})
+
 const BODY_FONT_OPTIONS = Object.entries(BODY_FONT_MODES).map(([id, def]) => ({
   id,
   label: def.label,
@@ -457,6 +502,12 @@ const titleFontSize = ref<number>(75)
 const bodyFontSize = ref<number>(30)
 const highlightStyle = ref<HighlightStyle>('underline' as HighlightStyle)
 const footerEnabled = ref<boolean>(true)
+const gradientConfig = ref<GradientConfig>({
+  enabled: false,
+  color1: '#6c5ce7',
+  color2: '#a29bfe',
+  angle: 135,
+})
 
 // ── Title customization ──────────────────────────────────────────────────
 
@@ -564,6 +615,12 @@ const titleAlignment = ref<TitleAlignment>('left')
 const titleWeight = ref<number>(0)
 const titleSpacing = ref<number>(0)
 
+/** Effective title color from the active theme — shown in the picker when no custom color is set. */
+const effectiveTitleColor = computed(() => {
+  const theme = getTheme(cardTheme.value)
+  return mixHexColors(theme.palette.text, theme.palette.accent, theme.surface.titleAccentMix)
+})
+
 const TITLE_ALIGN_OPTIONS: { value: TitleAlignment; label: string; icon: string }[] = [
   { value: 'left', label: '左对齐', icon: '⫷' },
   { value: 'center', label: '居中', icon: '≡' },
@@ -577,15 +634,18 @@ const titleCustom = computed<TitleCustomization>(() => ({
   letterSpacing: titleSpacing.value,
 }))
 
-const typography = computed<TypographySettings>(() => ({
-  titleSize: titleFontSize.value,
-  bodySize: bodyFontSize.value,
-  lineHeight: 1.84,
-  titleFontMode: BODY_TO_TITLE_FONT[titleFontMode.value] ?? 'serif',
-  bodyFontMode: bodyFontMode.value,
-  subheadingStyle: 'large' as SubheadingStyle,
-  titleCustom: titleCustom.value,
-}))
+const typography = computed<TypographySettings>(() => {
+  const theme = getTheme(cardTheme.value)
+  return {
+    titleSize: titleFontSize.value,
+    bodySize: bodyFontSize.value,
+    lineHeight: 1.84,
+    titleFontMode: BODY_TO_TITLE_FONT[titleFontMode.value] ?? 'serif',
+    bodyFontMode: bodyFontMode.value,
+    subheadingStyle: (theme.editor.subheadingStyle ?? 'large') as SubheadingStyle,
+    titleCustom: titleCustom.value,
+  }
+})
 
 /** Reset title customization to theme defaults */
 function resetTitleCustom(): void {
@@ -633,6 +693,7 @@ function collectSettings(): AppSettings {
     showThemePanel: showThemePanel.value,
     showTitlePanel: showTitlePanel.value,
     split: split.value,
+    gradientConfig: { ...gradientConfig.value },
   }
 }
 
@@ -653,6 +714,9 @@ function applySettings(s: AppSettings): void {
   showThemePanel.value = s.showThemePanel
   showTitlePanel.value = s.showTitlePanel
   split.value = s.split
+  if (s.gradientConfig) {
+    gradientConfig.value = { ...s.gradientConfig }
+  }
 }
 
 // Auto-persist whenever any setting changes (1s debounce inside saveSettings)
@@ -660,7 +724,7 @@ watch(
   [
     manualTitle, editorTheme, cardTheme, bodyFontMode, titleFontMode, titleFontSize, bodyFontSize,
     highlightStyle, footerEnabled, titleColor, titleAlignment,
-    titleWeight, showThemePanel, showTitlePanel, split,
+    titleWeight, showThemePanel, showTitlePanel, split, gradientConfig,
   ],
   () => saveSettings(collectSettings()),
 )

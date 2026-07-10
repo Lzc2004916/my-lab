@@ -14,6 +14,7 @@ import {
 import { defaultKeymap, history, historyKeymap, undo } from '@codemirror/commands'
 import { markdown } from '@codemirror/lang-markdown'
 import { oneDark } from '@codemirror/theme-one-dark'
+import { highlightDecorations } from './highlight-decorations'
 
 // ── Props ───────────────────────────────────────────────────────────
 
@@ -82,6 +83,9 @@ function createExtensions(): Extension[] {
 
     // Markdown language support
     markdown(),
+
+    // Custom highlight / underline decoration layer (==text== and ^text^)
+    highlightDecorations,
 
     // Undo / redo history (required by defaultKeymap)
     history(),
@@ -363,5 +367,27 @@ defineExpose({
 .markdown-editor :deep(.cm-editor:focus),
 .markdown-editor :deep(.cm-editor.cm-focused) {
   outline: none;
+}
+
+/* ── Custom inline marks (==highlight== and ^underline^) ────────────────── */
+
+.markdown-editor :deep(.cm-mark) {
+  background: rgba(255, 200, 0, 0.22);
+  border-radius: 3px;
+  padding: 1px 2px;
+  margin: 0 -1px;
+}
+
+/* In one-dark: slightly warmer / lighter to stay readable on dark bg */
+.markdown-editor :deep(.cm-theme-dark .cm-mark),
+.cm-theme-dark .markdown-editor :deep(.cm-mark) {
+  background: rgba(255, 210, 50, 0.18);
+}
+
+.markdown-editor :deep(.cm-underline) {
+  text-decoration: underline;
+  text-decoration-color: oklch(0.62 0.19 250);
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
 }
 </style>

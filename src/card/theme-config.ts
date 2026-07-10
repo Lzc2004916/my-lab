@@ -28,6 +28,14 @@ const VALID_HIGHLIGHT_STYLES: Set<string> = new Set([
   'underline', 'marker', 'border',
 ])
 
+const VALID_BODY_FONT_MODES: Set<string> = new Set([
+  'wenkai', 'yahei', 'simsun', 'kaiti', 'dengxian', 'fangsong',
+])
+
+const VALID_SUBHEADING_STYLES: Set<string> = new Set([
+  'large', 'accent',
+])
+
 // ── Color validation ─────────────────────────────────────────────────────
 
 const HEX_COLOR_RE = /^#[0-9a-fA-F]{6}$/
@@ -234,6 +242,16 @@ export function validateThemeConfig(raw: unknown): ValidationResult {
       addError(errors, 'editor.titleFontMode',
         `unknown font mode "${ed.titleFontMode}". Valid: ${[...VALID_FONT_MODES].join(', ')}`)
     }
+    if ('bodyFontMode' in ed && typeof ed.bodyFontMode === 'string' &&
+        !VALID_BODY_FONT_MODES.has(ed.bodyFontMode)) {
+      addError(errors, 'editor.bodyFontMode',
+        `unknown body font mode "${ed.bodyFontMode}". Valid: ${[...VALID_BODY_FONT_MODES].join(', ')}`)
+    }
+    if ('subheadingStyle' in ed && typeof ed.subheadingStyle === 'string' &&
+        !VALID_SUBHEADING_STYLES.has(ed.subheadingStyle)) {
+      addError(errors, 'editor.subheadingStyle',
+        `unknown subheading style "${ed.subheadingStyle}". Valid: ${[...VALID_SUBHEADING_STYLES].join(', ')}`)
+    }
     if ('highlightStyle' in ed && typeof ed.highlightStyle === 'string' &&
         !VALID_HIGHLIGHT_STYLES.has(ed.highlightStyle)) {
       addError(errors, 'editor.highlightStyle',
@@ -269,6 +287,8 @@ export function validateThemeConfig(raw: unknown): ValidationResult {
       bodySize: (obj.editor as Record<string, unknown>).bodySize as number,
       lineHeight: (obj.editor as Record<string, unknown>).lineHeight as number,
       titleFontMode: ((obj.editor as Record<string, unknown>).titleFontMode as ThemeDefinition['editor']['titleFontMode']) ?? 'serif',
+      bodyFontMode: ((obj.editor as Record<string, unknown>).bodyFontMode as ThemeDefinition['editor']['bodyFontMode']) ?? 'wenkai',
+      subheadingStyle: ((obj.editor as Record<string, unknown>).subheadingStyle as ThemeDefinition['editor']['subheadingStyle']) ?? 'large',
       highlightStyle: ((obj.editor as Record<string, unknown>).highlightStyle as ThemeDefinition['editor']['highlightStyle']) ?? 'underline',
     },
     category: obj.category as ThemeDefinition['category'],

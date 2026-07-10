@@ -16,6 +16,7 @@ export type {
   TypographySettings,
   TitleAlignment,
   TitleCustomization,
+  GradientConfig,
   InlineToken,
   InlineLine,
   ParagraphBlock,
@@ -57,6 +58,13 @@ export {
   HEADING_SIZE_RATIOS,
   COLUMN_GAP,
 } from './types'
+
+// Color utilities
+export { hexToRgba, hexToRgb, mixHexColors, gradientAngleToPoints } from './color-utils'
+
+// Design tokens
+export { extractTokens, applyTokensToElement, tokensToJSON, tokensFromJSON, TOKEN_CSS_VAR_MAP } from './design-tokens'
+export type { CardDesignTokens } from './design-tokens'
 
 // Themes
 export { THEMES, DEFAULT_THEME_ID, getTheme } from './themes'

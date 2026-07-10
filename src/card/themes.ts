@@ -53,10 +53,13 @@ export const THEMES: ThemeDefinition[] = [
       bodySize: 30,
       lineHeight: 1.84,
       titleFontMode: 'serif',
+      bodyFontMode: 'wenkai',
+      subheadingStyle: 'large',
       highlightStyle: 'underline',
     },
     category: 'light',
     decor: { kind: 'none', opacity: 0 },
+    gradient: { enabled: false, color1: '#e6ebdf', color2: '#f3f1ea' },
   },
 
   // ── 2. warm-editor ─────────────────────────────────────────────────────
@@ -107,10 +110,13 @@ export const THEMES: ThemeDefinition[] = [
       bodySize: 29,
       lineHeight: 1.82,
       titleFontMode: 'sans',
+      bodyFontMode: 'yahei',
+      subheadingStyle: 'large',
       highlightStyle: 'marker',
     },
     category: 'professional',
     decor: { kind: 'none', opacity: 0 },
+    gradient: { enabled: false, color1: '#eef2f4', color2: '#f8f9fa' },
   },
 
   // ── 3. peach-cloud ─────────────────────────────────────────────────────
@@ -161,10 +167,13 @@ export const THEMES: ThemeDefinition[] = [
       bodySize: 30,
       lineHeight: 1.86,
       titleFontMode: 'serif',
+      bodyFontMode: 'wenkai',
+      subheadingStyle: 'accent',
       highlightStyle: 'marker',
     },
     category: 'artistic',
     decor: { kind: 'none', opacity: 0 },
+    gradient: { enabled: false, color1: '#fce8db', color2: '#fdf5f0' },
   },
 
   // ── 4. lemon-note ──────────────────────────────────────────────────────
@@ -215,10 +224,13 @@ export const THEMES: ThemeDefinition[] = [
       bodySize: 29,
       lineHeight: 1.84,
       titleFontMode: 'kai',
+      bodyFontMode: 'kaiti',
+      subheadingStyle: 'large',
       highlightStyle: 'underline',
     },
     category: 'light',
     decor: { kind: 'none', opacity: 0 },
+    gradient: { enabled: false, color1: '#fef5d0', color2: '#fffbec' },
   },
 
   // ── 5. sage-dawn ───────────────────────────────────────────────────────
@@ -269,10 +281,13 @@ export const THEMES: ThemeDefinition[] = [
       bodySize: 29,
       lineHeight: 1.84,
       titleFontMode: 'serif',
+      bodyFontMode: 'wenkai',
+      subheadingStyle: 'accent',
       highlightStyle: 'underline',
     },
     category: 'light',
     decor: { kind: 'none', opacity: 0 },
+    gradient: { enabled: false, color1: '#e8efe5', color2: '#f4f6f3' },
   },
 
   // ── 6. swiss-modern ────────────────────────────────────────────────────
@@ -323,10 +338,13 @@ export const THEMES: ThemeDefinition[] = [
       bodySize: 28,
       lineHeight: 1.76,
       titleFontMode: 'sans',
+      bodyFontMode: 'yahei',
+      subheadingStyle: 'large',
       highlightStyle: 'border',
     },
     category: 'professional',
     decor: { kind: 'cornerBracket', opacity: 0.3, scale: 1 },
+    gradient: { enabled: true, color1: '#fafafa', color2: '#d94136' },
   },
 
   // ── 7. forest-archive ──────────────────────────────────────────────────
@@ -377,10 +395,13 @@ export const THEMES: ThemeDefinition[] = [
       bodySize: 30,
       lineHeight: 1.86,
       titleFontMode: 'retroSerif',
+      bodyFontMode: 'simsun',
+      subheadingStyle: 'large',
       highlightStyle: 'marker',
     },
     category: 'dark',
     decor: { kind: 'topRule', opacity: 0.24, scale: 1 },
+    gradient: { enabled: true, color1: '#14281a', color2: '#c9a84c' },
   },
 
   // ── 8. deep-obsidian ───────────────────────────────────────────────────
@@ -431,10 +452,13 @@ export const THEMES: ThemeDefinition[] = [
       bodySize: 30,
       lineHeight: 1.88,
       titleFontMode: 'retroSerif',
+      bodyFontMode: 'simsun',
+      subheadingStyle: 'accent',
       highlightStyle: 'marker',
     },
     category: 'dark',
     decor: { kind: 'topRule', opacity: 0.28, scale: 1 },
+    gradient: { enabled: true, color1: '#151310', color2: '#d4a84b' },
   },
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -486,10 +510,13 @@ export const THEMES: ThemeDefinition[] = [
       bodySize: 30,
       lineHeight: 2.0,
       titleFontMode: 'kai',
+      bodyFontMode: 'kaiti',
+      subheadingStyle: 'large',
       highlightStyle: 'underline',
     },
     category: 'artistic',
     decor: { kind: 'watermark', opacity: 0.06, scale: 1.2 },
+    gradient: { enabled: false, color1: '#ede8df', color2: '#f7f5f0' },
   },
 
   // ── 10. cyber-neon (赛博霓虹) ──────────────────────────────────────────
@@ -540,10 +567,13 @@ export const THEMES: ThemeDefinition[] = [
       bodySize: 28,
       lineHeight: 1.78,
       titleFontMode: 'display',
+      bodyFontMode: 'yahei',
+      subheadingStyle: 'accent',
       highlightStyle: 'marker',
     },
     category: 'dark',
     decor: { kind: 'circuitTrace', opacity: 0.12, color: '#00f0ff', scale: 1 },
+    gradient: { enabled: true, color1: '#00f0ff', color2: '#b400ff' },
   },
 
   // ── 11. glass-morph (冰霜玻璃) ─────────────────────────────────────────
@@ -594,10 +624,13 @@ export const THEMES: ThemeDefinition[] = [
       bodySize: 28,
       lineHeight: 1.8,
       titleFontMode: 'display',
+      bodyFontMode: 'yahei',
+      subheadingStyle: 'large',
       highlightStyle: 'underline',
     },
     category: 'artistic',
     decor: { kind: 'none', opacity: 0 },
+    gradient: { enabled: true, color1: '#6c5ce7', color2: '#a29bfe' },
   },
 
   // ── 12. brutalist-raw (粗野主义) ───────────────────────────────────────
@@ -648,10 +681,13 @@ export const THEMES: ThemeDefinition[] = [
       bodySize: 28,
       lineHeight: 1.65,
       titleFontMode: 'monoTitle',
+      bodyFontMode: 'dengxian',
+      subheadingStyle: 'large',
       highlightStyle: 'border',
     },
     category: 'professional',
     decor: { kind: 'none', opacity: 0 },
+    gradient: { enabled: false, color1: '#ffffff', color2: '#ffffff' },
   },
 
   // ── 13. gold-luxe (鎏金奢) ─────────────────────────────────────────────
@@ -702,10 +738,13 @@ export const THEMES: ThemeDefinition[] = [
       bodySize: 30,
       lineHeight: 1.9,
       titleFontMode: 'retroSerif',
+      bodyFontMode: 'simsun',
+      subheadingStyle: 'accent',
       highlightStyle: 'underline',
     },
     category: 'professional',
     decor: { kind: 'goldFoil', opacity: 0.12, color: '#c8a44e', scale: 1 },
+    gradient: { enabled: false, color1: '#f7f0e0', color2: '#fdfaf3' },
   },
 
   // ── 14. botanical-field (原野手札) ─────────────────────────────────────
@@ -756,10 +795,13 @@ export const THEMES: ThemeDefinition[] = [
       bodySize: 29,
       lineHeight: 1.86,
       titleFontMode: 'handwriting',
+      bodyFontMode: 'kaiti',
+      subheadingStyle: 'accent',
       highlightStyle: 'underline',
     },
     category: 'artistic',
     decor: { kind: 'leafMotif', opacity: 0.14, color: '#5c8a3c', scale: 0.9 },
+    gradient: { enabled: false, color1: '#efe8d6', color2: '#f8f5ed' },
   },
 
   // ── 15. arctic-frost (极光冰原) ────────────────────────────────────────
@@ -810,10 +852,13 @@ export const THEMES: ThemeDefinition[] = [
       bodySize: 28,
       lineHeight: 1.8,
       titleFontMode: 'sans',
+      bodyFontMode: 'yahei',
+      subheadingStyle: 'large',
       highlightStyle: 'underline',
     },
     category: 'light',
     decor: { kind: 'geometricPattern', opacity: 0.08, color: '#3a9bc9', scale: 1 },
+    gradient: { enabled: true, color1: '#3a9bc9', color2: '#e6f2f9' },
   },
 
   // ── 16. midnight-ink (午夜墨蓝) ────────────────────────────────────────
@@ -864,10 +909,13 @@ export const THEMES: ThemeDefinition[] = [
       bodySize: 30,
       lineHeight: 1.88,
       titleFontMode: 'display',
+      bodyFontMode: 'yahei',
+      subheadingStyle: 'accent',
       highlightStyle: 'marker',
     },
     category: 'dark',
     decor: { kind: 'watermark', opacity: 0.05, color: '#7eb8da', scale: 1.4 },
+    gradient: { enabled: true, color1: '#0d1117', color2: '#7eb8da' },
   },
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -919,10 +967,13 @@ export const THEMES: ThemeDefinition[] = [
       bodySize: 28,
       lineHeight: 1.80,
       titleFontMode: 'sans',
+      bodyFontMode: 'yahei',
+      subheadingStyle: 'large',
       highlightStyle: 'underline',
     },
     category: 'light',
     decor: { kind: 'none', opacity: 0 },
+    gradient: { enabled: false, color1: '#faf0cf', color2: '#fff9e6' },
   },
 
   // ── 18。 notebook-paper (笔记本) ──────────────────────────────────────────
@@ -973,10 +1024,13 @@ export const THEMES: ThemeDefinition[] = [
       bodySize: 28,
       lineHeight: 1.78,
       titleFontMode: 'handwriting',
+      bodyFontMode: 'kaiti',
+      subheadingStyle: 'accent',
       highlightStyle: 'underline',
     },
     category: 'light',
     decor: { kind: 'none', opacity: 0 },
+    gradient: { enabled: false, color1: '#f0f1f5', color2: '#fdfdfb' },
   },
 
   // ── 19。 chinese-trad (中国传统) ────────────────────────────────────────
@@ -1027,10 +1081,13 @@ export const THEMES: ThemeDefinition[] = [
       bodySize: 30,
       lineHeight: 2.0,
       titleFontMode: 'kai',
+      bodyFontMode: 'fangsong',
+      subheadingStyle: 'large',
       highlightStyle: 'underline',
     },
     category: 'artistic',
     decor: { kind: 'watermark', opacity: 0.06, color: '#c41e3a', scale: 1.2 },
+    gradient: { enabled: false, color1: '#ebe0ce', color2: '#f5ede0' },
   },
 
   // ── 20。 alibaba-orange (阿里橙) ────────────────────────────────────────
@@ -1081,10 +1138,13 @@ export const THEMES: ThemeDefinition[] = [
       bodySize: 29,
       lineHeight: 1.82,
       titleFontMode: 'puhuiti',
+      bodyFontMode: 'yahei',
+      subheadingStyle: 'large',
       highlightStyle: 'marker',
     },
     category: 'professional',
     decor: { kind: 'none', opacity: 0 },
+    gradient: { enabled: false, color1: '#faf0e0', color2: '#fefaf5' },
   },
 
   // ── 21。 japanese-mag (日本杂志) ────────────────────────────────────────
@@ -1135,10 +1195,13 @@ export const THEMES: ThemeDefinition[] = [
       bodySize: 30,
       lineHeight: 1.84,
       titleFontMode: 'sans',
+      bodyFontMode: 'simsun',
+      subheadingStyle: 'accent',
       highlightStyle: 'border',
     },
     category: 'professional',
     decor: { kind: 'none', opacity: 0 },
+    gradient: { enabled: false, color1: '#f0ede5', color2: '#faf9f5' },
   },
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -1192,10 +1255,13 @@ export const THEMES: ThemeDefinition[] = [
       bodySize: 28,
       lineHeight: 1.82,
       titleFontMode: 'monoTitle',
+      bodyFontMode: 'simsun',
+      subheadingStyle: 'large',
       highlightStyle: 'underline',
     },
     category: 'artistic',
     decor: { kind: 'watermark', opacity: 0.04, scale: 1.1 },
+    gradient: { enabled: false, color1: '#ece5d5', color2: '#f4efe4' },
   },
 
   // ── 23。 kraft-paper (复古牛皮纸) ──────────────────────────────────────
@@ -1246,10 +1312,13 @@ export const THEMES: ThemeDefinition[] = [
       bodySize: 30,
       lineHeight: 1.84,
       titleFontMode: 'handwriting',
+      bodyFontMode: 'kaiti',
+      subheadingStyle: 'accent',
       highlightStyle: 'underline',
     },
     category: 'artistic',
     decor: { kind: 'none', opacity: 0 },
+    gradient: { enabled: false, color1: '#b8956a', color2: '#c4a67a' },
   },
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -1303,10 +1372,13 @@ export const THEMES: ThemeDefinition[] = [
       bodySize: 28,
       lineHeight: 1.72,
       titleFontMode: 'puhuiti',
+      bodyFontMode: 'yahei',
+      subheadingStyle: 'large',
       highlightStyle: 'border',
     },
     category: 'professional',
     decor: { kind: 'cornerBracket', opacity: 0.24, scale: 1 },
+    gradient: { enabled: false, color1: '#f4f6fa', color2: '#ffffff' },
   },
 
   // ── 25。 bytestyle (字节范) ─────────────────────────────────────────────
@@ -1357,10 +1429,13 @@ export const THEMES: ThemeDefinition[] = [
       bodySize: 28,
       lineHeight: 1.76,
       titleFontMode: 'puhuiti',
+      bodyFontMode: 'yahei',
+      subheadingStyle: 'large',
       highlightStyle: 'border',
     },
     category: 'professional',
     decor: { kind: 'geometricPattern', opacity: 0.08, color: '#3370ff', scale: 1 },
+    gradient: { enabled: false, color1: '#e8f0fe', color2: '#f6f9ff' },
   },
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -1414,10 +1489,13 @@ export const THEMES: ThemeDefinition[] = [
       bodySize: 30,
       lineHeight: 1.86,
       titleFontMode: 'sans',
+      bodyFontMode: 'yahei',
+      subheadingStyle: 'large',
       highlightStyle: 'marker',
     },
     category: 'dark',
     decor: { kind: 'none', opacity: 0 },
+    gradient: { enabled: true, color1: '#16162a', color2: '#6b7dff' },
   },
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -1471,10 +1549,13 @@ export const THEMES: ThemeDefinition[] = [
       bodySize: 28,
       lineHeight: 1.76,
       titleFontMode: 'monoTitle',
+      bodyFontMode: 'dengxian',
+      subheadingStyle: 'accent',
       highlightStyle: 'marker',
     },
     category: 'dark',
     decor: { kind: 'circuitTrace', opacity: 0.16, color: '#00ff41', scale: 1 },
+    gradient: { enabled: true, color1: '#00ff41', color2: '#0c1412' },
   },
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -1528,10 +1609,13 @@ export const THEMES: ThemeDefinition[] = [
       bodySize: 28,
       lineHeight: 1.80,
       titleFontMode: 'display',
+      bodyFontMode: 'yahei',
+      subheadingStyle: 'large',
       highlightStyle: 'underline',
     },
     category: 'artistic',
     decor: { kind: 'auroraGlow', opacity: 0.14 },
+    gradient: { enabled: true, color1: '#a855f7', color2: '#e8794c' },
   },
 
   // ── 29。 instagram (Instagram风格) ──────────────────────────────────────
@@ -1582,10 +1666,13 @@ export const THEMES: ThemeDefinition[] = [
       bodySize: 28,
       lineHeight: 1.80,
       titleFontMode: 'display',
+      bodyFontMode: 'yahei',
+      subheadingStyle: 'accent',
       highlightStyle: 'underline',
     },
     category: 'artistic',
     decor: { kind: 'auroraGlow', opacity: 0.12 },
+    gradient: { enabled: true, color1: '#e1306c', color2: '#f77737' },
   },
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -1639,10 +1726,13 @@ export const THEMES: ThemeDefinition[] = [
       bodySize: 28,
       lineHeight: 1.62,
       titleFontMode: 'display',
+      bodyFontMode: 'dengxian',
+      subheadingStyle: 'accent',
       highlightStyle: 'border',
     },
     category: 'artistic',
     decor: { kind: 'none', opacity: 0 },
+    gradient: { enabled: true, color1: '#ffed00', color2: '#e6332a' },
   },
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -1652,54 +1742,57 @@ export const THEMES: ThemeDefinition[] = [
   {
     id: 'art-deco',
     name: '艺术装饰',
-    mood: '1920年代几何金线奢华',
+    mood: '爵士时代乌木金箔几何美学',
     preset: '装饰艺术',
-    description: '深色背景、金色几何对称线条、扇形放射纹样、大理石质感，适合高端品牌与邀请函',
-    tags: ['装饰艺术', '奢华', '复古'],
+    description: '乌木黑底、香槟金文、几何直角边框、抛光大理石质感，适合高端品牌宣言与珍藏级内容',
+    tags: ['装饰艺术', '奢华', '几何'],
     mode: 'luxe',
     palette: {
-      page: '#1c1814',
-      pageAlt: '#282218',
-      text: '#d4c59e',
-      muted: '#8a8060',
-      accent: '#c9a84c',
-      accentSoft: 'rgba(201,168,76,0.20)',
-      border: 'rgba(201,168,76,0.24)',
-      shadow: 'rgba(8,6,4,0.36)',
-      glow: 'rgba(220,190,110,0.18)',
+      page: '#191714',         // 乌木黑 — 深邃抛光石材基底
+      pageAlt: '#23201a',      // 深炭灰 — 微暖过渡
+      text: '#e8dbb8',         // 香槟金 — 温暖光泽正文
+      muted: '#9a8d6a',        // 哑光金 — 次级文本
+      accent: '#d4af37',       // 金属金 — 纯正金色高光
+      accentSoft: 'rgba(212,175,55,0.14)',
+      border: 'rgba(212,175,55,0.20)',
+      shadow: 'rgba(6,4,2,0.45)',
+      glow: 'rgba(220,185,80,0.13)',
     },
     surface: {
-      grainAlpha: 0.026,
-      vignetteAlpha: 0.038,
-      washStrength: 0.22,
-      innerFrameAlpha: 0.14,
-      innerFrameInset: 28,
-      titleAccentMix: 0.92,
-      footerLineAlpha: 0.22,
-      footerTextAlpha: 0.88,
+      grainAlpha: 0.014,        // 极细颗粒 — 抛光大理石触感
+      vignetteAlpha: 0.054,     // 更强暗角 — 聚光灯戏剧感
+      washStrength: 0.28,       // 金色光晕更明显
+      innerFrameAlpha: 0.20,    // 几何边框更醒目
+      innerFrameInset: 30,      // 更宽的内框留白
+      titleAccentMix: 0.96,     // 标题几乎纯金色
+      footerLineAlpha: 0.28,    // 金色页脚分割线
+      footerTextAlpha: 0.84,
       previewShadow:
-        '0 26px 56px rgba(8,6,4,0.36), 0 2px 18px rgba(201,168,76,0.14) inset, 0 0 0 1px rgba(201,168,76,0.20) inset',
+        '0 30px 64px rgba(6,4,2,0.48), 0 2px 22px rgba(212,175,55,0.10) inset, 0 0 0 1px rgba(212,175,55,0.16) inset',
     },
     components: {
-      quoteFillAlpha: 0.046,
-      quoteStrokeAlpha: 0.088,
-      quoteBarAlpha: 0.82,
-      quoteRadius: 12,
+      quoteFillAlpha: 0.048,      // 金色微染引用底
+      quoteStrokeAlpha: 0.096,    // 金色边框可见
+      quoteBarAlpha: 0.88,        // 醒目金色强调条
+      quoteRadius: 0,             // 直角 — Art Deco拒绝圆角
       quoteTreatment: 'paper',
       highlightTreatment: 'warmSwipe',
-      highlightUnderlineAlpha: 0.70,
-      highlightMarkerAlpha: 0.32,
-      highlightDashAlpha: 0.76,
+      highlightUnderlineAlpha: 0.74,
+      highlightMarkerAlpha: 0.30,
+      highlightDashAlpha: 0.80,
     },
     editor: {
-      titleSize: 80,
+      titleSize: 84,              // 更大的标题 — 宣言式气场
       bodySize: 30,
-      lineHeight: 1.90,
-      titleFontMode: 'retroSerif',
+      lineHeight: 1.94,           // 更宽松的行距 — 奢华呼吸感
+      titleFontMode: 'display',   // 几何无衬线粗体 — Art Deco标志性字体
+      bodyFontMode: 'fangsong',   // 仿宋 — 修长优雅的正文字
+      subheadingStyle: 'accent',  // 金色小标题
       highlightStyle: 'underline',
     },
     category: 'professional',
-    decor: { kind: 'goldFoil', opacity: 0.16, color: '#c9a84c', scale: 1 },
+    decor: { kind: 'fanBurst', opacity: 0.14, color: '#d4af37', scale: 1 },
+    gradient: { enabled: false, color1: '#23201a', color2: '#191714' },
   },
 ]
 

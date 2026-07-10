@@ -380,6 +380,100 @@ export function drawAuroraGlow(
   ctx.restore()
 }
 
+// ── Fan burst (Art Deco sunburst) ─────────────────────────────────────────
+
+/**
+ * Art Deco radial fan/sunburst pattern.
+ * Radiating lines from corners — the quintessential Chrysler Building motif.
+ * Used by art-deco theme.
+ */
+export function drawFanBurst(
+  ctx: CanvasRenderingContext2D,
+  theme: ThemeDefinition,
+): void {
+  const decor = theme.decor
+  if (!decor || decor.kind !== 'fanBurst') return
+
+  const alpha = decor.opacity
+  const color = decor.color ?? theme.palette.accent
+  const scale = decor.scale ?? 1
+
+  ctx.save()
+  ctx.strokeStyle = hexToRgba(color, alpha)
+  ctx.lineCap = 'round'
+
+  // ── Top-left fan burst ────────────────────────────────────────────────
+  const originX = 0
+  const originY = 0
+  const maxRadius = 380 * scale
+  const startAngle = -0.05   // near-horizontal right
+  const endAngle = 0.58      // ~33° downward
+
+  drawFanRays(ctx, originX, originY, maxRadius, startAngle, endAngle, alpha, color, scale)
+
+  // ── Bottom-right fan burst (mirrored, softer) ─────────────────────────
+  const brX = PAGE_WIDTH
+  const brY = PAGE_HEIGHT
+  const brMaxRadius = 320 * scale
+  const brStartAngle = Math.PI - 0.08  // near-horizontal left
+  const brEndAngle = Math.PI - 0.52    // ~30° upward
+
+  drawFanRays(ctx, brX, brY, brMaxRadius, brStartAngle, brEndAngle, alpha * 0.65, color, scale * 0.85)
+
+  ctx.restore()
+}
+
+/** Draw a single fan of radial rays from an origin point. */
+function drawFanRays(
+  ctx: CanvasRenderingContext2D,
+  ox: number,
+  oy: number,
+  maxRadius: number,
+  startAngle: number,
+  endAngle: number,
+  alpha: number,
+  color: string,
+  scale: number,
+): void {
+  const rayCount = 28
+  const angleStep = (endAngle - startAngle) / rayCount
+
+  for (let i = 0; i < rayCount; i++) {
+    const angle = startAngle + i * angleStep
+
+    // Staggered lengths — stepped geometric rhythm (ziggurat effect)
+    const lengthRatio = 0.45 + (i % 4) * 0.14 + (i / rayCount) * 0.08
+    const rayLength = maxRadius * Math.min(1, lengthRatio)
+    const lineWidth = 0.7 + (i % 3 === 0 ? 0.8 : 0) * scale
+
+    ctx.lineWidth = lineWidth
+    ctx.strokeStyle = hexToRgba(color, alpha * (0.55 + (i % 3) * 0.22))
+
+    ctx.beginPath()
+    ctx.moveTo(ox, oy)
+    ctx.lineTo(
+      ox + Math.cos(angle) * rayLength,
+      oy + Math.sin(angle) * rayLength,
+    )
+    ctx.stroke()
+
+    // Tiny dot at ray endpoint for selected rays (star-point effect)
+    if (i % 5 === 0) {
+      const dotAlpha = alpha * 0.7
+      ctx.fillStyle = hexToRgba(color, dotAlpha)
+      ctx.beginPath()
+      ctx.arc(
+        ox + Math.cos(angle) * rayLength * 0.94,
+        oy + Math.sin(angle) * rayLength * 0.94,
+        1.8 * scale,
+        0,
+        Math.PI * 2,
+      )
+      ctx.fill()
+    }
+  }
+}
+
 // ═══════════════════════════════════════════════════════════════════════════
 // Main decor dispatch
 // ═══════════════════════════════════════════════════════════════════════════
@@ -420,6 +514,9 @@ export function drawDecor(
       break
     case 'auroraGlow':
       drawAuroraGlow(ctx, theme)
+      break
+    case 'fanBurst':
+      drawFanBurst(ctx, theme)
       break
   }
 }

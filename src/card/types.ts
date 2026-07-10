@@ -2,6 +2,17 @@
 // CardPreview module — type definitions
 // ═══════════════════════════════════════════════════════════════════════════
 
+// ── Gradient config ─────────────────────────────────────────────────────
+
+/** Gradient configuration used by the gradient picker and renderer. */
+export interface GradientConfig {
+  enabled: boolean
+  color1: string
+  color2: string
+  /** Gradient angle in degrees (CSS convention: 0 = bottom→top). Default 135. */
+  angle: number
+}
+
 // ── Theme mode ────────────────────────────────────────────────────────────
 
 export type ThemeMode = 'paper' | 'sage' | 'vintage' | 'obsidian' | 'archive' | 'swiss' | 'cyber' | 'glass' | 'brutal' | 'luxe' | 'frost'
@@ -41,7 +52,7 @@ export const DEFAULT_TITLE_CUSTOM: TitleCustomization = {
 
 // ── Highlight style / treatment ───────────────────────────────────────────
 
-export type HighlightStyle = 'underline' | 'marker' | 'border'
+export type HighlightStyle = 'underline' | 'marker' | 'border' | 'highlight'
 
 export type HighlightTreatment =
   | 'softUnderline'
@@ -50,6 +61,7 @@ export type HighlightTreatment =
   | 'warmSwipe'
   | 'darkGlow'
   | 'swissRule'
+  | 'boldAccent'
 
 // ── Quote treatment ───────────────────────────────────────────────────────
 
@@ -137,13 +149,17 @@ export interface ThemeEditor {
   lineHeight: number
   /** Default title font mode */
   titleFontMode: TitleFontMode
+  /** Default body font mode — theme's typographic identity for body text */
+  bodyFontMode?: BodyFontMode
+  /** Default subheading visual treatment */
+  subheadingStyle?: SubheadingStyle
   /** Default highlight style */
   highlightStyle: HighlightStyle
 }
 
 // ── Decor ornament system ──────────────────────────────────────────────────
 
-export type DecorKind = 'none' | 'cornerBracket' | 'topRule' | 'watermark' | 'geometricPattern' | 'leafMotif' | 'circuitTrace' | 'goldFoil' | 'auroraGlow'
+export type DecorKind = 'none' | 'cornerBracket' | 'topRule' | 'watermark' | 'geometricPattern' | 'leafMotif' | 'circuitTrace' | 'goldFoil' | 'auroraGlow' | 'fanBurst'
 
 export interface ThemeDecor {
   /** Which ornament to render */
@@ -172,6 +188,14 @@ export interface ThemeDefinition {
   category?: 'light' | 'dark' | 'artistic' | 'professional'
   /** Decorative ornament configuration */
   decor?: ThemeDecor
+  /** Built-in gradient colors — syncs to the gradient picker */
+  gradient?: {
+    enabled: boolean
+    color1: string
+    color2: string
+    /** Gradient angle in degrees (CSS convention, 135 = top-left → bottom-right). */
+    angle?: number
+  }
 }
 
 // ── Card page ─────────────────────────────────────────────────────────────
@@ -334,6 +358,8 @@ export interface RenderOptions {
   footerRightMode: FooterRightMode
   footerEnabled: boolean
   cardCornerMode: CardCornerMode
+  /** Optional background gradient override */
+  gradientConfig?: GradientConfig
 }
 
 // ── Layout options (passed to layoutPages) ────────────────────────────────

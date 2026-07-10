@@ -168,7 +168,7 @@ export interface ToolbarItem {
 
 // ── Highlight style types ────────────────────────────────────────────
 
-export type HighlightStyle = 'underline' | 'marker' | 'border'
+export type HighlightStyle = 'underline' | 'marker' | 'border' | 'highlight'
 
 // ── Props ────────────────────────────────────────────────────────────
 
@@ -198,9 +198,10 @@ function onStyleSelect(style: HighlightStyle): void {
 // ── Highlight style config ───────────────────────────────────────────
 
 const HIGHLIGHT_STYLES: { value: HighlightStyle; label: string; color: string }[] = [
-  { value: 'underline', label: '下划线', color: '#3b82f6' },
-  { value: 'marker',    label: '荧光笔', color: '#f59e0b' },
-  { value: 'border',    label: '边框',   color: '#8b5cf6' },
+  { value: 'underline', label: '下划线',   color: '#3b82f6' },
+  { value: 'marker',    label: '荧光笔',   color: '#f59e0b' },
+  { value: 'border',    label: '边框',     color: '#8b5cf6' },
+  { value: 'highlight', label: '文本高亮', color: '#fde047' },
 ]
 
 const highlightStyleColor = computed(() => {

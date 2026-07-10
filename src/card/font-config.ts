@@ -130,11 +130,10 @@ export function getRequiredWebFonts(theme: ThemeDefinition): FontEntry[] {
     familySet.add(family)
   }
 
-  // Body fonts (default to wenkai since bodyFontMode is set externally)
-  for (const mode of ['wenkai', 'yahei', 'simsun', 'kaiti', 'dengxian', 'fangsong'] as BodyFontMode[]) {
-    for (const family of getBodyFontFamilies(mode)) {
-      familySet.add(family)
-    }
+  // Body fonts — only the theme's bodyFontMode, not all six
+  const bodyMode = theme.editor.bodyFontMode ?? 'wenkai'
+  for (const family of getBodyFontFamilies(bodyMode)) {
+    familySet.add(family)
   }
 
   // Mono fonts (always needed for code blocks)

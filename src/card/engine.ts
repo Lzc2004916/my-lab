@@ -4,6 +4,7 @@
 
 import type {
   CardPage,
+  GradientConfig,
   HighlightStyle,
   FooterRightMode,
   CardCornerMode,
@@ -37,6 +38,8 @@ export interface EngineOptions {
   footerEnabled?: boolean
   /** Card corner mode */
   cardCornerMode?: CardCornerMode
+  /** Background gradient override */
+  gradientConfig?: GradientConfig
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -68,6 +71,7 @@ export function renderAllPages(
       footerRightMode: opts.footerRightMode ?? 'page',
       footerEnabled: opts.footerEnabled ?? true,
       cardCornerMode: opts.cardCornerMode ?? 'square',
+      gradientConfig: opts.gradientConfig,
     }),
   )
 
@@ -158,6 +162,7 @@ export async function renderAllPagesAsync(
       footerRightMode: opts.footerRightMode ?? 'page',
       footerEnabled: opts.footerEnabled ?? true,
       cardCornerMode: opts.cardCornerMode ?? 'square',
+      gradientConfig: opts.gradientConfig,
     }),
   )
 
