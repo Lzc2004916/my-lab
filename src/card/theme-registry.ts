@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════════════════════
-// CardPreview module — dynamic theme registry
+// CardPreview 模块 — 动态主题注册表
 // ═══════════════════════════════════════════════════════════════════════════
 
 import type { ThemeDefinition } from './types'
@@ -18,54 +18,54 @@ function emitChange(): void {
 
 const registry = new Map<string, ThemeDefinition>()
 
-/** Initialize the registry with built-in themes. */
+/** 使用内置主题初始化注册表。 */
 function init(): void {
   for (const theme of THEMES) {
     registry.set(theme.id, theme)
   }
 }
 
-// Auto-init on module load
+// 模块加载时自动初始化
 init()
 
 // ── Public API ───────────────────────────────────────────────────────────
 
-/** Register a new theme (or override an existing one). */
+/** 注册新主题（或覆盖已有主题）。 */
 export function registerTheme(theme: ThemeDefinition): void {
   registry.set(theme.id, theme)
   emitChange()
 }
 
-/** Remove a theme by ID. Cannot remove built-in themes by default. */
+/** 按 ID 移除主题。默认不能移除内置主题。 */
 export function unregisterTheme(id: string): boolean {
   const deleted = registry.delete(id)
   if (deleted) emitChange()
   return deleted
 }
 
-/** Get a theme by ID. Falls back to the default theme. */
+/** 按 ID 获取主题。如果未找到则回退到默认主题。 */
 export function getTheme(id: string): ThemeDefinition {
   return registry.get(id) ?? registry.get('moss-paper') ?? THEMES[0]
 }
 
-/** Get all registered themes as a sorted list. */
+/** 获取所有已注册主题的排序列表。 */
 export function getAllThemes(): ThemeDefinition[] {
   return Array.from(registry.values())
 }
 
-/** Check whether a theme ID is registered. */
+/** 检查主题 ID 是否已注册。 */
 export function hasTheme(id: string): boolean {
   return registry.has(id)
 }
 
-/** Get the number of registered themes. */
+/** 获取已注册主题的数量。 */
 export function getThemeCount(): number {
   return registry.size
 }
 
 /**
- * Subscribe to registry changes (register/unregister).
- * Returns an unsubscribe function.
+ * 订阅注册表变更（注册/注销）。
+ * 返回一个取消订阅函数。
  */
 export function onRegistryChange(fn: Listener): () => void {
   listeners.add(fn)
@@ -74,7 +74,7 @@ export function onRegistryChange(fn: Listener): () => void {
   }
 }
 
-/** Reset the registry to only built-in themes. */
+/** 将注册表重置为仅包含内置主题。 */
 export function resetRegistry(): void {
   registry.clear()
   init()

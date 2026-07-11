@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════════════════════
-// CardPreview module — unified engine
+// CardPreview 模块 — 统一引擎
 // ═══════════════════════════════════════════════════════════════════════════
 
 import type {
@@ -16,33 +16,33 @@ import { renderCard } from './renderer'
 import { getTheme } from './theme-registry'
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Engine options
+// 引擎选项
 // ═══════════════════════════════════════════════════════════════════════════
 
 export interface EngineOptions {
-  /** Markdown source text */
+  /** Markdown 源文本 */
   source: string
-  /** Theme ID string (e.g. 'moss-paper') */
+  /** 主题 ID 字符串（例如 'moss-paper'） */
   themeId: string
-  /** Typography settings */
+  /** 排版设置 */
   typography: TypographySettings
-  /** Highlight style */
+  /** 高亮样式 */
   highlightStyle: HighlightStyle
-  /** Footer left text */
+  /** 页脚左侧文本 */
   footerLeft?: string
-  /** Footer right mode */
+  /** 页脚右侧模式 */
   footerRightMode?: FooterRightMode
-  /** Whether the footer is visible */
+  /** 是否显示页脚 */
   footerEnabled?: boolean
-  /** Card corner mode */
+  /** 卡片圆角模式 */
   cardCornerMode?: CardCornerMode
-  /** Background gradient override */
+  /** 背景渐变覆盖 */
   gradientConfig?: GradientConfig
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
 
-/** Render all pages for the given source text. Returns canvases, one per page. */
+/** 为给定源文本渲染所有页面。返回 canvas，每页一个。 */
 export function renderAllPages(
   opts: EngineOptions,
 ): { pages: CardPage[]; canvases: HTMLCanvasElement[] } {
@@ -76,8 +76,8 @@ export function renderAllPages(
 }
 
 /**
- * Async wrapper — delegates to synchronous renderAllPages.
- * Kept for API compatibility.
+ * 异步包装器 — 委托给同步的 renderAllPages。
+ * 保留以保持 API 兼容性。
  */
 export async function renderAllPagesAsync(
   opts: EngineOptions,
@@ -85,12 +85,12 @@ export async function renderAllPagesAsync(
   return renderAllPages(opts)
 }
 
-/** Get the preview data URL for a single rendered canvas. */
+/** 获取单个渲染 canvas 的预览数据 URL。 */
 export function canvasToPreviewUrl(canvas: HTMLCanvasElement): string {
   return canvas.toDataURL('image/png')
 }
 
-/** Get the export data URL (higher quality) for a single rendered canvas. */
+/** 获取单个渲染 canvas 的导出数据 URL（更高质量）。 */
 export function canvasToExportUrl(
   canvas: HTMLCanvasElement,
   format: 'png' | 'jpg' = 'png',

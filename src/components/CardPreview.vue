@@ -1,8 +1,7 @@
 <template>
   <div
     ref="containerRef"
-    class="flex flex-col items-center justify-center gap-4 w-full min-h-full p-4 sm:p-3 lg:p-6 rounded-xl"
-    :style="{ backgroundColor: 'oklch(0.95 0.008 260)' }"
+    class="flex flex-col items-center justify-center gap-4 w-full min-h-full p-4 sm:p-3 lg:p-6 rounded-xl bg-transparent"
   >
     <!-- ═══════════════════════════════════════════════════════════════════
          Scroll mode — multi-page, each page is a <canvas>
@@ -35,7 +34,7 @@
     <!-- Empty / loading state -->
     <div
       v-else
-      class="flex items-center justify-center border-1.5 border-dashed border-base-content/12 shrink-0 text-base-content/40 text-sm rounded-lg"
+      class="flex items-center justify-center border-1.5 border-dashed border-base-content/12 shrink-0 text-base-content/50 text-sm rounded-lg"
       :style="canvasDisplayStyle"
     >
       <LoadingSpinner
@@ -63,27 +62,27 @@ import LoadingSpinner from '@/components/LoadingSpinner.vue'
 // ── Props ───────────────────────────────────────────────────────────────
 
 interface Props {
-  /** Markdown source text */
+  /** Markdown 源文本 */
   source: string
   /** 0-based index of the active page */
   currentPage?: number
-  /** Theme ID (e.g. 'moss-paper') */
+  /** 主题 ID（例如 'moss-paper'） */
   themeId?: string
-  /** Typography settings */
+  /** 排版设置 */
   typography?: TypographySettings
-  /** Background gradient config */
+  /** 背景渐变配置 */
   gradientConfig?: GradientConfig
-  /** Highlight style */
+  /** 高亮样式 */
   highlightStyle?: HighlightStyle
-  /** Footer left text */
+  /** 页脚左侧文本 */
   footerLeft?: string
-  /** Footer right display mode */
+  /** 页脚右侧显示模式 */
   footerRightMode?: FooterRightMode
-  /** Whether footer is visible */
+  /** 是否显示页脚 */
   footerEnabled?: boolean
-  /** Card corner mode */
+  /** 卡片圆角模式 */
   cardCornerMode?: CardCornerMode
-  /** Preview scale factor (0-1, default 1.0). Acts as max scale cap. */
+  /** 预览缩放因子（0-1，默认 1.0）。作为最大缩放上限。 */
   previewScale?: number
 }
 
@@ -113,13 +112,13 @@ const emit = defineEmits<{
 
 // ── Layout constants ─────────────────────────────────────────────────────
 
-/** Minimum card width in px before we stop scaling down (readability floor). */
+/** 停止缩放的最小卡片宽度（px，可读性底线）。 */
 const MIN_CARD_WIDTH = 260
-/** Horizontal padding inside .preview-root (1.5rem × 2 sides at 16px base). */
+/** .preview-root 内的水平内边距（1.5rem × 2 边，16px 基准）。 */
 const ROOT_PADDING_X = 48
-/** Vertical padding inside .preview-root (1rem × 2 sides at 16px base). */
+/** .preview-root 内的垂直内边距（1rem × 2 边，16px 基准）。 */
 const ROOT_PADDING_Y = 32
-/** Gap between cards in scroll mode (px). */
+/** 滚动模式下卡片之间的间距（px）。 */
 const CARD_GAP = 24
 
 // ── State ────────────────────────────────────────────────────────────────
@@ -132,7 +131,7 @@ const singleCanvasRef = ref<HTMLCanvasElement | null>(null)
 const canvasRefs = ref<Record<number, HTMLCanvasElement | null>>({})
 const activeIdx = ref(props.currentPage)
 
-/** Current pixel dimensions of the right panel (from ResizeObserver on the parent). */
+/** 右侧面板的当前像素尺寸（来自父元素的 ResizeObserver）。 */
 const containerWidth = ref(0)
 const containerHeight = ref(0)
 
@@ -167,28 +166,28 @@ function teardownResizeObserver(): void {
 // ── Dynamic scale computation ────────────────────────────────────────────
 
 /**
- * Compute the optimal display scale for the card canvas.
+ * 计算卡片画布的最佳显示缩放比例。
  *
- * Fills the available space in BOTH dimensions (fit-to-container):
- *  1. Compute scale that fits the card within available width & height
- *  2. Cap at previewScale (max quality) and floor at MIN_CARD_WIDTH
- *  3. Falls back to previewScale when ResizeObserver hasn't fired yet
+ * 在两个维度上填充可用空间（适应容器）：
+ *  1. 计算使卡片适配可用宽度和高度的缩放比例
+ *  2. 上限为 previewScale（最大质量），下限为 MIN_CARD_WIDTH
+ *  3. 当 ResizeObserver 尚未触发时回退到 previewScale
  */
 const displayScale = computed(() => {
   const maxScale = props.previewScale
   const availableWidth = containerWidth.value - ROOT_PADDING_X
   const availableHeight = containerHeight.value - ROOT_PADDING_Y
 
-  // ResizeObserver hasn't fired yet — use prop as fallback
+  // ResizeObserver 尚未触发 — 使用 prop 作为回退
   if (availableWidth <= 0 || availableHeight <= 0) return maxScale
 
-  // Fit to BOTH dimensions (maintain aspect ratio)
+  // 适配两个维度（保持宽高比）
   const fitScaleW = availableWidth / PAGE_WIDTH
   const fitScaleH = availableHeight / PAGE_HEIGHT
   const fitScale = Math.min(fitScaleW, fitScaleH)
 
-  // Cap at maxScale (prevents over-scaling on huge screens)
-  // Floor at MIN_CARD_WIDTH for readability
+  // 上限为 maxScale（防止在超大屏幕上过度缩放）
+// 下限为 MIN_CARD_WIDTH（保证可读性）
   const floor = MIN_CARD_WIDTH / PAGE_WIDTH
   return Math.max(floor, Math.min(maxScale, fitScale))
 })
@@ -226,7 +225,7 @@ function getRenderedCardHeight(): number {
 
 let debounceTimer: ReturnType<typeof setTimeout> | null = null
 
-/** Cached page layout — reused when only theme/style changes (not source). */
+/** 缓存的页面布局 — 仅在主题/样式变化时复用（源文本不变）。 */
 let lastSourceKey = ''
 let cachedLayoutPages: CardPage[] = []
 
@@ -240,7 +239,7 @@ async function doRender(): Promise<void> {
     const sourceChanged = props.source !== lastSourceKey
 
     if (sourceChanged) {
-      // Full pipeline: layout + render
+      // 完整管线：布局 + 渲染
       const result = await renderAllPagesAsync({
         source: props.source,
         themeId: props.themeId,
@@ -256,9 +255,9 @@ async function doRender(): Promise<void> {
       cachedLayoutPages = result.pages
       lastSourceKey = props.source
     } else {
-      // Style-only change: reuse layout, re-render only
+      // 仅样式变更：复用布局，仅重新渲染
       if (cachedLayoutPages.length === 0) {
-        // Fallback: full render if no cache
+        // 回退：无缓存时进行完整渲染
         const result = await renderAllPagesAsync({
           source: props.source,
           themeId: props.themeId,
@@ -292,7 +291,7 @@ async function doRender(): Promise<void> {
       }
     }
 
-    // Clamp current page
+    // 限制当前页码
     if (props.currentPage >= canvases.value.length && canvases.value.length > 0) {
       emit('update:currentPage', Math.max(0, canvases.value.length - 1))
     }
@@ -317,7 +316,7 @@ async function doRender(): Promise<void> {
   }
 }
 
-// Shallow watch: each element in the array is a prop value tracked by Vue's
+// 浅层 watch：数组中的每个元素都是 Vue 跟踪的 prop 值
 // reactivity. `deep: true` is unnecessary because props are replaced (not
 // mutated) when they change from the parent. Removing deep saves significant
 // dependency-tracking overhead on complex objects like typography & gradientConfig.
@@ -337,7 +336,7 @@ watch(
   { immediate: true },
 )
 
-// Copy rendered canvases into DOM canvas elements
+// 将渲染好的 Canvas 复制到 DOM canvas 元素中
 watch(
   () => canvases.value,
   async () => {
@@ -414,7 +413,7 @@ watch(
 
 // ── CSS Design Tokens ────────────────────────────────────────────────────
 
-/** Apply design tokens as CSS custom properties on the preview root element. */
+/** 将设计令牌作为 CSS 自定义属性应用到预览根元素。 */
 watch(
   () => [props.themeId, props.gradientConfig] as const,
   () => {
@@ -445,19 +444,19 @@ onBeforeUnmount(() => {
 // ── Expose ───────────────────────────────────────────────────────────────
 
 defineExpose({
-  /** Get the current page's canvas element (for export). */
+  /** 获取当前页面的 canvas 元素（用于导出）。 */
   getActiveCanvas: (): HTMLCanvasElement | null => {
     return canvases.value[props.currentPage] ?? null
   },
-  /** Get all rendered canvases. */
+  /** 获取所有渲染的 canvas。 */
   getAllCanvases: (): HTMLCanvasElement[] => {
     return canvases.value
   },
-  /** Get current page count. */
+  /** 获取当前页数。 */
   getPageCount: (): number => {
     return canvases.value.length
   },
-  /** Force an immediate re-render. */
+  /** 强制立即重新渲染。 */
   forceRender: () => {
     doRender()
   },

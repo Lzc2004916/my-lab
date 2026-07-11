@@ -11,7 +11,7 @@ import {
 import path from 'node:path'
 import fs from 'node:fs'
 
-// ─── Environment ───────────────────────────────────────────────
+// ─── 环境 ───────────────────────────────────────────────
 process.env.DIST = path.join(__dirname, '../dist')
 process.env.VITE_PUBLIC = app.isPackaged
   ? process.env.DIST
@@ -25,7 +25,7 @@ let win: BrowserWindow | null = null
 let tray: Tray | null = null
 let forceClose = false
 
-// ─── Window bounds persistence ────────────────────────────────
+// ─── 窗口边界持久化 ────────────────────────────────
 
 const BOUNDS_PATH = path.join(app.getPath('userData'), 'window-bounds.json')
 
@@ -43,7 +43,7 @@ function loadWindowBounds(): WindowBounds | null {
       return JSON.parse(raw) as WindowBounds
     }
   } catch {
-    // Corrupted file — ignore and use defaults
+    // 文件损坏 — 忽略并使用默认值
   }
   return null
 }
@@ -54,13 +54,13 @@ function saveWindowBounds(): void {
   try {
     fs.writeFileSync(BOUNDS_PATH, JSON.stringify(bounds), 'utf-8')
   } catch {
-    // Non-critical — silently ignore write failures
+    // 非关键 — 静默忽略写入失败
   }
 }
 
-// ─── Window ────────────────────────────────────────────────────
+// ─── 窗口 ────────────────────────────────────────────────────
 
-/** Default window dimensions — used on first launch only. */
+/** 默认窗口尺寸 — 仅在首次启动时使用。 */
 const DEFAULT_BOUNDS: WindowBounds = { x: 0, y: 0, width: 1400, height: 900 }
 
 function createWindow(): void {
@@ -74,7 +74,7 @@ function createWindow(): void {
     height: bounds.height,
     minWidth: 900,
     minHeight: 600,
-    center: !saved,           // only center on first launch
+    center: !saved,           // 仅在首次启动时居中
     title: 'Markdown Card',
     icon: ICON_PATH,
     frame: false,             // 无边框窗口 — 去掉系统标题栏
@@ -94,14 +94,14 @@ function createWindow(): void {
     return { action: 'deny' }
   })
 
-  // F12 toggles DevTools (frameless window has no native menu)
+  // F12 切换 DevTools（无边框窗口没有原生菜单）
   win.webContents.on('before-input-event', (_event, input) => {
     if (input.key === 'F12' && input.type === 'keyDown') {
       win?.webContents.toggleDevTools()
     }
   })
 
-  // ── Window state change → notify renderer ─────────────────────
+  // ── 窗口状态变化 → 通知渲染进程 ─────────────────────
   win.on('maximize', () => {
     win?.webContents.send('window:state-changed', { isMaximized: true })
   })
@@ -109,7 +109,7 @@ function createWindow(): void {
     win?.webContents.send('window:state-changed', { isMaximized: false })
   })
 
-  // ── Save bounds on move / resize (debounced) ──────────────────
+  // ── 移动/调整大小时保存边界（防抖） ──────────────────
   let saveTimer: ReturnType<typeof setTimeout> | null = null
   const debouncedSave = (): void => {
     if (saveTimer) clearTimeout(saveTimer)
@@ -118,7 +118,7 @@ function createWindow(): void {
   win.on('resize', debouncedSave)
   win.on('move', debouncedSave)
 
-  // ── Close interception for unsaved-changes prompt ─────────────
+  // ── 关闭拦截，用于未保存更改提示 ─────────────
   win.on('close', (e: Electron.Event) => {
     if (!forceClose) {
       e.preventDefault()
@@ -133,21 +133,21 @@ function createWindow(): void {
   }
 }
 
-// ─── Platform ──────────────────────────────────────────────────
+// ─── 平台 ──────────────────────────────────────────────────
 const isMac = process.platform === 'darwin'
 
-// ─── Remove native menu bar ────────────────────────────────────
+// ─── 移除原生菜单栏 ────────────────────────────────────
 Menu.setApplicationMenu(null)
 
-// ─── System Tray ───────────────────────────────────────────────
+// ─── 系统托盘 ───────────────────────────────────────────────
 function createTray(): void {
   try {
-    // Fallback: create a simple 16×16 tray icon if no icon file exists
+    // 回退：如果图标文件不存在，创建一个简单的 16×16 托盘图标
     const trayIcon = fs.existsSync(ICON_PATH)
       ? ICON_PATH
       : undefined
 
-    if (!trayIcon) return // skip tray if no icon
+    if (!trayIcon) return // 如果没有图标，跳过托盘
 
     tray = new Tray(trayIcon)
     const contextMenu = Menu.buildFromTemplate([
@@ -164,13 +164,13 @@ function createTray(): void {
     tray.setContextMenu(contextMenu)
     tray.on('double-click', () => win?.show())
   } catch {
-    // Tray creation may fail on some Linux DEs — non-critical
+    // 托盘创建在某些 Linux 桌面环境上可能失败 — 非关键
   }
 }
 
-// ─── Global Shortcuts ──────────────────────────────────────────
+// ─── 全局快捷键 ──────────────────────────────────────────
 function registerGlobalShortcuts(): void {
-  // Ctrl+Shift+M — bring window to front
+  // Ctrl+Shift+M — 将窗口置顶
   globalShortcut.register('CmdOrCtrl+Shift+M', () => {
     if (win) {
       if (win.isMinimized()) win.restore()
@@ -180,7 +180,7 @@ function registerGlobalShortcuts(): void {
   })
 }
 
-// ─── IPC: Window controls ────────────────────────────────────────
+// ─── IPC: 窗口控制 ────────────────────────────────────────
 
 ipcMain.handle('window:minimize', () => {
   win?.minimize()
@@ -204,7 +204,7 @@ ipcMain.handle('window:confirm-close', () => {
   win?.close()
 })
 
-// ─── IPC: Save image to disk ───────────────────────────────────
+// ─── IPC: 保存图片到磁盘 ───────────────────────────────────
 ipcMain.handle(
   'export:save-image',
   async (
@@ -235,7 +235,7 @@ ipcMain.handle(
   },
 )
 
-// ─── IPC: Batch save images to a folder ────────────────────────
+// ─── IPC: 批量保存图片到文件夹 ────────────────────────
 ipcMain.handle(
   'export:batch-save-images',
   async (
@@ -270,7 +270,7 @@ ipcMain.handle(
   },
 )
 
-// ─── IPC: Open markdown file ───────────────────────────────────
+// ─── IPC: 打开 Markdown 文件 ───────────────────────────────────
 ipcMain.handle('file:open', async (): Promise<{
   path: string
   content: string
@@ -296,7 +296,7 @@ ipcMain.handle('file:open', async (): Promise<{
   }
 })
 
-// ─── IPC: Save markdown file ───────────────────────────────────
+// ─── IPC: 保存 Markdown 文件 ───────────────────────────────────
 ipcMain.handle(
   'file:save',
   async (_event, args: { content: string; defaultName: string }): Promise<boolean> => {
@@ -318,7 +318,7 @@ ipcMain.handle(
   },
 )
 
-// ─── App lifecycle ─────────────────────────────────────────────
+// ─── 应用生命周期 ─────────────────────────────────────────────
 app.on('window-all-closed', () => {
   if (!isMac) {
     app.quit()

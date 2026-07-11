@@ -107,7 +107,7 @@ export function useExport(): {
         if (!result.success) return
         progress.value = 100
       } else {
-        // Browser fallback: sequential direct download
+        // 浏览器回退：顺序直接下载
         for (let i = 0; i < images.length; i++) {
           downloadURL(images[i]!.dataUrl, images[i]!.filename)
           progress.value = Math.round(((i + 1) / images.length) * 100)

@@ -2,11 +2,11 @@
   <div class="inline-flex items-center gap-1.5">
     <span
       v-if="label"
-      class="text-xs text-base-content/50 whitespace-nowrap"
+      class="text-xs font-medium text-base-content/60 whitespace-nowrap"
     >{{ label }}</span>
     <select
       :value="modelValue"
-      class="select select-sm select-bordered text-xs h-7 min-h-0"
+      class="select select-xs select-bordered text-xs h-6 min-h-0"
       :style="{ fontFamily: selectedFont?.family }"
       @change="onChange"
     >
@@ -37,11 +37,11 @@ export interface FontOption {
 
 const props = withDefaults(
   defineProps<{
-    /** Currently selected font ID (v-model). */
+    /** 当前选中的字体 ID（v-model）。 */
     modelValue: string
-    /** All available font options. */
+    /** 所有可用的字体选项。 */
     fonts: FontOption[]
-    /** Optional label before the select. */
+    /** 选择框前的可选标签。 */
     label?: string
   }>(),
   {

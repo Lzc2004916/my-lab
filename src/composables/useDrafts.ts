@@ -5,16 +5,16 @@ const STORAGE_KEY = 'md2card:drafts'
 
 // ── Types ─────────────────────────────────────────────────────────────
 
-/** All user-customisable UI settings that survive restarts. */
+/** 所有可在重启后保留的用户自定义 UI 设置。 */
 export interface AppSettings {
-  editorTheme: string
   cardTheme: string
   bodyFontMode: string
   bodyFontSize: number
   highlightStyle: string
   footerEnabled: boolean
-  showThemePanel: boolean
   split: number
+  rightSplit: number
+  previewScale: number
   gradientConfig?: { enabled: boolean; color1: string; color2: string; angle: number }
 }
 
@@ -26,30 +26,30 @@ interface DraftPayload {
 // ── Default settings ──────────────────────────────────────────────────
 
 export const DEFAULT_SETTINGS: AppSettings = {
-  editorTheme: 'one-dark',
   cardTheme: 'moss-paper',
   bodyFontMode: 'wenkai',
   bodyFontSize: 30,
   highlightStyle: 'underline',
   footerEnabled: true,
-  showThemePanel: false,
   split: 50,
+  rightSplit: 22,
+  previewScale: 1.0,
   gradientConfig: { enabled: false, color1: '#6c5ce7', color2: '#a29bfe', angle: 135 },
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────
 
-/** Serialize documents + settings to localStorage. */
+/** 将文档 + 设置序列化到 localStorage。 */
 function persist(docs: Document[], settings: AppSettings | null): void {
   try {
     const payload: DraftPayload = { documents: docs, settings }
     localStorage.setItem(STORAGE_KEY, JSON.stringify(payload))
   } catch {
-    // Storage full or unavailable — silently skip
+    // 存储已满或不可用 — 静默跳过
   }
 }
 
-/** Read and parse drafts from localStorage. Returns null if none. */
+/** 从 localStorage 读取并解析草稿。如果没有则返回 null。 */
 function readPayload(): DraftPayload | null {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
@@ -62,36 +62,35 @@ function readPayload(): DraftPayload | null {
   }
 }
 
-/** Clear drafts from localStorage. */
+/** 从 localStorage 清除草稿。 */
 function clearDrafts(): void {
   localStorage.removeItem(STORAGE_KEY)
 }
 
 // ── Singleton flag ────────────────────────────────────────────────────
 
-/** Whether the user has already been prompted this session. */
+/** 本次会话是否已提示过用户。 */
 let promptedThisSession = false
 
 // ── Composable ─────────────────────────────────────────────────────────
 
 export function useDrafts(): {
-  /** Check whether unsaved drafts exist. */
+  /** 检查是否存在未保存的草稿。 */
   hasDrafts: () => boolean
-  /** Restore drafts and return saved settings (or defaults if none). */
+  /** 恢复草稿并返回保存的设置（如果没有则返回默认值）。 */
   restore: () => AppSettings
-  /** Discard drafts. */
+  /** 丢弃草稿。 */
   discard: () => void
-  /** Mark the recovery prompt as shown (don't ask again this session). */
+  /** 标记恢复提示已显示（本次会话不再询问）。 */
   dismissPrompt: () => void
-  /** Persist the current settings (caller should debounce). */
+  /** 持久化当前设置（调用方应使用防抖）。 */
   saveSettings: (settings: AppSettings) => void
 } {
   const store = useDocumentsStore()
 
   // ── Auto-save: watch documents + settings → debounce persist ──
-  // Use a combination of shallow watchers instead of deep: true on the
-  // entire documents array — avoids dependency-tracking overhead on every
-  // keystroke while still catching all meaningful changes.
+  // 使用浅层 watcher 组合，而不是对整个文档数组使用 deep: true — 避免每次
+// 按键都产生依赖追踪开销，同时仍能捕获所有有意义的变更。
 
   let timer: ReturnType<typeof setTimeout> | null = null
   let latestSettings: AppSettings | null = null
@@ -103,13 +102,13 @@ export function useDrafts(): {
     }, 1000) // 1s debounce
   }
 
-  // Watch structural changes: doc count + active doc ID
+  // 监听结构性变化：文档数量 + 当前文档 ID
   watch(
     () => [store.documents.length, store.activeId] as const,
     () => schedulePersist(),
   )
 
-  // Watch active document content (covers the common editing case)
+  // 监听当前文档内容（覆盖常见编辑场景）
   watch(
     () => store.activeDocument?.content,
     () => schedulePersist(),
@@ -137,12 +136,12 @@ export function useDrafts(): {
     if (!payload) return { ...DEFAULT_SETTINGS }
 
     store.documents = payload.documents
-    // Activate the first document
+    // 激活第一个文档
     if (payload.documents.length > 0) {
       store.activeId = payload.documents[0].id
     }
 
-    // Merge saved settings with defaults (handles new settings added in future versions)
+    // 将保存的设置与默认值合并（处理未来版本新增的设置项）
     return payload.settings
       ? { ...DEFAULT_SETTINGS, ...payload.settings }
       : { ...DEFAULT_SETTINGS }

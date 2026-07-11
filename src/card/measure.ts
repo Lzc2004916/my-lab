@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════════════════════
-// CardPreview module — Canvas text measurement utilities
+// CardPreview 模块 — Canvas 文本测量工具
 // ═══════════════════════════════════════════════════════════════════════════
 
 import type {
@@ -26,12 +26,12 @@ import {
 } from './types'
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Low-level text measurement
+// 底层文本测量
 // ═══════════════════════════════════════════════════════════════════════════
 
 /**
- * Singleton measurement context — reused for all text measurement.
- * Avoids creating/destroying hundreds of canvas elements per render.
+ * 单例测量上下文 — 重用于所有文本测量。
+ * 避免每次渲染创建/销毁数百个 canvas 元素。
  */
 let _measureCtx: CanvasRenderingContext2D | null = null
 let _measureCtxFont = ''
@@ -52,25 +52,25 @@ function getMeasureCtx(font: string): CanvasRenderingContext2D {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Inline-markdown parse + wrap caches (simple Map-based, LRU-ish via cap)
+// 内联 markdown 解析 + 换行缓存（基于 Map 的简单 LRU，通过上限控制）
 // ═══════════════════════════════════════════════════════════════════════════
 
 const MAX_CACHE_SIZE = 256
 
-/** Cache for parseInlineMarkdown results. Keyed by raw text string. */
+/** parseInlineMarkdown 结果的缓存。以原始文本字符串为键。 */
 const _parseCache = new Map<string, InlineToken[]>()
 
-/** Cache for wrapInlineTokensByWidth results. Keyed by composite key string. */
+/** wrapInlineTokensByWidth 结果的缓存。以复合键字符串为键。 */
 const _wrapCache = new Map<string, InlineLine[]>()
 
-/** Split text into CJK characters, Latin runs, whitespace, and newlines. */
+/** 将文本分割为 CJK 字符、拉丁语段、空白和换行符。 */
 export function splitTextForWrapping(text: string): string[] {
   return (
     text.match(/[A-Za-z0-9]+(?:[._'’&/+:-][A-Za-z0-9]+)*|[ \t]+|\n|./gu) ?? []
   )
 }
 
-/** Explode inline tokens into per-character wrapping units. */
+/** 将内联 token 拆分为每个字符的换行单元。 */
 function explodeInlineTokens(tokens: InlineToken[]): InlineToken[] {
   return tokens.flatMap((token) =>
     splitTextForWrapping(token.text).map((unit) => ({
@@ -83,7 +83,7 @@ function explodeInlineTokens(tokens: InlineToken[]): InlineToken[] {
   )
 }
 
-/** Measure the canvas width of a single body token. */
+/** 测量单个正文 token 的 canvas 宽度。 */
 export function getBodyTokenWidth(token: InlineToken, fontSize: number, fontFamily?: string): number {
   if (token.text === '\n') return 0
   const weight = token.bold ? BODY_BOLD_WEIGHT : BODY_TEXT_WEIGHT
@@ -100,7 +100,7 @@ function isLeadingPunctuation(text: string): boolean {
   return LEADING_PUNCTUATION.has(text)
 }
 
-/** Split an oversized wrapping unit into individual characters. */
+/** 将超大的换行单元分割为单个字符。 */
 function splitOversizedUnit(
   token: InlineToken,
   fontSize: number,
@@ -113,18 +113,18 @@ function splitOversizedUnit(
 }
 
 /**
- * Build a composite cache key for the wrap cache.
- * Token identity is too complex for Map keying directly, so we derive a
- * compact key from the serialized token text + layout params.
+ * 为换行缓存构建复合缓存键。
+ * Token 标识对于 Map 直接键控过于复杂，因此从序列化的
+ * token 文本 + 布局参数中派生一个紧凑的键。
  */
 function wrapCacheKey(tokens: InlineToken[], fontSize: number, maxWidth: number, fontFamily?: string): string {
-  // Use first + last token text + total count as a cheap fingerprint
+  // 使用首尾 token 文本 + 总数作为轻量指纹
   const first = tokens.length > 0 ? tokens[0]!.text : ''
   const last = tokens.length > 0 ? tokens[tokens.length - 1]!.text : ''
   return `${tokens.length}:${first}:${last}:${fontSize}:${Math.round(maxWidth)}:${fontFamily ?? ''}`
 }
 
-/** Wrap inline tokens to fit within `maxWidth`, returning lines. */
+/** 将内联 token 按 `maxWidth` 换行，返回行。 */
 export function wrapInlineTokensByWidth(
   tokens: InlineToken[],
   fontSize: number,
@@ -155,7 +155,7 @@ export function wrapInlineTokensByWidth(
         pushLine()
         continue
       }
-      // Skip leading whitespace on a new line
+      // 跳过新行开头的空白
       if (currentLine.length === 0 && isWhitespaceToken(token.text)) continue
 
       const tokenWidth = getBodyTokenWidth(token, fontSize, fontFamily)
@@ -167,7 +167,7 @@ export function wrapInlineTokensByWidth(
         }
       }
 
-      // Merge with previous token if style matches
+      // 样式匹配时与前一个 token 合并
       const lastToken = currentLine[currentLine.length - 1]
       if (
         lastToken &&
@@ -186,7 +186,7 @@ export function wrapInlineTokensByWidth(
 
   pushLine()
 
-  // Cap cache size
+  // 限制缓存大小
   if (_wrapCache.size >= MAX_CACHE_SIZE) {
     const firstKey = _wrapCache.keys().next().value
     if (firstKey !== undefined) _wrapCache.delete(firstKey)
@@ -196,45 +196,45 @@ export function wrapInlineTokensByWidth(
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Inline markdown parsing
+// 内联 markdown 解析
 // ═══════════════════════════════════════════════════════════════════════════
 
 /**
- * Parse inline markdown — extract **bold**, *italic*, ==highlight==,
- * and ^underline^ markers into InlineToken[].
+ * 解析内联 markdown — 提取 **bold**, *italic*, ==highlight==,
+ * 和 ^underline^ 标记到 InlineToken[]。
  *
- * Results are cached per raw text — most blocks don't change between renders.
+ * 结果按原始文本缓存 — 大多数块在渲染之间不会改变。
  */
 export function parseInlineMarkdown(text: string): InlineToken[] {
   const cached = _parseCache.get(text)
   if (cached) return cached
 
   const tokens: InlineToken[] = []
-  // Bold (**) must match before italic (*) to avoid mis-parsing ** as two *.
-  // Uses lookbehind/lookahead to ensure single * is not part of **.
+  // 粗体 (**) 必须优先于斜体 (*) 匹配，避免将 ** 误解析为两个 *。
+// 使用 lookbehind/lookahead 确保单个 * 不是 ** 的一部分。
   const pattern = /(\*\*[\s\S]+?\*\*|==[\s\S]+?==|\^[\s\S]+?\^|(?<!\*)\*[\s\S]+?\*(?!\*))/g
   const parts = text.split(pattern).filter(Boolean)
 
   for (const part of parts) {
-    // Bold: **...**
+    // 粗体：**...**
     const boldMatch = part.match(/^\*\*([\s\S]+)\*\*$/)
     if (boldMatch) {
       tokens.push({ text: boldMatch[1]!, bold: true, italic: false, mark: false, underline: false })
       continue
     }
-    // Highlight: ==...==
+    // 高亮：==...==
     const markMatch = part.match(/^==([\s\S]+)==$/)
     if (markMatch) {
       tokens.push({ text: markMatch[1]!, bold: false, italic: false, mark: true, underline: false })
       continue
     }
-    // Underline: ^...^
+    // 下划线：^...^
     const underlineMatch = part.match(/^\^([\s\S]+)\^$/)
     if (underlineMatch) {
       tokens.push({ text: underlineMatch[1]!, bold: false, italic: false, mark: false, underline: true })
       continue
     }
-    // Italic: *...* (single asterisk, not part of **)
+    // 斜体：*...* (单个星号，不是 ** 的一部分)
     const italicMatch = part.match(/^\*([\s\S]+)\*$/)
     if (italicMatch) {
       tokens.push({ text: italicMatch[1]!, bold: false, italic: true, mark: false, underline: false })
@@ -243,7 +243,7 @@ export function parseInlineMarkdown(text: string): InlineToken[] {
     tokens.push({ text: part, bold: false, italic: false, mark: false, underline: false })
   }
 
-  // Cap cache size to avoid memory leaks on large documents
+  // 限制缓存大小，避免大文档内存泄漏
   if (_parseCache.size >= MAX_CACHE_SIZE) {
     const firstKey = _parseCache.keys().next().value
     if (firstKey !== undefined) _parseCache.delete(firstKey)
@@ -253,20 +253,20 @@ export function parseInlineMarkdown(text: string): InlineToken[] {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Paragraph measurement
+// 段落测量
 // ═══════════════════════════════════════════════════════════════════════════
 
 function getSubheadingFontSize(fontSize: number, headingLevel?: number): number {
-  // Use heading-level-based sizing when available (matches drawInlineParagraph)
+  // 使用基于标题级别的尺寸（匹配 drawInlineParagraph）
   if (headingLevel && headingLevel >= 1 && headingLevel <= 6) {
     const ratio = HEADING_SIZE_RATIOS[headingLevel] ?? 1.12
     return Math.round(fontSize * ratio)
   }
-  // Fallback: generic subheading sizing (backward compatible)
+  // 回退：通用副标题尺寸（向后兼容）
   return Math.round(fontSize * 1.08)
 }
 
-/** Heading line height as a ratio of the heading's own font size. */
+/** 标题行高，以标题自身字体大小的比例表示。 */
 function getHeadingLineHeightRatio(headingLevel?: number): number {
   if (headingLevel === 1) return 1.25
   if (headingLevel === 2) return 1.35
@@ -286,7 +286,7 @@ function getDividerBlockHeight(fontSize: number): number {
   return Math.max(18, fontSize * 0.72)
 }
 
-/** Compute the visual height of N lines of text. */
+/** 计算 N 行文本的视觉高度。 */
 export function getParagraphVisualHeight(
   lineCount: number,
   fontSize: number,
@@ -353,7 +353,7 @@ export function getQuoteBoxMetrics(
   }
 }
 
-/** Measure a single paragraph block — returns wrapped lines and total height. */
+/** 测量单个段落块 — 返回换行后的行和总高度。 */
 export function measureParagraphBlock(
   block: ParagraphBlock,
   fontSize: number,
@@ -403,7 +403,7 @@ export function measureParagraphBlock(
   }
 }
 
-/** Compute the maximum number of lines that fit within availableHeight. */
+/** 计算在 availableHeight 内能容纳的最大行数。 */
 export function getParagraphMaxLines(
   block: ParagraphBlock,
   availableHeight: number,
@@ -437,10 +437,10 @@ export function getParagraphMaxLines(
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Gap computation
+// 间距计算
 // ═══════════════════════════════════════════════════════════════════════════
 
-/** Compute the vertical gap between two consecutive blocks. */
+/** 计算两个连续块之间的垂直间距。 */
 export function getGapBetweenBlocks(
   prev: ParagraphBlock | null,
   curr: ParagraphBlock,
@@ -456,11 +456,11 @@ export function getGapBetweenBlocks(
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Poster metrics (computed per-page layout)
+// Poster 指标（按页布局计算）
 // ═══════════════════════════════════════════════════════════════════════════
 
 /**
- * Compute the full set of layout metrics for a card page.
+ * 计算卡片页面的完整布局指标集。
  */
 export function getPosterMetrics(
   _page: CardPage,

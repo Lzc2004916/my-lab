@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════════════════════
-// CardPreview — Code block renderer (Prism.js + canvas drawing)
+// CardPreview — 代码块渲染器（Prism.js + Canvas 绘制）
 // ═══════════════════════════════════════════════════════════════════════════
 
 import type { ThemeDefinition, CodeBlock } from './types'
@@ -8,7 +8,7 @@ import { CODE_FONT_SIZE_RATIO, CODE_BG_ALPHA, CONTENT_WIDTH } from './types'
 import Prism from 'prismjs'
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Prism token types
+// Prism token 类型
 // ═══════════════════════════════════════════════════════════════════════════
 
 interface PrismToken {
@@ -17,10 +17,10 @@ interface PrismToken {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Color mapping
+// 颜色映射
 // ═══════════════════════════════════════════════════════════════════════════
 
-/** Map Prism token types to theme-derived canvas fill colors. */
+/** 将 Prism token 类型映射为主题衍生的 canvas 填充颜色。 */
 export function getCodeColors(theme: ThemeDefinition): Record<string, string> {
   return {
     keyword: theme.palette.accent,
@@ -50,10 +50,10 @@ export function getCodeColors(theme: ThemeDefinition): Record<string, string> {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Tokenization
+// Token 化
 // ═══════════════════════════════════════════════════════════════════════════
 
-/** Recursively flatten a Prism token tree into (type, content) pairs. */
+/** 递归展平 Prism token 树为 (type, content) 对。 */
 function flattenTokens(token: any, parentType = ''): PrismToken[] {
   if (typeof token === 'string') {
     return [{ type: parentType || 'plain', content: token }]
@@ -70,8 +70,8 @@ function flattenTokens(token: any, parentType = ''): PrismToken[] {
 }
 
 /**
- * Tokenize a code string using Prism. Returns an array of lines,
- * each containing an array of typed tokens.
+ * 使用 Prism 对代码字符串进行分词。返回一个行数组，
+ * 每行包含一个类型化 token 数组。
  */
 export function tokenizeCode(code: string, language: string): PrismToken[][] {
   const lang = language.toLowerCase()
@@ -94,7 +94,7 @@ export function tokenizeCode(code: string, language: string): PrismToken[][] {
   })
 }
 
-/** Merge adjacent tokens of the same type into a single token. */
+/** 将相同类型的相邻 token 合并为单个 token。 */
 function mergeAdjacentTokens(tokens: PrismToken[]): PrismToken[] {
   const merged: PrismToken[] = []
   for (const token of tokens) {
@@ -109,14 +109,14 @@ function mergeAdjacentTokens(tokens: PrismToken[]): PrismToken[] {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Measurement
+// 测量
 // ═══════════════════════════════════════════════════════════════════════════
 
 const PADDING_X = 18
 const PADDING_TOP = 16
 const PADDING_BOTTOM = 16
 
-/** Compute monospace font size and line height from body font size. */
+/** 根据正文字体大小计算等宽字体大小和行高。 */
 export function getCodeMetrics(bodySize: number): {
   fontSize: number
   lineHeight: number
@@ -131,16 +131,16 @@ export function getCodeMetrics(bodySize: number): {
 }
 
 /**
- * Wrap a single token array into multiple visual lines so that
- * no visual line exceeds `maxTextWidth` pixels.
+ * 将单个 token 数组包裹为多个视觉行，使
+ * 没有视觉行超过 `maxTextWidth` 像素。
  *
- * Algorithm:
- *  1. Token fits on current line → append and advance cursor
- *  2. Token is wider than entire line → flush current line, then split
- *     the wide token character-by-character across visual lines
- *  3. Token doesn't fit (but isn't extra-wide) → wrap to next line
+ * 算法：
+ *  1. Token 适合当前行 → 追加并推进光标
+ *  2. Token 比整行还宽 → 刷新当前行，然后将宽 token
+ *     逐字符分割到多个视觉行
+ *  3. Token 不适合（但不是特别宽）→ 换到下一行
  *
- * Uses the provided canvas context for accurate text measurement.
+ * 使用提供的 canvas 上下文进行精确的文本测量。
  */
 function wrapTokenLine(
   tokens: PrismToken[],
@@ -162,7 +162,7 @@ function wrapTokenLine(
     }
 
     // ── Case 2: Token alone is wider than the entire line ───────────
-    // Flush current line first, then split the wide token
+    // 先刷新当前行，再分割宽 token
     if (tokenWidth > maxTextWidth) {
       if (currentLine.length > 0) {
         visualLines.push(currentLine)
@@ -200,7 +200,7 @@ function wrapTokenLine(
     cursorX = tokenWidth
   }
 
-  // Flush remaining line
+  // 刷新剩余行
   if (currentLine.length > 0) {
     visualLines.push(currentLine)
   }
@@ -208,7 +208,7 @@ function wrapTokenLine(
   return visualLines
 }
 
-/** Measure the total height of a code block (with wrapping). */
+/** 测量代码块的总高度（含换行）。 */
 export function measureCodeBlock(block: CodeBlock, _bodySize: number): {
   lineCount: number
   height: number
@@ -218,13 +218,13 @@ export function measureCodeBlock(block: CodeBlock, _bodySize: number): {
 } {
   const { fontSize, lineHeight, fontFamily } = getCodeMetrics(_bodySize)
 
-  // Max text width available inside the code block
+  // 代码块内部可用的最大文本宽度
   const maxTextWidth = CONTENT_WIDTH - PADDING_X * 2
 
-  // Tokenize and measure with wrapping
+  // Token 化并测量换行
   const tokenLines = tokenizeCode(block.code, block.language)
 
-  // Set up measurement context
+  // 设置测量上下文
   const measureCanvas = document.createElement('canvas')
   const measureCtx = measureCanvas.getContext('2d')
   if (measureCtx) {
@@ -250,12 +250,12 @@ export function measureCodeBlock(block: CodeBlock, _bodySize: number): {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Drawing
+// 绘制
 // ═══════════════════════════════════════════════════════════════════════════
 
 const BG_RADIUS = 8
 
-/** Draw a code block on the canvas. Long lines wrap automatically. */
+/** 在 canvas 上绘制代码块。长行自动换行。 */
 export function drawCodeBlock(
   ctx: CanvasRenderingContext2D,
   block: CodeBlock,
@@ -270,11 +270,11 @@ export function drawCodeBlock(
   const blockWidth = CONTENT_WIDTH
   const maxTextWidth = CONTENT_WIDTH - PADDING_X * 2
 
-  // Pre-wrap all lines to compute total visual line count + height
+  // 预换行所有行，计算总视觉行数 + 高度
   let totalVisualLines = 0
   const allWrappedLines: PrismToken[][] = []
 
-  // Use ctx for measurement (font is already set or will be set below)
+  // 使用 ctx 进行测量（字体已设置或将在下方设置）
   ctx.save()
   ctx.font = `${fontSize}px ${fontFamily}`
 

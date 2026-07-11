@@ -1,91 +1,88 @@
 /// <reference types="vite/client" />
 
 /**
- * Result returned by the `saveImage` IPC call.
+ * `saveImage` IPC 调用返回的结果。
  */
 interface SaveImageResult {
   success: boolean
   /**
-   * Absolute path to the saved file. Only present when `success` is true.
+   * 保存文件的绝对路径。仅在 success 为 true 时存在。
    */
   path?: string
 }
 
 /**
- * Result returned by the `openMarkdown` IPC call.
+ * `openMarkdown` IPC 调用返回的结果。
  */
 interface OpenMarkdownResult {
-  /** Absolute path to the opened file. */
+  /** 打开文件的绝对路径。 */
   path: string
-  /** UTF-8 text content of the file. */
+  /** 文件的 UTF-8 文本内容。 */
   content: string
 }
 
 /**
- * Public API exposed to the renderer process via `window.electronAPI`.
+ * 通过 `window.electronAPI` 暴露给渲染进程的公共 API。
  *
- * All system interactions must go through these methods — the renderer
- * has no direct access to Node.js or Electron internals.
+ * 所有系统交互都必须通过这些方法 — 渲染进程
+ * 无法直接访问 Node.js 或 Electron 内部 API。
  */
 interface ElectronAPI {
   /**
-   * Open a native Save dialog and persist a PNG image to the local filesystem.
+   * 打开原生保存对话框并将 PNG 图片持久化到本地文件系统。
    */
   saveImage: (dataUrl: string, defaultName: string) => Promise<SaveImageResult>
 
   /**
-   * Open a folder picker and batch-save multiple images into the chosen directory
-   * with their specified filenames.
+   * 打开文件夹选择器，将多张图片批量保存到所选目录中。
    */
   saveImagesToFolder: (images: { dataUrl: string; filename: string }[]) => Promise<{ success: boolean; folder?: string; count?: number }>
 
   /**
-   * Open a native file picker filtered to `.md` / `.markdown` and return the
-   * selected file's path and content.
+   * 打开原生文件选择器，过滤 `.md` / `.markdown` 文件，返回所选文件的路径和内容。
    */
   openMarkdown: () => Promise<OpenMarkdownResult | null>
 
   /**
-   * Save Markdown content to a user-chosen file.
+   * 将 Markdown 内容保存到用户选择的文件。
    */
   saveMarkdown: (content: string, defaultName: string) => Promise<boolean>
 
   /**
-   * Register a callback for menu → renderer notifications.
-   * Supported channels: 'menu:new-doc', 'menu:open-file', 'menu:save-file', 'menu:export-png'
-   * Returns an unsubscribe function.
+   * 注册菜单 → 渲染进程通知的回调。
+   * 支持的通道：'menu:new-doc', 'menu:open-file', 'menu:save-file', 'menu:export-png'
+   * 返回取消订阅函数。
    */
   onMenuAction: (channel: string, callback: (...args: unknown[]) => void) => () => void
 
   /**
-   * Listen for the menu "Open" action result.
+   * 监听菜单"打开"操作的结果。
    */
   onFileOpened: (callback: (payload: { path: string; content: string }) => void) => () => void
 
-  // ── Window controls (frameless title bar) ──────────────────────
+  // ── 窗口控制（无边框标题栏） ──────────────────────
 
-  /** Minimize the window to the taskbar. */
+  /** 将窗口最小化到任务栏。 */
   minimizeWindow: () => Promise<void>
 
-  /** Toggle between maximized and restored window state. */
+  /** 在最大化和还原窗口状态之间切换。 */
   toggleMaximize: () => Promise<void>
 
-  /** Query the current window maximize state. */
+  /** 查询当前窗口最大化状态。 */
   getWindowState: () => Promise<{ isMaximized: boolean }>
 
-  /** Confirm close after user acknowledges the unsaved-changes dialog. */
+  /** 在用户确认未保存更改对话框后确认关闭。 */
   confirmClose: () => Promise<void>
 
   /**
-   * Listen for window state changes (maximize / restore).
-   * Returns an unsubscribe function.
+   * 监听窗口状态变化（最大化/还原）。
+   * 返回取消订阅函数。
    */
   onWindowStateChanged: (callback: (state: { isMaximized: boolean }) => void) => () => void
 
   /**
-   * Listen for close-request events from the main process
-   * (e.g. Alt+F4 or OS-level close on a frameless window).
-   * Returns an unsubscribe function.
+   * 监听来自主进程的关闭请求事件（例如 Alt+F4 或无边框窗口上的系统级关闭）。
+   * 返回取消订阅函数。
    */
   onCloseRequest: (callback: () => void) => () => void
 }
@@ -94,7 +91,7 @@ interface Window {
   electronAPI: ElectronAPI
 }
 
-// ── Third-party module declarations (packages without @types) ──────────
+// ── 第三方模块声明（没有 @types 的包） ──────────
 
 declare module 'prismjs' {
   const Prism: {
@@ -107,4 +104,3 @@ declare module 'prismjs' {
   }
   export default Prism
 }
-

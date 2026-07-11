@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════════════════════
-// CardPreview — Table block renderer
+// CardPreview — 表格块渲染器
 // ═══════════════════════════════════════════════════════════════════════════
 
 import type { ThemeDefinition, TableDisplayBlock } from './types'
@@ -7,7 +7,7 @@ import { CONTENT_WIDTH, BODY_FONT_FAMILY, BODY_TEXT_WEIGHT, BODY_BOLD_WEIGHT } f
 import { parseInlineMarkdown, wrapInlineTokensByWidth, getBodyTokenWidth } from './measure'
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Constants
+// 常量
 // ═══════════════════════════════════════════════════════════════════════════
 
 const CELL_PADDING_X = 10
@@ -18,10 +18,10 @@ const BORDER_WIDTH = 0.8
 const OUTER_BORDER_WIDTH = 1.2
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Measurement
+// 测量
 // ═══════════════════════════════════════════════════════════════════════════
 
-/** Compute column widths, row heights, and total dimensions for a table. */
+/** 计算表格的列宽、行高和总尺寸。 */
 export function measureTableBlock(
   block: TableDisplayBlock,
   fontSize: number,
@@ -33,14 +33,14 @@ export function measureTableBlock(
     return { colWidths: [], rowHeights: [], totalWidth: CONTENT_WIDTH, totalHeight: 40 }
   }
 
-  // Measure text widths for each column
+  // 测量每列的文本宽度
   const allRows = [block.headers, ...block.rows]
   const colTextWidths: number[][] = Array.from({ length: numCols }, () => [])
 
   for (const row of allRows) {
     for (let ci = 0; ci < Math.min(numCols, row.length); ci++) {
       const cellText = row[ci] ?? ''
-      // Use measure canvas for accurate width
+      // 使用测量画布获取精确宽度
       const font = `${BODY_BOLD_WEIGHT} ${fontSize}px ${fontFamily ?? BODY_FONT_FAMILY}`
       const ctx = document.createElement('canvas').getContext('2d')
       if (ctx) {
@@ -52,22 +52,22 @@ export function measureTableBlock(
     }
   }
 
-  // Calculate column widths
+  // 计算列宽
   const naturalWidths = colTextWidths.map((widths) => Math.max(MIN_COL_WIDTH, ...widths))
   const totalNatural = naturalWidths.reduce((a, b) => a + b, 0)
 
   let colWidths: number[]
   if (totalNatural <= CONTENT_WIDTH) {
-    // Distribute extra space proportionally
+    // 按比例分配额外空间
     const extra = CONTENT_WIDTH - totalNatural
     colWidths = naturalWidths.map((w) => w + extra / numCols)
   } else {
-    // Scale down proportionally
+    // 按比例缩小
     const scale = CONTENT_WIDTH / totalNatural
     colWidths = naturalWidths.map((w) => Math.max(MIN_COL_WIDTH, w * scale))
   }
 
-  // Calculate row heights (text wrapping within column widths)
+  // 计算行高（列宽内文本换行）
   const rowHeights: number[] = []
   for (let ri = 0; ri < allRows.length; ri++) {
     const row = allRows[ri]!
@@ -77,13 +77,13 @@ export function measureTableBlock(
       const colWidth = colWidths[ci]!
       const availableWidth = colWidth - CELL_PADDING_X * 2
       if (availableWidth <= 0) continue
-      // Parse cell text for inline markup and wrap
+      // 解析单元格文本中的内联标记并换行
       try {
         const tokens = parseInlineMarkdown(cellText)
         const lines = wrapInlineTokensByWidth(tokens, fontSize, availableWidth)
         if (lines.length > maxLines) maxLines = lines.length
       } catch {
-        // Fallback: estimate lines by character count
+        // 回退：按字符数估算行数
         const estLines = Math.ceil(cellText.length * fontSize * 0.6 / availableWidth)
         if (estLines > maxLines) maxLines = estLines
       }
@@ -94,7 +94,7 @@ export function measureTableBlock(
   const totalWidth = colWidths.reduce((a, b) => a + b, 0)
   const totalHeight = rowHeights.reduce((a, b) => a + b, 0) + HEADER_SEP_HEIGHT
 
-  // Cache computed values on the block
+  // 将计算值缓存到 block 上
   block.colWidths = colWidths
   block.rowHeights = rowHeights
   block.totalWidth = totalWidth
@@ -103,10 +103,10 @@ export function measureTableBlock(
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Drawing
+// 绘制
 // ═══════════════════════════════════════════════════════════════════════════
 
-/** Draw a table block on the canvas. */
+/** 在 canvas 上绘制表格块。 */
 export function drawTableBlock(
   ctx: CanvasRenderingContext2D,
   block: TableDisplayBlock,
@@ -120,7 +120,7 @@ export function drawTableBlock(
   const numCols = block.headers.length
   if (numCols === 0) return 0
 
-  // Ensure measurements are computed
+  // 确保已计算测量值
   const colWidths = block.colWidths ?? (() => {
     const m = measureTableBlock(block, fontSize, lineHeight, fontFamily)
     return m.colWidths
@@ -135,7 +135,7 @@ export function drawTableBlock(
 
   let cursorY = y
 
-  // Helper: draw cell text
+  // 辅助函数：绘制单元格文本
   function drawCellText(
     text: string,
     cx: number,
@@ -163,7 +163,7 @@ export function drawTableBlock(
         lineWidth += getBodyTokenWidth(token, fontSize)
       }
 
-      // Alignment
+      // 对齐
       let startX: number
       const align = _alignment
       if (align === 'center') {
@@ -184,19 +184,19 @@ export function drawTableBlock(
     ctx.restore()
   }
 
-  // Draw each row
+  // 绘制每一行
   for (let ri = 0; ri < allRows.length; ri++) {
     const row = allRows[ri]!
     const rowH = rowHeights[ri]!
     let cx = x
 
-    // Row background
+    // 行背景
     ctx.save()
     if (ri === 0) {
-      // Header
+      // 表头
       ctx.fillStyle = `rgba(0,0,0,0.04)`
     } else if (ri % 2 === 1) {
-      // Alternating row
+      // 交替行
       ctx.fillStyle = `rgba(0,0,0,0.02)`
     }
     if (ri <= 1 || ri % 2 === 1) {
@@ -204,7 +204,7 @@ export function drawTableBlock(
     }
     ctx.restore()
 
-    // Draw cells
+    // 绘制单元格
     for (let ci = 0; ci < numCols; ci++) {
       const cw = colWidths[ci]!
       const cellText = ci < row.length ? (row[ci] ?? '') : ''
@@ -215,7 +215,7 @@ export function drawTableBlock(
 
     cursorY += rowH
 
-    // Header separator line
+    // 表头分隔线
     if (ri === 0) {
       ctx.save()
       ctx.strokeStyle = theme.palette.border
@@ -229,13 +229,13 @@ export function drawTableBlock(
     }
   }
 
-  // Outer border
+  // 外边框
   ctx.save()
   ctx.strokeStyle = theme.palette.border
   ctx.lineWidth = OUTER_BORDER_WIDTH
   ctx.strokeRect(x, y, totalWidth, totalHeight)
 
-  // Column separators
+  // 列分隔线
   ctx.lineWidth = BORDER_WIDTH
   let sepX = x
   for (let ci = 0; ci < numCols - 1; ci++) {
@@ -246,7 +246,7 @@ export function drawTableBlock(
     ctx.stroke()
   }
 
-  // Row separators (thin lines between data rows)
+  // 数据行之间的细分隔线
   let rowY = y + rowHeights[0]! + HEADER_SEP_HEIGHT
   for (let ri = 1; ri < allRows.length; ri++) {
     ctx.beginPath()

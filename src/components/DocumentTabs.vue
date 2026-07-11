@@ -8,7 +8,7 @@
         class="group relative flex items-center gap-1.5 px-3.5 py-1.5 text-[13px] rounded-t-md transition-all duration-150 shrink-0 max-w-[160px] leading-none"
         :class="doc.id === store.activeId
           ? 'bg-base-100 text-base-content font-medium shadow-sm'
-          : 'text-base-content/50 hover:text-base-content/70 hover:bg-base-100/50'"
+          : 'text-base-content/60 hover:text-base-content hover:bg-base-100/50'"
         @click="store.setActive(doc.id)"
       >
         <span class="truncate">

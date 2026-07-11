@@ -4,10 +4,10 @@ import { ref, watch } from 'vue'
 
 export type CardSizePreset = 'small' | 'medium' | 'large'
 
-/** Page-splitting strategy for the card preview. */
+/** 卡片预览的分页策略。 */
 export type SplitMode = 'noSplit' | 'xiaohongshu' | 'hrSplit'
 
-/** Card theme identifier — any registered theme ID string. */
+/** 卡片主题标识符 — 任何已注册的主题 ID 字符串。 */
 export type CardThemeId = string
 
 export interface AppSettings {
@@ -15,21 +15,21 @@ export interface AppSettings {
   bodyFontSize: number
   exportFormat: 'PNG' | 'JPG' | 'PDF'
   splitMode: SplitMode
-  /** Card theme ID (Canvas-based themes) */
+  /** 卡片主题 ID（Canvas 主题） */
   cardTheme: CardThemeId
-  /** Highlight style */
+  /** 高亮样式 */
   highlightStyle: 'underline' | 'border' | 'highlight'
-  /** Footer left text */
+  /** 页脚左侧文本 */
   footerLeft: string
-  /** Footer right display mode */
+  /** 页脚右侧显示模式 */
   footerRightMode: 'blank' | 'page' | 'date'
-  /** Whether footer is enabled */
+  /** 是否启用页脚 */
   footerEnabled: boolean
-  /** Card corner mode */
+  /** 卡片圆角模式 */
   cardCornerMode: 'rounded' | 'square'
-  /** Body font mode */
+  /** 正文字体模式 */
   bodyFontMode: 'wenkai' | 'yahei' | 'simsun' | 'kaiti' | 'dengxian' | 'fangsong'
-  /** Subheading style */
+  /** 子标题样式 */
   subheadingStyle: 'large' | 'accent'
 }
 
@@ -50,7 +50,7 @@ const splitMode = ref<SplitMode>(
   (localStorage.getItem(STORAGE_PREFIX + 'splitMode') as SplitMode) || 'xiaohongshu',
 )
 
-// New settings for Canvas-based card themes
+// 基于 Canvas 卡片主题的新设置项
 const cardTheme = ref<CardThemeId>(
   (localStorage.getItem(STORAGE_PREFIX + 'cardTheme') as CardThemeId) || 'moss-paper',
 )

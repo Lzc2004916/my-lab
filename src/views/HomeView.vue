@@ -6,7 +6,7 @@
         <h1 class="text-5xl lg:text-6xl font-extrabold tracking-tight text-base-content leading-none mb-4">
           Markdown Card
         </h1>
-        <p class="text-xl text-base-content/60 leading-relaxed max-w-lg mb-10">
+        <p class="text-xl text-black/70 leading-relaxed max-w-lg mb-10">
           Rich Text Editor
         </p>
 
@@ -35,7 +35,7 @@
             </svg>
           </div>
           <h3 class="text-lg font-semibold text-base-content mb-2">Powerful Markdown Editing</h3>
-          <p class="text-sm text-base-content/60 leading-relaxed max-w-md">
+          <p class="text-sm text-black/70 leading-relaxed max-w-md">
             Write with a full-featured Markdown editor backed by CodeMirror 6. Syntax highlighting, live preview, and real-time rendering make every keystroke immediate and satisfying.
           </p>
         </div>
@@ -49,7 +49,7 @@
               </svg>
             </div>
             <h3 class="text-base font-semibold text-base-content mb-1">Live Preview & Themes</h3>
-            <p class="text-sm text-base-content/60 leading-relaxed">
+            <p class="text-sm text-black/70 leading-relaxed">
               Real-time card previews with canvas rendering and 31 curated card themes for every style.
             </p>
           </div>
@@ -61,7 +61,7 @@
               </svg>
             </div>
             <h3 class="text-base font-semibold text-base-content mb-1">Export Anywhere</h3>
-            <p class="text-sm text-base-content/60 leading-relaxed">
+            <p class="text-sm text-black/70 leading-relaxed">
               Export to PNG, JPG, PDF or copy to clipboard. Your content, ready for any platform.
             </p>
           </div>

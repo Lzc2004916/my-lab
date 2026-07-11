@@ -5,10 +5,10 @@
       <button
         v-for="cat in categories"
         :key="cat.key"
-        class="text-2xs font-medium px-3 py-[3px] rounded-full border cursor-pointer transition-all duration-200 whitespace-nowrap"
+        class="text-xs font-medium px-3 py-[3px] rounded-full border cursor-pointer transition-all duration-200 whitespace-nowrap"
         :class="activeCategory === cat.key
-          ? 'bg-base-content/10 border-base-content/25 text-base-content/85 font-semibold'
-          : 'border-base-content/10 text-base-content/45 hover:border-base-content/25 hover:text-base-content/70'"
+          ? 'bg-base-content/10 border-base-content/25 text-base-content font-semibold'
+          : 'border-base-content/10 text-base-content/60 hover:border-base-content/25 hover:text-base-content'"
         @click="activeCategory = cat.key"
       >
         {{ cat.label }}
@@ -68,7 +68,7 @@
           </div>
           <!-- Mood badge -->
           <span
-            class="absolute bottom-1 right-1 text-3xs font-medium px-1.5 rounded-full leading-[1.4] whitespace-nowrap max-w-[70px] overflow-hidden text-ellipsis pointer-events-none"
+            class="absolute bottom-1 right-1 text-2xs font-medium px-1.5 rounded-full leading-[1.4] whitespace-nowrap max-w-[70px] overflow-hidden text-ellipsis pointer-events-none"
             :style="{ background: theme.palette.accentSoft, color: theme.palette.accent }"
           >{{ theme.mood }}</span>
           <!-- Check mark (animated) -->
@@ -86,10 +86,10 @@
         <!-- Card metadata -->
         <div class="flex flex-col items-center gap-px w-full min-w-0">
           <span
-            class="text-xs font-medium leading-[1.2] whitespace-nowrap overflow-hidden text-ellipsis max-w-[130px] transition-colors duration-200"
-            :class="theme.id === modelValue ? 'text-base-content/90 font-bold' : 'text-base-content/55'"
+            class="text-sm font-medium leading-[1.2] whitespace-nowrap overflow-hidden text-ellipsis max-w-[130px] transition-colors duration-200"
+            :class="theme.id === modelValue ? 'text-base-content font-bold' : 'text-base-content/70'"
           >{{ theme.name }}</span>
-          <span class="text-3xs text-base-content/30 whitespace-nowrap overflow-hidden text-ellipsis max-w-[130px]">{{ theme.preset }}</span>
+          <span class="text-2xs text-base-content/50 whitespace-nowrap overflow-hidden text-ellipsis max-w-[130px]">{{ theme.preset }}</span>
         </div>
       </button>
     </div>
@@ -159,18 +159,18 @@ const scrollbarRef = ref<HTMLDivElement | null>(null)
 let targetScrollLeft = 0
 let scrollRaf: number | null = null
 
-// Reactive scroll metrics — updated in RAF loop for 60fps visual sync
+// 响应式滚动指标 — 在 RAF 循环中更新，实现 60fps 视觉同步
 const scrollContentW = ref(0)
 const scrollViewW = ref(0)
 const scrollPos = ref(0)
 
-/** Thumb geometry — driven by reactive refs so CSS tracks the animation. */
+/** 缩略图几何 — 由响应式 ref 驱动，CSS 追踪动画。 */
 const thumbStyle = computed(() => {
   const cw = scrollContentW.value
   const vw = scrollViewW.value
   if (cw <= vw || vw <= 0) return { display: 'none' }
 
-  // Min thumb width ~24px; ratio reflects viewport fraction
+  // 滑块最小宽度约 24px；比例反映视口占比
   const thumbW = Math.max(24, (vw / cw) * vw)
   const trackW = vw - thumbW
   const maxPos = cw - vw
@@ -217,7 +217,7 @@ function animateScroll(): void {
 }
 
 function onScroll(): void {
-  // Only update from native scroll when RAF isn't driving (avoids fighting)
+  // 仅在 RAF 未驱动时从原生滚动更新（避免冲突）
   if (scrollRaf !== null) return
   scrollPos.value = scrollRef.value?.scrollLeft ?? 0
 }

@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════════════════════
-// CardPreview module — extended font configuration with web font URLs
+// CardPreview 模块 — 扩展字体配置（含 Web 字体 URL）
 // ═══════════════════════════════════════════════════════════════════════════
 
 import type { BodyFontMode, ThemeDefinition } from './types'
@@ -9,9 +9,9 @@ import type { FontEntry } from '@/utils/font-loader'
 // ── Web font manifest ──────────────────────────────────────────────────────
 
 /**
- * Web font entries for fonts that may not be installed locally.
- * System fonts (SimSun, KaiTi, Microsoft YaHei, PingFang SC) are assumed
- * to be available on the target platform; only web fonts are listed here.
+ * 可能未本地安装的字体的 Web 字体条目。
+ * 系统字体（SimSun, KaiTi, Microsoft YaHei, PingFang SC）假定
+ * 在目标平台上可用；仅 web 字体列在此处。
  */
 export const WEB_FONT_MANIFEST: Record<string, FontEntry> = {
   // ── Title CJK web fonts ──────────────────────────────────────────────
@@ -25,7 +25,7 @@ export const WEB_FONT_MANIFEST: Record<string, FontEntry> = {
   },
   'LXGW WenKai': {
     family: 'LXGW WenKai',
-    url: '', // Not on Google Fonts — fallback to KaiTi
+    url: '', // 不在 Google Fonts 上 — 回退到 KaiTi
     fallback: '"KaiTi","STKaiti",serif',
     category: 'handwriting',
     display: 'swap',
@@ -88,7 +88,7 @@ export const WEB_FONT_MANIFEST: Record<string, FontEntry> = {
 // ── Font dependency resolver ────────────────────────────────────────────────
 
 /**
- * Extract all font families referenced in a body font mode.
+ * 提取正文字体模式中引用的所有字体族。
  */
 function getBodyFontFamilies(mode: BodyFontMode): string[] {
   const config = BODY_FONT_MODES[mode] ?? BODY_FONT_MODES.wenkai
@@ -99,22 +99,22 @@ function getBodyFontFamilies(mode: BodyFontMode): string[] {
 }
 
 /**
- * Get the set of web font entries required by a given theme.
- * Only returns fonts that have defined web font URLs (not system fonts).
+ * 获取给定主题所需的 web 字体条目集。
+ * 仅返回定义了 web 字体 URL 的字体（非系统字体）。
  */
 export function getRequiredWebFonts(theme: ThemeDefinition): FontEntry[] {
   const familySet = new Set<string>()
 
-  // Body fonts — only the theme's bodyFontMode, not all six
+  // 正文字体 — 仅主题的 bodyFontMode，而非全部六种
   const bodyMode = theme.editor.bodyFontMode ?? 'wenkai'
   for (const family of getBodyFontFamilies(bodyMode)) {
     familySet.add(family)
   }
 
-  // Mono fonts (always needed for code blocks)
+  // 等宽字体（代码块始终需要）
   familySet.add('JetBrains Mono')
 
-  // Return only fonts that have web font entries
+  // 仅返回有 web 字体条目的字体
   const entries: FontEntry[] = []
   for (const family of familySet) {
     const entry = WEB_FONT_MANIFEST[family]
@@ -127,7 +127,7 @@ export function getRequiredWebFonts(theme: ThemeDefinition): FontEntry[] {
 }
 
 /**
- * Get the recommended font loading strategy for a given font category.
+ * 获取给定字体类别的推荐字体加载策略。
  */
 export function getFontDisplayStrategy(
   category: FontEntry['category'],
@@ -135,13 +135,13 @@ export function getFontDisplayStrategy(
   switch (category) {
     case 'serif':
     case 'handwriting':
-      // Decorative fonts: block briefly to avoid jarring swap
+      // 装饰性字体：短暂阻塞以避免突兀的字体切换
       return 'block'
     case 'monospace':
-      // Code fonts: optional — fallback mono is fine
+      // 代码字体：可选 — 回退等宽字体即可
       return 'optional'
     default:
-      // Body text: swap is safest for readability
+      // 正文文本：swap 对可读性最安全
       return 'swap'
   }
 }

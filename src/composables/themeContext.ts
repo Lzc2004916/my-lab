@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════════════════════
-// Theme context shared types — used by ThemeProvider.vue and consumers
+// 主题上下文共享类型 — 由 ThemeProvider.vue 和消费者使用
 // ═══════════════════════════════════════════════════════════════════════════
 
 import type { Ref, InjectionKey } from 'vue'

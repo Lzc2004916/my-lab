@@ -10,37 +10,37 @@ import { HEADING_SIZE_RATIOS } from '@/card/types'
 // ── Public interface ──────────────────────────────────────────────────────
 
 export interface MarkdownThemeTokens {
-  /** Current theme definition (reactive). */
+  /** 当前主题定义（响应式）。 */
   theme: ComputedRef<ThemeDefinition>
-  /** Main page background. */
+  /** 主页背景。 */
   pageBg: ComputedRef<string>
-  /** Primary text color. */
+  /** 主文本颜色。 */
   textColor: ComputedRef<string>
-  /** Muted / secondary text color. */
+  /** 柔和/次要文本颜色。 */
   mutedColor: ComputedRef<string>
-  /** Accent / brand color. */
+  /** 强调色 / 品牌色。 */
   accentColor: ComputedRef<string>
-  /** Soft accent for washes. */
+  /** 柔和强调色（用于水洗效果）。 */
   accentSoft: ComputedRef<string>
-  /** Border / divider color. */
+  /** 边框 / 分隔线颜色。 */
   borderColor: ComputedRef<string>
-  /** Shadow color. */
+  /** 阴影颜色。 */
   shadowColor: ComputedRef<string>
-  /** Glow / highlight wash. */
+  /** 发光 / 高亮水洗色。 */
   glowColor: ComputedRef<string>
-  /** Body font size (px). */
+  /** 正文字体大小（px）。 */
   bodySize: ComputedRef<number>
-  /** Line-height multiplier. */
+  /** 行高倍率。 */
   lineHeight: ComputedRef<number>
-  /** Quote border radius (px). */
+  /** 引用框圆角半径（px）。 */
   quoteRadius: ComputedRef<number>
-  /** Quote treatment mode. */
+  /** 引用块处理模式。 */
   quoteTreatment: ComputedRef<string>
-  /** Whether a theme transition is in progress. */
+  /** 是否正在进行主题过渡。 */
   isTransitioning: ComputedRef<boolean>
   /**
-   * Compute the heading font size for a given level (1-6).
-   * Uses theme's bodySize × HEADING_SIZE_RATIOS.
+   * 计算给定级别（1-6）的标题字体大小。
+ * 使用主题的 bodySize × HEADING_SIZE_RATIOS。
    */
   headingSize: (level: number) => number
 }
@@ -48,10 +48,10 @@ export interface MarkdownThemeTokens {
 // ── Composable ────────────────────────────────────────────────────────────
 
 /**
- * Inject the theme context provided by `<ThemeProvider>` and return
- * ergonomic computed refs for all markdown-element styling needs.
+ * 注入由 `<ThemeProvider>` 提供的主题上下文，并返回
+ * 适用于所有 markdown 元素样式需求的便捷计算 ref。
  *
- * Returns `null` when `<ThemeProvider>` is not an ancestor.
+ * 当 `<ThemeProvider>` 不是祖先组件时返回 `null`。
  */
 export function useMarkdownTheme(): MarkdownThemeTokens | null {
   const ctx = inject<ThemeContext | null>(THEME_CONTEXT_KEY, null)
@@ -62,7 +62,7 @@ export function useMarkdownTheme(): MarkdownThemeTokens | null {
   return {
     theme,
 
-    // Palette
+    // 调色板
     pageBg:      computed(() => theme.value.palette.page),
     textColor:   computed(() => theme.value.palette.text),
     mutedColor:  computed(() => theme.value.palette.muted),
@@ -72,18 +72,18 @@ export function useMarkdownTheme(): MarkdownThemeTokens | null {
     shadowColor: computed(() => theme.value.palette.shadow),
     glowColor:   computed(() => theme.value.palette.glow),
 
-    // Typography
+    // 排版
     bodySize:   computed(() => theme.value.editor.bodySize),
     lineHeight: computed(() => theme.value.editor.lineHeight),
 
-    // Component-specific
+    // 组件特定
     quoteRadius:    computed(() => theme.value.components.quoteRadius),
     quoteTreatment: computed(() => theme.value.components.quoteTreatment),
 
-    // Transition state
+    // 过渡状态
     isTransitioning: computed(() => ctx.isTransitioning.value),
 
-    // Heading size helper
+    // 标题尺寸辅助
     headingSize(level: number): number {
       const ratio = HEADING_SIZE_RATIOS[level] ?? 1
       return Math.round(theme.value.editor.bodySize * ratio)

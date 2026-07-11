@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════════════════════
-// CardPreview module — theme definitions (8 presets)
+// CardPreview 模块 — 主题定义（8 个预设）
 // ═══════════════════════════════════════════════════════════════════════════
 
 import type { ThemeDefinition } from './types'
@@ -1732,12 +1732,429 @@ export const THEMES: ThemeDefinition[] = [
     decor: { kind: 'fanBurst', opacity: 0.14, color: '#d4af37', scale: 1 },
     gradient: { enabled: false, color1: '#23201a', color2: '#191714' },
   },
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // ── 32。 soft-minimal (极简柔光) ──────────────────────────────────────────
+  //
+  // 设计来源：UI.md「极简柔光卡片」提示词
+  //   • macOS 窗口风格 · 大圆角矩形空白卡片
+  //   • 外部：淡香芋紫 → 右下浅天蓝柔过渡
+  //   • 内部：奶白基底 + 极浅淡粉紫 / 浅青蓝微渐变
+  //   • 丝滑哑光柔焦 · 无杂纹理 · 悬浮投影
+  //   • 低饱和马卡龙浅色系 · 柔和漫射光 · 温柔低对比度
+  // ═══════════════════════════════════════════════════════════════════════════
+  {
+    id: 'soft-minimal',
+    name: '极简柔光',
+    mood: 'macOS窗口奶白马卡龙柔焦',
+    preset: '极简柔光',
+    description: 'macOS窗口风格、奶白基底配淡紫青蓝微渐变、丝滑哑光柔焦、悬浮投影，适合纯净写作与极简阅读',
+    tags: ['极简', '柔光', '马卡龙'],
+    mode: 'paper',
+    palette: {
+      // 内部底色：奶白基底 + 极浅淡粉紫／浅青蓝微渐变
+      page: '#fdfaf8',
+      // pageAlt：淡粉紫微染（渐变起点 — 左上淡香芋方向）
+      pageAlt: '#f5eff4',
+      text: '#2d2b2e',
+      muted: '#a89faa',
+      // 强调色：淡香芋紫 — 对应窗口装饰弧线 / 控制按钮
+      accent: '#b8a2c8',
+      accentSoft: 'rgba(184,162,200,0.14)',
+      border: 'rgba(170,158,180,0.07)',
+      // 投影色：低饱和紫灰 — 悬浮分层感
+      shadow: 'rgba(155,142,168,0.07)',
+      // 柔光光晕：淡紫 + 淡蓝混合漫射
+      glow: 'rgba(200,188,215,0.24)',
+    },
+    surface: {
+      // 无杂纹理（UI.md 明确要求）
+      grainAlpha: 0,
+      // 几乎零暗角 — 柔光不需要边缘压暗
+      vignetteAlpha: 0.008,
+      // 极淡柔光漫射
+      washStrength: 0.12,
+      // 微弱内框 — macOS 窗口感
+      innerFrameAlpha: 0.04,
+      // 大留白内缩 — 窗口内容区呼吸感
+      innerFrameInset: 28,
+      // 标题淡紫微染 — 不过分抢眼
+      titleAccentMix: 0.4,
+      footerLineAlpha: 0.08,
+      footerTextAlpha: 0.76,
+      // 微弱柔和投影 — 悬浮分层效果
+      previewShadow:
+        '0 8px 32px rgba(150,138,168,0.08), 0 2px 8px rgba(195,185,210,0.06), 0 0 0 1px rgba(255,255,255,0.5) inset',
+    },
+    components: {
+      // 引用：极致克制，微底色 + 淡紫强调条
+      quoteFillAlpha: 0.02,
+      quoteStrokeAlpha: 0.035,
+      quoteBarAlpha: 0.42,
+      quoteRadius: 14,
+      quoteTreatment: 'paper',
+      // 高亮：柔和下划线
+      highlightTreatment: 'softUnderline',
+      highlightUnderlineAlpha: 0.36,
+      highlightMarkerAlpha: 0.12,
+      highlightDashAlpha: 0.42,
+    },
+    editor: {
+      bodySize: 28,
+      lineHeight: 1.88,
+      // 无衬线 — 现代极简
+      bodyFontMode: 'yahei',
+      subheadingStyle: 'large',
+      highlightStyle: 'underline',
+    },
+    category: 'light',
+    // macOS 窗口风格：三色控制按钮 + 淡香芋紫弧线
+    decor: { kind: 'macosWindow', opacity: 0.85, color: '#b8a2c8', scale: 1 },
+    // 扁平柔和渐变：淡粉紫 → 浅青蓝（内部微渐变）
+    gradient: {
+      enabled: true,
+      color1: '#f5eff4',
+      color2: '#eff3f9',
+      angle: 135,
+    },
+  },
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // ── 33. canyon-sunset (日落峡谷) ──────────────────────────────────────────
+  {
+    id: 'canyon-sunset',
+    name: '日落峡谷',
+    mood: '美西南荒漠峡谷金色黄昏',
+    preset: '峡谷日落',
+    description: '赭石红底、沙漠金沙渐变、飞鸟剪影地平线，适合游记叙事与辽阔主题',
+    tags: ['沙漠', '日落', '温暖'],
+    mode: 'vintage',
+    palette: {
+      page: '#faf0e4',
+      pageAlt: '#f2dcc8',
+      text: '#3d2a1a',
+      muted: '#8c6e5a',
+      accent: '#c27a5c',
+      accentSoft: 'rgba(194,122,92,0.18)',
+      border: 'rgba(160,110,80,0.14)',
+      shadow: 'rgba(140,90,60,0.10)',
+      glow: 'rgba(240,200,160,0.30)',
+    },
+    surface: {
+      grainAlpha: 0.044,
+      vignetteAlpha: 0.048,
+      washStrength: 0.36,
+      innerFrameAlpha: 0.09,
+      innerFrameInset: 26,
+      titleAccentMix: 0.82,
+      footerLineAlpha: 0.20,
+      footerTextAlpha: 0.90,
+      previewShadow:
+        '0 26px 54px rgba(140,90,60,0.11), 0 2px 18px rgba(250,235,215,0.42) inset',
+    },
+    components: {
+      quoteFillAlpha: 0.050,
+      quoteStrokeAlpha: 0.078,
+      quoteBarAlpha: 0.74,
+      quoteRadius: 18,
+      quoteTreatment: 'paper',
+      highlightTreatment: 'softUnderline',
+      highlightUnderlineAlpha: 0.68,
+      highlightMarkerAlpha: 0.34,
+      highlightDashAlpha: 0.80,
+    },
+    editor: {
+      bodySize: 30,
+      lineHeight: 1.86,
+      bodyFontMode: 'kaiti',
+      subheadingStyle: 'large',
+      highlightStyle: 'underline',
+    },
+    category: 'artistic',
+    decor: { kind: 'desertSun', opacity: 0.65, color: '#c27a5c', scale: 1 },
+    gradient: { enabled: true, color1: '#c27a5c', color2: '#f2d4a7', angle: 180 },
+  },
+
+  // ── 34. sakura-blizzard (樱吹雪) ─────────────────────────────────────────
+  {
+    id: 'sakura-blizzard',
+    name: '樱吹雪',
+    mood: '日式春樱散落花瓣柔美',
+    preset: '樱吹雪',
+    description: '淡粉花瓣底色、奶油暖白渐变、散落樱花点缀，适合春日随笔与温柔记录',
+    tags: ['樱花', '春日', '柔美'],
+    mode: 'paper',
+    palette: {
+      page: '#fefaf8',
+      pageAlt: '#fce8ec',
+      text: '#3d2a30',
+      muted: '#9a7e84',
+      accent: '#e8929e',
+      accentSoft: 'rgba(232,146,158,0.18)',
+      border: 'rgba(210,160,170,0.10)',
+      shadow: 'rgba(180,140,150,0.08)',
+      glow: 'rgba(250,215,220,0.28)',
+    },
+    surface: {
+      grainAlpha: 0.016,
+      vignetteAlpha: 0.024,
+      washStrength: 0.20,
+      innerFrameAlpha: 0.05,
+      innerFrameInset: 28,
+      titleAccentMix: 0.64,
+      footerLineAlpha: 0.12,
+      footerTextAlpha: 0.84,
+      previewShadow:
+        '0 20px 44px rgba(180,140,150,0.08), 0 2px 14px rgba(255,248,250,0.40) inset',
+    },
+    components: {
+      quoteFillAlpha: 0.032,
+      quoteStrokeAlpha: 0.054,
+      quoteBarAlpha: 0.58,
+      quoteRadius: 16,
+      quoteTreatment: 'paper',
+      highlightTreatment: 'softUnderline',
+      highlightUnderlineAlpha: 0.50,
+      highlightMarkerAlpha: 0.20,
+      highlightDashAlpha: 0.56,
+    },
+    editor: {
+      bodySize: 29,
+      lineHeight: 1.88,
+      bodyFontMode: 'wenkai',
+      subheadingStyle: 'accent',
+      highlightStyle: 'underline',
+    },
+    category: 'light',
+    decor: { kind: 'sakuraPetal', opacity: 0.58, color: '#e8929e', scale: 1 },
+    gradient: { enabled: true, color1: '#fce8ec', color2: '#fffbf5', angle: 135 },
+  },
+
+  // ── 35. abyssal-coral (深海荧光) ─────────────────────────────────────────
+  {
+    id: 'abyssal-coral',
+    name: '深海荧光',
+    mood: '深海暗渊荧光珊瑚幽玄',
+    preset: '深海珊瑚',
+    description: '深渊海军蓝底、荧光珊瑚粉渐变、发光珊瑚枝装饰，适合神秘题材与科幻内容',
+    tags: ['深海', '荧光', '幽玄'],
+    mode: 'obsidian',
+    palette: {
+      page: '#0a1628',
+      pageAlt: '#0d1a30',
+      text: '#c8dae8',
+      muted: '#6b8aa0',
+      accent: '#ff6b6b',
+      accentSoft: 'rgba(255,107,107,0.16)',
+      border: 'rgba(100,160,200,0.10)',
+      shadow: 'rgba(4,10,24,0.55)',
+      glow: 'rgba(255,107,107,0.10)',
+    },
+    surface: {
+      grainAlpha: 0.024,
+      vignetteAlpha: 0.080,
+      washStrength: 0.22,
+      innerFrameAlpha: 0.12,
+      innerFrameInset: 24,
+      titleAccentMix: 0.88,
+      footerLineAlpha: 0.22,
+      footerTextAlpha: 0.84,
+      previewShadow:
+        '0 30px 62px rgba(4,10,24,0.55), 0 0 40px rgba(255,107,107,0.06), 0 2px 20px rgba(0,0,0,0.30) inset',
+    },
+    components: {
+      quoteFillAlpha: 0.048,
+      quoteStrokeAlpha: 0.090,
+      quoteBarAlpha: 0.78,
+      quoteRadius: 12,
+      quoteTreatment: 'paper',
+      highlightTreatment: 'softUnderline',
+      highlightUnderlineAlpha: 0.58,
+      highlightMarkerAlpha: 0.38,
+      highlightDashAlpha: 0.72,
+    },
+    editor: {
+      bodySize: 29,
+      lineHeight: 1.86,
+      bodyFontMode: 'yahei',
+      subheadingStyle: 'accent',
+      highlightStyle: 'underline',
+    },
+    category: 'dark',
+    decor: { kind: 'coralBranch', opacity: 0.55, color: '#ff6b6b', scale: 1 },
+    gradient: { enabled: true, color1: '#0a1628', color2: '#ff6b6b', angle: 160 },
+  },
+
+  // ── 36. amethyst-geode (紫晶洞) ───────────────────────────────────────────
+  {
+    id: 'amethyst-geode',
+    name: '紫晶洞',
+    mood: '紫水晶晶洞神秘深邃',
+    preset: '紫晶洞窟',
+    description: '深紫黑底、紫水晶渐变、晶体棱面切角装饰，适合神秘学与奇幻文学',
+    tags: ['水晶', '紫色', '奇幻'],
+    mode: 'obsidian',
+    palette: {
+      page: '#1a0a2e',
+      pageAlt: '#1f103a',
+      text: '#d8cfe8',
+      muted: '#8a7ea8',
+      accent: '#9b6dff',
+      accentSoft: 'rgba(155,109,255,0.16)',
+      border: 'rgba(155,109,255,0.14)',
+      shadow: 'rgba(12,4,24,0.55)',
+      glow: 'rgba(155,109,255,0.12)',
+    },
+    surface: {
+      grainAlpha: 0.030,
+      vignetteAlpha: 0.076,
+      washStrength: 0.24,
+      innerFrameAlpha: 0.13,
+      innerFrameInset: 26,
+      titleAccentMix: 0.90,
+      footerLineAlpha: 0.22,
+      footerTextAlpha: 0.84,
+      previewShadow:
+        '0 28px 60px rgba(12,4,24,0.55), 0 0 50px rgba(155,109,255,0.08), 0 2px 18px rgba(0,0,0,0.28) inset',
+    },
+    components: {
+      quoteFillAlpha: 0.044,
+      quoteStrokeAlpha: 0.086,
+      quoteBarAlpha: 0.76,
+      quoteRadius: 8,
+      quoteTreatment: 'paper',
+      highlightTreatment: 'softUnderline',
+      highlightUnderlineAlpha: 0.60,
+      highlightMarkerAlpha: 0.36,
+      highlightDashAlpha: 0.74,
+    },
+    editor: {
+      bodySize: 29,
+      lineHeight: 1.88,
+      bodyFontMode: 'yahei',
+      subheadingStyle: 'accent',
+      highlightStyle: 'underline',
+    },
+    category: 'dark',
+    decor: { kind: 'crystalFacet', opacity: 0.64, color: '#9b6dff', scale: 1 },
+    gradient: { enabled: true, color1: '#1a0a2e', color2: '#9b6dff', angle: 45 },
+  },
+
+  // ── 37. charcoal-sketch (炭笔素描) ───────────────────────────────────────
+  {
+    id: 'charcoal-sketch',
+    name: '炭笔素描',
+    mood: '艺术家素描本炭笔排线',
+    preset: '炭笔手稿',
+    description: '暖纸白底、炭灰色渐变、交叉排线角饰，适合草稿笔记与创作构思',
+    tags: ['素描', '炭笔', '手稿'],
+    mode: 'paper',
+    palette: {
+      page: '#f5f0e8',
+      pageAlt: '#e8e2d8',
+      text: '#2d2a26',
+      muted: '#7a7670',
+      accent: '#5a5550',
+      accentSoft: 'rgba(90,85,80,0.12)',
+      border: 'rgba(90,85,80,0.12)',
+      shadow: 'rgba(60,55,50,0.08)',
+      glow: 'rgba(180,175,165,0.16)',
+    },
+    surface: {
+      grainAlpha: 0.048,
+      vignetteAlpha: 0.044,
+      washStrength: 0.18,
+      innerFrameAlpha: 0.08,
+      innerFrameInset: 24,
+      titleAccentMix: 0.68,
+      footerLineAlpha: 0.16,
+      footerTextAlpha: 0.88,
+      previewShadow:
+        '0 22px 46px rgba(60,55,50,0.08), 0 2px 14px rgba(245,240,232,0.38) inset',
+    },
+    components: {
+      quoteFillAlpha: 0.036,
+      quoteStrokeAlpha: 0.064,
+      quoteBarAlpha: 0.62,
+      quoteRadius: 8,
+      quoteTreatment: 'paper',
+      highlightTreatment: 'softUnderline',
+      highlightUnderlineAlpha: 0.54,
+      highlightMarkerAlpha: 0.22,
+      highlightDashAlpha: 0.64,
+    },
+    editor: {
+      bodySize: 29,
+      lineHeight: 1.82,
+      bodyFontMode: 'fangsong',
+      subheadingStyle: 'large',
+      highlightStyle: 'underline',
+    },
+    category: 'professional',
+    decor: { kind: 'sketchHatch', opacity: 0.48, color: '#5a5550', scale: 1 },
+    gradient: { enabled: true, color1: '#f5f0e8', color2: '#d5cec5', angle: 135 },
+  },
+
+  // ── 38. matcha-zen (抹茶禅意) ───────────────────────────────────────────
+  {
+    id: 'matcha-zen',
+    name: '抹茶禅意',
+    mood: '日本茶道抹茶泡沫禅静',
+    preset: '抹茶禅',
+    description: '陶胚奶油底、抹茶绿渐变、茶筅涟漪圈饰，适合茶道笔记与禅意内容',
+    tags: ['抹茶', '禅意', '和风'],
+    mode: 'sage',
+    palette: {
+      page: '#faf7f0',
+      pageAlt: '#eef0e0',
+      text: '#2d3320',
+      muted: '#7a8065',
+      accent: '#8ba87a',
+      accentSoft: 'rgba(139,168,122,0.16)',
+      border: 'rgba(120,150,100,0.10)',
+      shadow: 'rgba(90,110,70,0.07)',
+      glow: 'rgba(200,225,185,0.22)',
+    },
+    surface: {
+      grainAlpha: 0.028,
+      vignetteAlpha: 0.030,
+      washStrength: 0.22,
+      innerFrameAlpha: 0.06,
+      innerFrameInset: 28,
+      titleAccentMix: 0.72,
+      footerLineAlpha: 0.14,
+      footerTextAlpha: 0.86,
+      previewShadow:
+        '0 20px 44px rgba(90,110,70,0.07), 0 2px 14px rgba(250,247,240,0.40) inset',
+    },
+    components: {
+      quoteFillAlpha: 0.034,
+      quoteStrokeAlpha: 0.058,
+      quoteBarAlpha: 0.60,
+      quoteRadius: 14,
+      quoteTreatment: 'paper',
+      highlightTreatment: 'softUnderline',
+      highlightUnderlineAlpha: 0.52,
+      highlightMarkerAlpha: 0.20,
+      highlightDashAlpha: 0.60,
+    },
+    editor: {
+      bodySize: 29,
+      lineHeight: 1.88,
+      bodyFontMode: 'wenkai',
+      subheadingStyle: 'accent',
+      highlightStyle: 'underline',
+    },
+    category: 'artistic',
+    decor: { kind: 'matchaRing', opacity: 0.56, color: '#8ba87a', scale: 1 },
+    gradient: { enabled: true, color1: '#faf7f0', color2: '#8ba87a', angle: 135 },
+  },
 ]
 
-/** Default theme ID used when none is specified. */
+/** 未指定时使用的默认主题 ID。 */
 export const DEFAULT_THEME_ID = 'moss-paper'
 
-/** Look up a theme by ID. Falls back to the first theme. */
+/** 按 ID 查找主题。回退到第一个主题。 */
 export function getTheme(id: string): ThemeDefinition {
   return THEMES.find((t) => t.id === id) ?? THEMES[0]
 }

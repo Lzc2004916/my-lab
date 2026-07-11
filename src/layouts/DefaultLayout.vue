@@ -24,7 +24,7 @@
             <router-link
               :to="{ name: 'home' }"
               class="px-3 py-1.5 text-sm rounded-md transition-colors leading-none"
-              :class="$route.name === 'home' ? 'text-base-content font-medium bg-base-200/80' : 'text-base-content/60 hover:text-base-content hover:bg-base-200/40'"
+              :class="$route.name === 'home' ? 'text-black font-medium bg-base-200/80' : 'text-black/60 hover:text-black hover:bg-base-200/40'"
             >
               首页
             </router-link>
@@ -33,7 +33,7 @@
             <router-link
               :to="{ name: 'editor' }"
               class="px-3 py-1.5 text-sm rounded-md transition-colors leading-none"
-              :class="$route.name === 'editor' ? 'text-base-content font-medium bg-base-200/80' : 'text-base-content/60 hover:text-base-content hover:bg-base-200/40'"
+              :class="$route.name === 'editor' ? 'text-black font-medium bg-base-200/80' : 'text-black/60 hover:text-black hover:bg-base-200/40'"
             >
               编辑器
             </router-link>
@@ -49,7 +49,7 @@
     </main>
 
     <!-- Footer -->
-    <footer class="footer footer-center p-3 bg-base-100/60 text-base-content/30 border-t border-base-300/60 text-xs">
+    <footer class="footer footer-center p-3 bg-base-100/60 text-black/60 border-t border-base-300/60 text-sm">
       <aside>
         <p>Rich Text Editor &mdash; Built with Electron + Vue 3</p>
       </aside>

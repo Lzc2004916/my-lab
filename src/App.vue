@@ -1,63 +1,16 @@
 <template>
   <ThemeProvider :theme-id="cardTheme">
   <div class="h-screen flex flex-col overflow-hidden bg-base-200">
-    <!-- ═══ Navbar (draggable) ═══════════════════════════════════════ -->
+    <!-- ═══ Navbar (minimal: title + window controls) ═══════════════════ -->
     <div class="navbar bg-base-100 border-b border-base-300/60 z-20 shrink-0 min-h-0 py-0 h-11">
       <div class="navbar-start">
         <span class="text-primary font-bold text-lg ml-2 tracking-tight">Markdown Card</span>
       </div>
 
-      <div class="navbar-center flex items-center gap-0.5">
-        <!-- App theme toggle (light/dark) -->
-        <button
-          class="btn btn-ghost btn-sm btn-square h-7 w-7 min-h-0"
-          :aria-label="appTheme === 'dark' ? '切换到亮色模式' : '切换到暗色模式'"
-          :title="appTheme === 'dark' ? '切换到亮色模式' : '切换到暗色模式'"
-          @click="toggleAppTheme"
-        >
-          <!-- Sun icon (shown in dark mode → switch to light) -->
-          <svg v-if="appTheme === 'dark'" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
-          </svg>
-          <!-- Moon icon (shown in light mode → switch to dark) -->
-          <svg v-else class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-          </svg>
-        </button>
-
-        <!-- Editor theme -->
-        <div class="dropdown dropdown-hover">
-          <label tabindex="0" class="btn btn-sm btn-ghost text-xs h-7 min-h-0">
-            {{ editorThemeLabel }}
-            <svg class="w-3 h-3 ml-1 opacity-50" viewBox="0 0 10 6"><path d="M0 0l5 6 5-6z" fill="currentColor"/></svg>
-          </label>
-          <ul tabindex="0" class="dropdown-content menu p-1.5 shadow bg-base-200 rounded-box w-36 z-50 text-sm">
-            <li v-for="t in EDITOR_THEMES" :key="t.value">
-              <a :class="{ active: editorTheme === t.value }" @click="editorTheme = t.value">
-                {{ t.label }}
-              </a>
-            </li>
-          </ul>
-        </div>
-
-        <!-- Export -->
-        <div class="dropdown">
-          <label tabindex="0" class="btn btn-sm btn-ghost text-xs h-7 min-h-0 gap-1">
-            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            导出
-            <svg class="w-3 h-3 ml-0.5 opacity-50" viewBox="0 0 10 6"><path d="M0 0l5 6 5-6z" fill="currentColor"/></svg>
-          </label>
-          <ul tabindex="0" class="dropdown-content menu p-1.5 shadow bg-base-200 rounded-box w-44 z-50 text-sm">
-            <li><a @click="handleBatchExportPNG">批量导出 PNG</a></li>
-            <li><a @click="handleBatchExportJPG">批量导出 JPG</a></li>
-            <li class="menu-divider" role="separator"></li>
-            <li><a @click="handleExportPDF">PDF 文档</a></li>
-          </ul>
-        </div>
-      </div>
+      <div class="navbar-center"><!-- deliberately empty --></div>
 
       <div class="navbar-end">
-        <!-- Window controls (frameless) — Tailwind-driven with scoped CSS only for Electron specifics -->
+        <!-- Window controls (frameless) -->
         <div class="flex items-center h-full win-controls" role="group" :aria-label="isMaximized ? '还原' : '最大化'">
           <button
             class="win-btn"
@@ -88,88 +41,12 @@
       </div>
     </div>
 
-    <!-- ═══ Control bar ═══════════════════════════════════════════════ -->
-    <div class="bg-base-100/70 border-b border-base-300/60 select-none shadow-sm">
-      <!-- Row 1: Quick settings ────────────────────────────────────── -->
-      <div class="ctrl-row">
-        <!-- Body font size -->
-        <div class="ctrl-group">
-          <span class="text-xs text-base-content/50 whitespace-nowrap">正文字号</span>
-          <input
-            v-model.number="bodyFontSize"
-            type="range" min="20" max="40" step="1"
-            class="range range-xs range-primary w-14"
-          />
-          <span class="text-xs tabular-nums w-6 text-right text-base-content/60">{{ bodyFontSize }}</span>
-        </div>
-
-        <!-- Footer toggle -->
-        <div class="ctrl-group">
-          <label class="flex items-center gap-1.5 cursor-pointer">
-            <input v-model="footerEnabled" type="checkbox" class="checkbox checkbox-xs" />
-            <span class="text-xs text-base-content/50 whitespace-nowrap">Footer</span>
-          </label>
-        </div>
-
-        <!-- Spacer -->
-        <div class="flex-1"></div>
-
-        <!-- Content Font -->
-        <FontPicker v-model="bodyFontMode" :fonts="BODY_FONT_OPTIONS" />
-
-        <!-- Highlight style selector -->
-        <div class="ctrl-group">
-          <span class="text-xs text-base-content/50 whitespace-nowrap">高亮</span>
-          <div class="join">
-            <button
-              v-for="opt in HIGHLIGHT_STYLE_OPTIONS"
-              :key="opt.value"
-              class="btn btn-xs join-item h-6 min-h-0 px-1.5 text-xs"
-              :class="{ 'btn-active': highlightStyle === opt.value }"
-              :title="opt.label"
-              @click="highlightStyle = opt.value"
-            >{{ opt.short }}</button>
-          </div>
-        </div>
-
-        <span class="inline-divider"></span>
-
-        <!-- Gradient picker -->
-        <GradientPicker v-model="gradientConfig" />
-
-        <!-- Card Theme toggle -->
-        <button
-          class="btn btn-sm btn-ghost text-base-content/50 gap-1.5 h-7 min-h-0 text-xs"
-          @click="showThemePanel = !showThemePanel"
-        >
-          <span>卡片主题</span>
-          <svg
-            class="w-3 h-3 transition-transform duration-200"
-            :class="{ 'rotate-180': showThemePanel }"
-            viewBox="0 0 10 6"
-          ><path d="M0 0l5 6 5-6z" fill="currentColor"/></svg>
-        </button>
-      </div>
-
-      <!-- Row 1b: Card Theme selector (collapsible) ──────────────────── -->
-      <Transition name="collapse">
-        <div
-          v-show="showThemePanel"
-          class="border-t border-base-300/40 bg-base-200/50"
-        >
-          <div class="px-4 pt-2.5 pb-2.5">
-            <ThemeSelector v-model="cardTheme" :themes="THEMES" />
-          </div>
-        </div>
-      </Transition>
-    </div>
-
-    <!-- ═══ Document tabs ═══════════════════════════════════════════ -->
+    <!-- ═══ Document tabs ═══════════════════════════════════════════════ -->
     <DocumentTabs />
 
-    <!-- ═══ Body ═════════════════════════════════════════════════════ -->
+    <!-- ═══ Three-panel body ════════════════════════════════════════════ -->
     <div class="flex-1 flex overflow-hidden">
-      <!-- Left: Editor -->
+      <!-- ── LEFT: Editor panel ────────────────────────────────────── -->
       <div
         class="flex flex-col overflow-hidden border-r border-base-300 min-w-[200px]"
         :style="{ flexBasis: split + '%' }"
@@ -185,71 +62,94 @@
             ref="editorRef"
             :modelValue="source"
             @update:modelValue="onSourceUpdate"
-            :theme="editorTheme"
+            :theme="'one-dark'"
             @ready="onEditorReady"
           />
         </div>
+        <!-- Stats bar at bottom of editor -->
+        <div class="h-7 shrink-0 flex items-center gap-3 px-3 text-xs text-base-content/60 bg-base-200/80 border-t border-base-300/60 select-none tabular-nums">
+          <span>字数: {{ wordCount }}</span>
+          <span>行数: {{ lineCount }}</span>
+          <template v-if="activeTags.length > 0">
+            <span v-for="tag in activeTags" :key="tag" class="badge badge-xs badge-ghost">{{ tag }}</span>
+          </template>
+        </div>
       </div>
 
-      <!-- Drag bar — wider hit area via negative margin pseudo-elements prevents cursor flicker -->
+      <!-- ── LEFT DRAG BAR ──────────────────────────────────────────── -->
       <div
         class="w-1 cursor-col-resize select-none shrink-0 z-10 transition-colors duration-200 drag-bar"
         :class="dragging ? 'bg-primary' : 'bg-base-300'"
         @mousedown="onDragStart"
       ></div>
 
-      <!-- Right: Preview — fills remaining space after left panel + drag bar -->
+      <!-- ── MIDDLE: Preview panel ──────────────────────────────────── -->
       <div
-        class="flex-1 min-w-[300px] min-h-0 overflow-auto bg-base-200/60 bg-dot-pattern"
+        class="flex flex-col min-w-[200px] min-h-0 overflow-hidden"
+        :style="{ flexBasis: (100 - split - rightSplit) + '%' }"
       >
-        <CardPreview
-          ref="cardPreviewRef"
-          v-model:current-page="currentPage"
-          :source="source"
-          :theme-id="cardTheme"
-          :typography="typography"
+        <div class="flex-1 min-h-0 overflow-auto bg-base-200/60 bg-dot-pattern">
+          <CardPreview
+            ref="cardPreviewRef"
+            v-model:current-page="currentPage"
+            :source="source"
+            :theme-id="cardTheme"
+            :typography="typography"
+            :highlight-style="highlightStyle"
+            :footer-enabled="footerEnabled"
+            :gradient-config="gradientConfig"
+            :preview-scale="previewScale"
+          />
+        </div>
+      </div>
+
+      <!-- ── RIGHT DRAG BAR ─────────────────────────────────────────── -->
+      <div
+        class="w-1 cursor-col-resize select-none shrink-0 z-10 transition-colors duration-200 drag-bar"
+        :class="draggingRight ? 'bg-primary' : 'bg-base-300'"
+        @mousedown="onDragStartRight"
+      ></div>
+
+      <!-- ── RIGHT: Control panel ───────────────────────────────────── -->
+      <div
+        class="min-w-[220px] overflow-hidden"
+        :style="{ flexBasis: rightSplit + '%' }"
+      >
+        <ControlPanel
+          :app-theme="appTheme"
+          @update:app-theme="(v: 'light' | 'dark') => { appTheme = v; applyAppTheme() }"
+          :card-theme="cardTheme"
+          @update:card-theme="cardTheme = $event"
+          :body-font-mode="bodyFontMode"
+          @update:body-font-mode="(v: string) => bodyFontMode = v as BodyFontMode"
+          :body-font-size="bodyFontSize"
+          @update:body-font-size="bodyFontSize = $event"
           :highlight-style="highlightStyle"
+          @update:highlight-style="(v: string) => highlightStyle = v as HighlightStyle"
           :footer-enabled="footerEnabled"
+          @update:footer-enabled="footerEnabled = $event"
           :gradient-config="gradientConfig"
+          @update:gradient-config="gradientConfig = $event"
+          :preview-scale="previewScale"
+          @update:preview-scale="previewScale = $event"
+          :font-options="BODY_FONT_OPTIONS"
+          :is-exporting="isExporting"
+          :progress="progress"
+          @export-png="handleBatchExportPNG"
+          @export-jpg="handleBatchExportJPG"
+          @export-pdf="handleExportPDF"
         />
       </div>
     </div>
 
-    <!-- ═══ Status bar ═══════════════════════════════════════════════ -->
-    <div class="h-8 shrink-0 flex items-center justify-between px-4 text-xs bg-base-100/80 backdrop-blur-sm text-base-content/50 border-t border-base-300/60 select-none">
-      <span class="tabular-nums flex items-center gap-3">
-        <span>字数: {{ wordCount }}</span>
-        <span>行数: {{ lineCount }}</span>
-        <template v-if="activeTags.length > 0">
-          <span v-for="tag in activeTags" :key="tag" class="badge badge-xs badge-ghost">{{ tag }}</span>
-        </template>
-        <template v-if="isExporting">
-          <LoadingSpinner
-            variant="progress"
-            size="sm"
-            :progress="progress"
-            :show-progress-label="true"
-            inline
-          />
-        </template>
-      </span>
-      <span class="flex items-center gap-3">
-        <span v-if="pageCount > 1" class="tabular-nums">
-          第 {{ currentPage + 1 }} / {{ pageCount }} 页
-        </span>
-        <span class="tabular-nums">卡片: {{ currentCardThemeName }}</span>
-        <span class="tabular-nums">分栏: {{ split }}%</span>
-      </span>
-    </div>
-
-    <!-- ═══ Draft recovery modal ══════════════════════════════════ -->
+    <!-- ═══ Draft recovery modal ═══════════════════════════════════════ -->
     <DraftRecoveryModal
       v-if="showDraftModal"
       @restore="onDraftRestore"
       @discard="onDraftDiscard"
     />
 
-    <!-- ═══ Close confirmation dialog ═══════════════════════════════ -->
+    <!-- ═══ Close confirmation dialog ══════════════════════════════════ -->
     <dialog
       ref="closeDialogRef"
       class="modal"
@@ -258,7 +158,7 @@
     >
       <div class="modal-box w-96 max-w-[90vw]">
         <h3 id="close-dialog-title" class="font-bold text-base mb-3">确认关闭</h3>
-        <p class="text-sm text-base-content/70 mb-5">确定要关闭窗口吗？未保存的更改将丢失。</p>
+        <p class="text-sm text-base-content/80 mb-5">确定要关闭窗口吗？未保存的更改将丢失。</p>
         <div class="modal-action mt-0 gap-2">
           <button
             ref="cancelBtnRef"
@@ -289,39 +189,15 @@ import type { ToolbarItem } from '@/components/editor/EditorToolbar.vue'
 import CardPreview from '@/components/CardPreview.vue'
 import ThemeProvider from '@/components/ThemeProvider.vue'
 import DocumentTabs from '@/components/DocumentTabs.vue'
+import ControlPanel from '@/components/ControlPanel.vue'
 import { useMarkdown } from '@/composables/useMarkdown'
 import { useExport } from '@/composables/useExport'
 import { useDocumentsStore } from '@/stores/documents'
 import { useDrafts, type AppSettings } from '@/composables/useDrafts'
-import { THEMES, BODY_FONT_MODES, getTheme, type BodyFontMode } from '@/card'
+import { BODY_FONT_MODES, getTheme, type BodyFontMode } from '@/card'
 import DraftRecoveryModal from '@/components/DraftRecoveryModal.vue'
-import LoadingSpinner from '@/components/LoadingSpinner.vue'
-import ThemeSelector from '@/components/ThemeSelector.vue'
-import FontPicker from '@/components/FontPicker.vue'
-import GradientPicker from '@/components/GradientPicker.vue'
 import type { GradientConfig } from '@/card'
 import type { TypographySettings, HighlightStyle, SubheadingStyle } from '@/card'
-
-// ── Theme configs ───────────────────────────────────────────────────────
-
-const EDITOR_THEMES = [
-  { label: '🌙 Dark', value: 'one-dark' },
-  { label: '☀️ Light', value: 'light' },
-] as const
-
-const HIGHLIGHT_STYLE_OPTIONS = [
-  { value: 'underline' as HighlightStyle, label: '下划线', short: 'U̲' },
-  { value: 'border' as HighlightStyle, label: '边框', short: '◧' },
-  { value: 'highlight' as HighlightStyle, label: '加粗着色', short: 'B' },
-]
-
-const editorThemeLabel = computed(
-  () => EDITOR_THEMES.find((t) => t.value === editorTheme.value)?.label ?? 'Dark',
-)
-
-const currentCardThemeName = computed(
-  () => THEMES.find((t) => t.id === cardTheme.value)?.name ?? '苔绿纸书',
-)
 
 // ── App theme (light/dark) toggle ──────────────────────────────────────
 
@@ -331,12 +207,6 @@ const appTheme = ref<'light' | 'dark'>(
 
 function applyAppTheme(): void {
   document.documentElement.setAttribute('data-theme', appTheme.value)
-}
-
-function toggleAppTheme(): void {
-  appTheme.value = appTheme.value === 'light' ? 'dark' : 'light'
-  localStorage.setItem('app-theme', appTheme.value)
-  applyAppTheme()
 }
 
 onMounted(() => {
@@ -382,19 +252,16 @@ const source = computed<string>({
 
 const activeTags = computed<string[]>(() => store.activeDocument?.tags ?? [])
 
-const editorTheme = ref<string>('one-dark')
 const cardTheme = ref<string>('moss-paper')
 const bodyFontMode = ref<BodyFontMode>('wenkai')
 
-// Sync font refs + gradient to theme defaults when the theme changes
+// Theme change → sync font ref + gradient to theme defaults
 watch(cardTheme, (newThemeId) => {
   const theme = getTheme(newThemeId)
   if (theme.editor.bodyFontMode) {
     bodyFontMode.value = theme.editor.bodyFontMode
   }
-  // Sync highlight style to theme's native style
   highlightStyle.value = theme.editor.highlightStyle
-  // Sync gradient colors + angle to theme — preserve user's enabled preference
   if (theme.gradient) {
     gradientConfig.value = {
       enabled: gradientConfig.value.enabled,
@@ -413,8 +280,6 @@ const BODY_FONT_OPTIONS = Object.entries(BODY_FONT_MODES).map(([id, def]) => ({
 
 // ── UI state ─────────────────────────────────────────────────────────────
 
-const showThemePanel = ref<boolean>(false)
-
 // ── Card rendering settings ─────────────────────────────────────────────
 
 const bodyFontSize = ref<number>(30)
@@ -426,6 +291,14 @@ const gradientConfig = ref<GradientConfig>({
   color2: '#a29bfe',
   angle: 135,
 })
+const previewScale = ref<number>(1.0)
+
+// ── Layout state ─────────────────────────────────────────────────────────
+
+const split = ref<number>(32)
+const rightSplit = ref<number>(22)
+const dragging = ref<boolean>(false)
+const draggingRight = ref<boolean>(false)
 
 // ── Window controls ──────────────────────────────────────────────────────
 
@@ -460,7 +333,6 @@ watch(showCloseDialog, (visible) => {
   if (!closeDialogRef.value) return
   if (visible) {
     closeDialogRef.value.showModal()
-    // Focus confirm button for keyboard ergonomics
     requestAnimationFrame(() => confirmBtnRef.value?.focus())
   } else {
     closeDialogRef.value.close()
@@ -509,7 +381,6 @@ const typography = computed<TypographySettings>(() => {
 // ── Markdown / page state ──────────────────────────────────────────────
 
 const { currentPage } = useMarkdown(source)
-const pageCount = ref<number>(1)
 
 // ── Stats ───────────────────────────────────────────────────────────────
 
@@ -520,62 +391,16 @@ const wordCount = computed(() => {
   return text.split(/\s+/).length
 })
 
-// ── Drag-to-resize ──────────────────────────────────────────────────────
-
-const split = ref<number>(50)
-
-// ── Settings persistence ───────────────────────────────────────────────
-
-/** Snapshot all current UI settings into a plain object for persistence. */
-function collectSettings(): AppSettings {
-  return {
-    editorTheme: editorTheme.value,
-    cardTheme: cardTheme.value,
-    bodyFontMode: bodyFontMode.value,
-    bodyFontSize: bodyFontSize.value,
-    highlightStyle: highlightStyle.value,
-    footerEnabled: footerEnabled.value,
-    showThemePanel: showThemePanel.value,
-    split: split.value,
-    gradientConfig: { ...gradientConfig.value },
-  }
-}
-
-/** Apply persisted settings to all reactive refs. */
-function applySettings(s: AppSettings): void {
-  editorTheme.value = s.editorTheme
-  cardTheme.value = s.cardTheme
-  bodyFontMode.value = (s.bodyFontMode as BodyFontMode) || 'wenkai'
-  bodyFontSize.value = s.bodyFontSize
-  highlightStyle.value = s.highlightStyle as HighlightStyle
-  footerEnabled.value = s.footerEnabled
-  showThemePanel.value = s.showThemePanel
-  split.value = s.split
-  if (s.gradientConfig) {
-    gradientConfig.value = { ...s.gradientConfig }
-  }
-}
-
-// Auto-persist whenever any setting changes (1s debounce inside saveSettings).
-// Shallow watch is sufficient — each ref is a leaf value (string, number, boolean)
-// except gradientConfig which is replaced on change (never mutated in place).
-watch(
-  [
-    editorTheme, cardTheme, bodyFontMode, bodyFontSize,
-    highlightStyle, footerEnabled, showThemePanel, split, gradientConfig,
-  ],
-  () => saveSettings(collectSettings()),
-  { deep: false },
-)
-
-const dragging = ref<boolean>(false)
+// ── Left drag-to-resize (editor ↔ preview) ──────────────────────────────
 
 function onDragStart(event: MouseEvent): void {
   event.preventDefault()
   dragging.value = true
   const onMouseMove = (e: MouseEvent): void => {
     const pct = (e.clientX / window.innerWidth) * 100
-    split.value = Math.max(20, Math.min(80, Math.round(pct)))
+    // Ensure middle panel (preview) gets at least 18% and right panel remains intact
+    const maxLeft = Math.min(60, 100 - rightSplit.value - 18)
+    split.value = Math.max(16, Math.min(maxLeft, Math.round(pct)))
   }
   const onMouseUp = (): void => {
     dragging.value = false
@@ -585,6 +410,68 @@ function onDragStart(event: MouseEvent): void {
   window.addEventListener('mousemove', onMouseMove)
   window.addEventListener('mouseup', onMouseUp)
 }
+
+// ── Right drag-to-resize (preview ↔ control panel) ──────────────────────
+
+function onDragStartRight(event: MouseEvent): void {
+  event.preventDefault()
+  draggingRight.value = true
+  const onMouseMove = (e: MouseEvent): void => {
+    const rightEdgePct = ((window.innerWidth - e.clientX) / window.innerWidth) * 100
+    // Ensure middle panel (preview) gets at least 18% and right panel is between 16-40%
+    const maxRight = Math.min(40, 100 - split.value - 18)
+    rightSplit.value = Math.max(16, Math.min(maxRight, Math.round(rightEdgePct)))
+  }
+  const onMouseUp = (): void => {
+    draggingRight.value = false
+    window.removeEventListener('mousemove', onMouseMove)
+    window.removeEventListener('mouseup', onMouseUp)
+  }
+  window.addEventListener('mousemove', onMouseMove)
+  window.addEventListener('mouseup', onMouseUp)
+}
+
+// ── Settings persistence ───────────────────────────────────────────────
+
+/** 将所有当前 UI 设置快照为纯对象以持久化。 */
+function collectSettings(): AppSettings {
+  return {
+    cardTheme: cardTheme.value,
+    bodyFontMode: bodyFontMode.value,
+    bodyFontSize: bodyFontSize.value,
+    highlightStyle: highlightStyle.value,
+    footerEnabled: footerEnabled.value,
+    split: split.value,
+    rightSplit: rightSplit.value,
+    previewScale: previewScale.value,
+    gradientConfig: { ...gradientConfig.value },
+  }
+}
+
+/** 将持久化的设置应用到所有响应式 ref。 */
+function applySettings(s: AppSettings): void {
+  cardTheme.value = s.cardTheme
+  bodyFontMode.value = (s.bodyFontMode as BodyFontMode) || 'wenkai'
+  bodyFontSize.value = s.bodyFontSize
+  highlightStyle.value = s.highlightStyle as HighlightStyle
+  footerEnabled.value = s.footerEnabled
+  split.value = s.split
+  rightSplit.value = s.rightSplit ?? 22
+  previewScale.value = s.previewScale ?? 1.0
+  if (s.gradientConfig) {
+    gradientConfig.value = { ...s.gradientConfig }
+  }
+}
+
+// 任何设置变更时自动持久化（saveSettings 内部有 1 秒防抖）。
+watch(
+  [
+    cardTheme, bodyFontMode, bodyFontSize,
+    highlightStyle, footerEnabled, split, rightSplit, previewScale, gradientConfig,
+  ],
+  () => saveSettings(collectSettings()),
+  { deep: false },
+)
 
 // ── Editor refs ─────────────────────────────────────────────────────────
 
@@ -670,16 +557,14 @@ window.addEventListener('keydown', onKeydown)
 
 onBeforeUnmount(() => {
   dragging.value = false
+  draggingRight.value = false
   window.removeEventListener('keydown', onKeydown)
   windowControlCleanups.forEach((fn) => fn())
 })
 </script>
 
 <style scoped>
-/* ═══ Window control buttons (Electron frameless title bar) ═══════════════
-
-   Most properties are Tailwind utilities applied via class on the button.
-   Only Electron-specific behaviors (no-drag, close-red) remain here.       */
+/* ═══ Window control buttons (Electron frameless title bar) ═══════════════ */
 
 .win-btn {
   @apply relative inline-flex items-center justify-center border-none bg-transparent cursor-pointer shrink-0;
@@ -737,25 +622,5 @@ onBeforeUnmount(() => {
 
 .drag-bar::after {
   left: 100%;
-}
-
-/* ── Theme panel collapse transition ────────────────────────────────── */
-
-.collapse-enter-active {
-  transition: all 0.25s ease-out;
-}
-.collapse-leave-active {
-  transition: all 0.2s ease-in;
-}
-.collapse-enter-from,
-.collapse-leave-to {
-  opacity: 0;
-  max-height: 0;
-  overflow: hidden;
-}
-.collapse-enter-to,
-.collapse-leave-from {
-  opacity: 1;
-  max-height: 200px;
 }
 </style>

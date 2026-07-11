@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════════════════════
-// Markdown Component System — barrel export
+// Markdown 组件系统 — 统一导出
 // ═══════════════════════════════════════════════════════════════════════════
 
 export { default as MdRenderer } from './MdRenderer.vue'

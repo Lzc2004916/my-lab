@@ -1,10 +1,9 @@
 // ═══════════════════════════════════════════════════════════════════════════
-// CardPreview module — Design Token System
+// CardPreview 模块 — 设计令牌系统
 // ═══════════════════════════════════════════════════════════════════════════
 //
-// Provides a canonical visual spec extracted from ThemeDefinition.
-// Tokens serve as an abstraction layer between theme data and both
-// Canvas rendering + CSS custom properties.
+// 提供从 ThemeDefinition 提取的规范视觉规范。
+// 令牌作为主题数据与 Canvas 渲染和 CSS 自定义属性之间的抽象层。
 //
 
 import type { ThemeDefinition, GradientConfig } from './types'
@@ -13,34 +12,34 @@ import { BODY_TEXT_WEIGHT } from './types'
 // ── Design token shape ──────────────────────────────────────────────────────
 
 export interface CardDesignTokens {
-  /** Main card background color */
+  /** 主卡片背景颜色 */
   bgColor: string
-  /** Body / content text color */
+  /** 正文 / 内容文本颜色 */
   bodyColor: string
-  /** Body font weight (number, e.g. 400) */
+  /** 正文字体粗细（数字，例如 400） */
   bodyFontWeight: number
-  /** Body font size in px */
+  /** 正文字体大小（px） */
   bodyFontSize: number
-  /** Body line-height multiplier */
+  /** 正文行高倍率 */
   bodyLineHeight: number
-  /** Whether gradient overlay is active */
+  /** 是否启用渐变叠加 */
   gradientEnabled: boolean
-  /** Gradient color stop 1 */
+  /** 渐变颜色停靠点 1 */
   gradientColor1: string
-  /** Gradient color stop 2 */
+  /** 渐变颜色停靠点 2 */
   gradientColor2: string
-  /** Gradient angle in degrees (CSS convention) */
+  /** 渐变角度（度，CSS 约定） */
   gradientAngle: number
 }
 
 // ── Token extraction ────────────────────────────────────────────────────────
 
-/** Default gradient angle used when none is specified. */
+/** 未指定时使用的默认渐变角度。 */
 const DEFAULT_GRADIENT_ANGLE = 135
 
 /**
- * Extract canonical design tokens from a theme, with optional overrides
- * from the gradient picker and title customization.
+ * 从主题中提取规范的设计令牌，可选覆盖
+ * 来自渐变选择器和标题自定义。
  */
 export function extractTokens(
   theme: ThemeDefinition,
@@ -63,7 +62,7 @@ export function extractTokens(
 
 // ── CSS custom property mapping ─────────────────────────────────────────────
 
-/** Maps each design token to its corresponding CSS custom property name. */
+/** 将每个设计令牌映射到其对应的 CSS 自定义属性名称。 */
 export const TOKEN_CSS_VAR_MAP: Record<keyof CardDesignTokens, string> = {
   bgColor: '--card-bg-color',
   bodyColor: '--card-body-color',
@@ -77,8 +76,8 @@ export const TOKEN_CSS_VAR_MAP: Record<keyof CardDesignTokens, string> = {
 }
 
 /**
- * Apply design tokens as CSS custom properties to a DOM element.
- * Numbers are converted to strings; booleans become '1' / '0'.
+ * 将设计令牌作为 CSS 自定义属性应用到 DOM 元素。
+ * 数字被转换为字符串；布尔值变为 '1' / '0'。
  */
 export function applyTokensToElement(
   el: HTMLElement,
@@ -94,16 +93,16 @@ export function applyTokensToElement(
 
 // ── Serialization ───────────────────────────────────────────────────────────
 
-/** Serialize design tokens to a JSON string for persistence. */
+/** 将设计令牌序列化为 JSON 字符串以持久化。 */
 export function tokensToJSON(tokens: CardDesignTokens): string {
   return JSON.stringify(tokens)
 }
 
-/** Deserialize design tokens from JSON. Returns null on parse failure. */
+/** 从 JSON 反序列化设计令牌。解析失败时返回 null。 */
 export function tokensFromJSON(json: string): CardDesignTokens | null {
   try {
     const parsed = JSON.parse(json)
-    // Basic structural validation
+    // 基本结构验证
     const required: (keyof CardDesignTokens)[] = [
       'bgColor', 'bodyColor', 'bodyFontWeight', 'bodyFontSize',
       'bodyLineHeight',

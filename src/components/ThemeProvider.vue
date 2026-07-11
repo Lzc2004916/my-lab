@@ -17,7 +17,7 @@ import { type ThemeContext, THEME_CONTEXT_KEY } from '@/composables/themeContext
 
 const props = withDefaults(
   defineProps<{
-    /** Initial theme ID to activate. */
+    /** 初始激活的主题 ID。 */
     themeId?: string
   }>(),
   {
@@ -43,7 +43,7 @@ const availableThemes = ref<ThemeDefinition[]>(getAllThemes())
 function applyThemeToDOM(theme: ThemeDefinition): void {
   const root = document.documentElement
 
-  // Palette
+  // 调色板
   root.style.setProperty('--card-page', theme.palette.page)
   root.style.setProperty('--card-page-alt', theme.palette.pageAlt)
   root.style.setProperty('--card-text', theme.palette.text)
@@ -54,12 +54,12 @@ function applyThemeToDOM(theme: ThemeDefinition): void {
   root.style.setProperty('--card-shadow', theme.palette.shadow)
   root.style.setProperty('--card-glow', theme.palette.glow)
 
-  // Surface
+  // 表面
   root.style.setProperty('--card-grain-opacity', String(theme.surface.grainAlpha))
   root.style.setProperty('--card-inner-frame-opacity', String(theme.surface.innerFrameAlpha))
   root.style.setProperty('--card-preview-shadow', theme.surface.previewShadow)
 
-  // Editor / typography
+  // 编辑器 / 排版
   root.style.setProperty('--body-size', `${theme.editor.bodySize}px`)
   root.style.setProperty('--body-line-height', String(theme.editor.lineHeight))
 
@@ -113,7 +113,7 @@ function setTheme(id: string): void {
   const theme = getTheme(id)
   if (!theme || theme.id === activeThemeId.value) return
 
-  // Trigger transition class
+  // 触发过渡类名
   isTransitioning.value = true
 
   activeThemeId.value = id
@@ -121,7 +121,7 @@ function setTheme(id: string): void {
   applyThemeToDOM(theme)
   emit('theme-change', id)
 
-  // Clear transition class after animation completes
+  // 动画完成后清除过渡类名
   if (transitionTimer) clearTimeout(transitionTimer)
   transitionTimer = setTimeout(() => {
     isTransitioning.value = false
@@ -143,19 +143,19 @@ provide(THEME_CONTEXT_KEY, context)
 // ── Lifecycle ──────────────────────────────────────────────────────────────
 
 onMounted(() => {
-  // Apply initial theme
+  // 应用初始主题
   applyThemeToDOM(activeTheme.value)
 
-  // Sync with registry changes
+  // 与注册表变更同步
   onRegistryChange(() => {
     availableThemes.value = getAllThemes()
-    // Re-resolve active theme (may have been updated in registry)
+    // 重新解析当前主题（可能在注册表中已更新）
     activeTheme.value = getTheme(activeThemeId.value)
     applyThemeToDOM(activeTheme.value)
   })
 })
 
-// Sync with prop changes
+// 与 prop 变更同步
 watch(
   () => props.themeId,
   (newId) => {

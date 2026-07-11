@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════════════════════
-// CardPreview module — intelligent pagination engine
+// CardPreview 模块 — 智能分页引擎
 // ═══════════════════════════════════════════════════════════════════════════
 
 import type {
@@ -25,19 +25,19 @@ import { measureCodeBlock } from './code-renderer'
 import { getBodyFontFamily } from './types'
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Markdown block classification
+// Markdown 块分类
 // ═══════════════════════════════════════════════════════════════════════════
 
 function isMarkdownDividerLine(line: string): boolean {
   return /^(-{3,}|\*{3,}|_{3,})\s*$/.test(line.trim())
 }
 
-/** Check if a line starts a markdown heading. */
+/** 检查一行是否以 markdown 标题开头。 */
 function isHeadingLine(line: string): boolean {
   return /^#{1,6}\s+\S/.test(line.trim())
 }
 
-/** Classify a raw text line into a TextBlock. */
+/** 将原始文本行分类为 TextBlock。 */
 export function getParagraphBlock(text: string): TextBlock {
   const trimmed = text.trim()
   if (isMarkdownDividerLine(trimmed)) {
@@ -59,36 +59,36 @@ export function getParagraphBlock(text: string): TextBlock {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Input parsing
+// 输入解析
 // ═══════════════════════════════════════════════════════════════════════════
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Block-level parser (state machine)
+// 块级解析器（状态机）
 // ═══════════════════════════════════════════════════════════════════════════
 
-/** Detect line that opens a fenced code block. */
+/** 检测打开围栏代码块的行。 */
 function isFenceOpen(line: string): boolean {
   return /^```\S*$/.test(line.trim()) || /^~~~\S*$/.test(line.trim())
 }
 
-/** Detect line that closes a fenced code block. */
+/** 检测关闭围栏代码块的行。 */
 function isFenceClose(line: string): boolean {
   const t = line.trim()
   return t === '```' || t === '~~~'
 }
 
-/** Extract language identifier from fence opener (e.g. "```js" → "js"). */
+/** 从围栏起始符中提取语言标识符（例如 "```js" → "js"）。 */
 function getFenceLang(line: string): string {
   const m = line.trim().match(/^```(\S+)$/)
   return m ? m[1]! : ''
 }
 
-/** Detect a pipe-table line (starts and ends with |). */
+/** 检测管道表格行（以 | 开头和结尾）。 */
 function isTableLine(line: string): boolean {
   return /^\|.*\|$/.test(line.trim())
 }
 
-/** Parse a table separator line to extract alignments. */
+/** 解析表格分隔行以提取对齐方式。 */
 function parseTableAlignments(line: string): ('left' | 'center' | 'right')[] {
   return line
     .trim()
@@ -102,7 +102,7 @@ function parseTableAlignments(line: string): ('left' | 'center' | 'right')[] {
     })
 }
 
-/** Split a pipe-table cell line into individual cells. */
+/** 将管道表格单元格行分割为单个单元格。 */
 function splitTableCells(line: string): string[] {
   return line
     .trim()
@@ -112,13 +112,13 @@ function splitTableCells(line: string): string[] {
 }
 
 /**
- * State-machine parser that converts raw markdown source into Block[].
+ * 状态机解析器，将原始 markdown 源文本转换为 Block[]。
  *
- * Handles multi-line constructs:
- * - Fenced code blocks (``` ... ```)
- * - Tables (consecutive |...| lines)
- * - Column containers (:::left / :::right ... :::)
- * - Regular text (split by blank lines, classified by getParagraphBlock)
+ * 处理多行结构：
+ * - 围栏代码块 (``` ... ```)
+ * - 表格 (连续的 |...| 行)
+ * - 列容器 (:::left / :::right ... :::)
+ * - 普通文本（按空行分割，通过 getParagraphBlock 分类）
  */
 export function parseInputBlocks(raw: string): Block[] {
   const lines = raw.split('\n')
@@ -133,25 +133,25 @@ export function parseInputBlocks(raw: string): Block[] {
   function flushTextBuffer(buf: string): void {
     const trimmed = buf.trim()
     if (!trimmed) return
-    // First split by blank lines (standard paragraph separation)
+    // 首先按空行分割（标准段落分隔）
     const paragraphs = trimmed.split(/\n{2,}/)
     for (const para of paragraphs) {
       if (!para.trim()) continue
 
-      // Within a paragraph, split on heading boundaries:
-      // lines that start with # should always form their own block,
-      // even when they are the first line (no preceding text to flush).
+      // 在段落内按标题边界分割：
+// 以 # 开头的行应始终形成自己的块，
+// 即使它是第一行（前面没有需要刷新的文本）。
       const lines = para.split('\n')
       let subBuffer = ''
       for (let li = 0; li < lines.length; li++) {
         const line = lines[li]!
         if (isHeadingLine(line)) {
-          // Flush any accumulated text before this heading
+          // 在推送此标题之前刷新所有累积的文本
           if (subBuffer.trim()) {
             blocks.push(getParagraphBlock(subBuffer.trim()))
           }
-          // Push the heading itself as a standalone block so
-          // getParagraphBlock can match the heading regex correctly.
+          // 将标题本身作为独立块推送，以便
+// getParagraphBlock 能正确匹配标题正则表达式。
           blocks.push(getParagraphBlock(line.trim()))
           subBuffer = ''
         } else {
@@ -220,7 +220,7 @@ export function parseInputBlocks(raw: string): Block[] {
           rows,
         } as TableDisplayBlock)
       } else {
-        // Single |line| — treat as body text
+        // 单个 |行| — 作为正文文本处理
         blocks.push(getParagraphBlock(line))
       }
       continue
@@ -241,11 +241,11 @@ export function parseInputBlocks(raw: string): Block[] {
       i++ // skip closing :::
 
       if (colType === 'center') {
-        // Center column: parse content and center each block
+        // 居中列：解析内容并将每个块居中
         const innerBlocks = parseInputBlocks(colLines.join('\n'))
         for (const b of innerBlocks) blocks.push(b)
       } else if (colType === 'left') {
-        // Look ahead for :::right partner
+        // 向前查找 :::right 配对
         const rightLines: string[] = []
         if (i < lines.length && lines[i]!.trim() === ':::right') {
           i++
@@ -273,8 +273,8 @@ export function parseInputBlocks(raw: string): Block[] {
     }
 
     // ── Regular text ───────────────────────────────────────────
-    // If the line is a heading and the buffer already has content,
-    // flush the buffer first so the heading starts its own block.
+    // 如果该行是标题且缓冲区已有内容，
+// 先刷新缓冲区，使标题从自己的块开始。
     if (isHeadingLine(line) && textBuffer.trim()) {
       flushTextBuffer(textBuffer)
       textBuffer = ''
@@ -283,13 +283,13 @@ export function parseInputBlocks(raw: string): Block[] {
     i++
   }
 
-  // Flush remaining text
+  // 刷新剩余文本
   flushTextBuffer(textBuffer)
   return blocks
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Paragraph serialization
+// 段落序列化
 // ═══════════════════════════════════════════════════════════════════════════
 
 function serializeParagraphBlock(raw: string, kind: ParagraphBlock['kind'], headingLevel?: number): string {
@@ -304,7 +304,7 @@ function serializeParagraphBlock(raw: string, kind: ParagraphBlock['kind'], head
 function serializeInlineTokens(tokens: InlineToken[]): string {
   return tokens
     .map((t) => {
-      // Order matters: bold (**) before italic (*) to avoid ambiguity
+      // 顺序很重要：粗体 (**) 在斜体 (*) 之前，避免歧义
       if (t.bold) return `**${t.text}**`
       if (t.italic) return `*${t.text}*`
       if (t.mark) return `==${t.text}==`
@@ -318,15 +318,15 @@ function serializeInlineTokens(tokens: InlineToken[]): string {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Paragraph splitting
+// 段落分割
 // ═══════════════════════════════════════════════════════════════════════════
 
-/** Split a long paragraph into chunks of ~chunkSize characters. */
+/** 将长段落分割为约 chunkSize 个字符的块。 */
 function splitLongParagraph(raw: string, chunkSize: number): string[] {
   const text = raw.trim()
   if (text.length <= chunkSize + 40) return [text]
 
-  // Try to split by manual line breaks first
+  // 首先尝试按手动换行符分割
   const manualLines = text.split('\n')
   if (manualLines.length > 1) {
     const chunks: string[] = []
@@ -344,7 +344,7 @@ function splitLongParagraph(raw: string, chunkSize: number): string[] {
     return chunks
   }
 
-  // Split by sentence boundaries
+  // 按句子边界分割
   const sentences = text
     .split(/(?<=[。！？!?；;])/)
     .map((s) => s.trim())
@@ -423,21 +423,21 @@ function splitInlineLines(
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Block height estimation (for non-text blocks)
+// 块高度估算（非文本块）
 // ═══════════════════════════════════════════════════════════════════════════
 
-/** Estimate the rendered height of a non-text block for layout purposes. */
+/** 估计非文本块用于布局目的的渲染高度。 */
 function estimateBlockHeight(block: Block, bodySize: number): number {
   switch (block.kind) {
     case 'code': {
       const cb = block as CodeBlock
-      // Use measureCodeBlock which now accounts for line wrapping.
-      // This ensures the layout engine and renderer agree on height.
+      // 使用 measureCodeBlock，它现在会考虑行换行。
+// 这确保布局引擎和渲染器对高度达成一致。
       try {
         const { height } = measureCodeBlock(cb, bodySize)
         return height
       } catch {
-        // Fallback: rough estimate if measurement fails
+        // 回退：测量失败时的粗略估算
         const lineCount = cb.code.split('\n').length
         const monoSize = bodySize * 0.92
         const monoLineHeight = monoSize * 1.5
@@ -463,17 +463,17 @@ function estimateBlockHeight(block: Block, bodySize: number): number {
 
 // ═══════════════════════════════════════════════════════════════════════════
 // ═══════════════════════════════════════════════════════════════════════════
-// Main pagination engine
+// 主分页引擎
 // ═══════════════════════════════════════════════════════════════════════════
 
 /**
- * Layout markdown source text into card pages.
+ * 将 markdown 源文本布局为卡片页面。
  *
- * Algorithm:
- * 1. Parse markdown source into paragraph blocks
- * 2. Pre-split long paragraphs (>180 chars)
- * 3. Accumulate paragraphs on each page by measuring heights
- * 4. When overflow: try sentence split → try line split → carry-over
+ * 算法：
+ * 1. 将 markdown 源文本解析为段落块
+ * 2. 预分割长段落（>180 个字符）
+ * 3. 通过测量高度在每个页面上累积段落
+ * 4. 溢出时：尝试句子分割 → 尝试行分割 → 续到下一页
  */
 export function layoutPages(opts: LayoutOptions): CardPage[] {
   const { source, settings, theme, footerEnabled } = opts
@@ -493,7 +493,7 @@ export function layoutPages(opts: LayoutOptions): CardPage[] {
     ]
   }
 
-  // Pre-split long text paragraphs
+  // 预分割长文本段落
   const expandedParagraphs: Block[] = []
   for (const block of allBlocks) {
     if (block.kind === 'body' || block.kind === 'quote' || block.kind === 'subheading') {
@@ -508,7 +508,7 @@ export function layoutPages(opts: LayoutOptions): CardPage[] {
         }
       }
     } else {
-      // Non-text blocks (code, table, column) — keep as-is
+      // 非文本块（代码、表格、列）— 保持原样
       expandedParagraphs.push(block)
     }
   }
@@ -517,7 +517,7 @@ export function layoutPages(opts: LayoutOptions): CardPage[] {
   let currentParagraph = 0
   let carryParagraph: string | null = null
   let carryBlock: Block | null = null
-  /** Track whether the carried block came from an expanded-paragraph split. */
+  /** 跟踪携带的块是否来自扩展段落分割。 */
   let carryPendingWasSplit = false
   const pendingCarries: string[] = []
   const pendingWasSplits: boolean[] = []
@@ -551,7 +551,7 @@ export function layoutPages(opts: LayoutOptions): CardPage[] {
     // ── Inner loop: fill current page ──────────────────────────
 
     while (true) {
-      // Determine what to process next
+      // 确定下一步要处理的内容
       let nextBlock: Block | null = null
       let nextIsCarried = false
 
@@ -574,7 +574,7 @@ export function layoutPages(opts: LayoutOptions): CardPage[] {
       if (block.kind === 'code' ||
           block.kind === 'table' ||
           block.kind === 'columnContainer') {
-        // Estimate height for non-text blocks
+        // 估算非文本块的高度
         const estHeight = estimateBlockHeight(block, metrics.bodySize)
         const blockTop = cursorY + getGapBetweenBlocks(previousBlock, { kind: 'body', raw: '' }, metrics)
         const blockBottom = blockTop + estHeight
@@ -591,16 +591,16 @@ export function layoutPages(opts: LayoutOptions): CardPage[] {
           }
           continue
         }
-        // Doesn't fit — if page has content, move to next page
+        // 放不下 — 如果当前页有内容，移动到下一页
         if (page.blocks.length > 0) break
-        // Empty page — push it anyway (block is taller than page)
+        // 空页 — 无论如何都要放进去（块比页面高）
         page.blocks.push(block)
         if (!nextIsCarried) currentParagraph++
         continue
       }
 
       // ── For text blocks: existing measurement + splitting ──
-      // If the block came from expandedParagraphs (not a carry), use it directly
+      // 如果块来自 expandedParagraphs（非 carry），直接使用它
       // to preserve headingLevel and block kind.  Carry text is re-serialized
       // with kind prefixes so getParagraphBlock has already correctly classified
       // it — don't re-parse from .raw (which lacks the prefix), use the block as-is.
@@ -624,7 +624,7 @@ export function layoutPages(opts: LayoutOptions): CardPage[] {
       const blockTop = cursorY + leadingGap
       const blockBottom = blockTop + height
 
-      // Block fits entirely
+      // 块完全适合
       if (blockBottom <= metrics.bodyBottomY) {
         page.blocks.push(paraBlock)
         cursorY = blockBottom
@@ -669,7 +669,7 @@ export function layoutPages(opts: LayoutOptions): CardPage[] {
             fittedHeight = candidateHeight
             continue
           }
-          // Try line-level gap fill
+          // 尝试行级间隙填充
           const gapTop = blockTop + fittedHeight
           const gapHeight = metrics.bodyBottomY - gapTop
           if (gapHeight > 0) {

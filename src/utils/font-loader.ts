@@ -1,15 +1,15 @@
 // ═══════════════════════════════════════════════════════════════════════════
-// Font Loader — on-demand web font loading via Font Face API
+// 字体加载器 — 通过 Font Face API 按需加载 Web 字体
 // ═══════════════════════════════════════════════════════════════════════════
 
 export interface FontLoadOptions {
-  /** Font weight (e.g. 400, 600, 700). Default: 400 */
+  /** 字体粗细（例如 400, 600, 700）。默认：400 */
   weight?: number
-  /** Font style. Default: 'normal' */
+  /** 字体样式。默认：'normal' */
   style?: 'normal' | 'italic'
-  /** font-display strategy. Default: 'swap' */
+  /** font-display 策略。默认：'swap' */
   display?: 'auto' | 'block' | 'swap' | 'fallback' | 'optional'
-  /** Unicode range for subset loading. Default: undefined (full charset) */
+  /** Unicode 范围用于子集加载。默认：undefined（完整字符集） */
   unicodeRange?: string
 }
 
@@ -22,7 +22,7 @@ export interface FontEntry {
   weight?: number[]
 }
 
-// ── Loaded font tracker ─────────────────────────────────────────────────
+// ── 已加载字体追踪器 ─────────────────────────────────────────────────
 
 const loadedFonts = new Set<string>()
 
@@ -30,11 +30,11 @@ function fontKey(family: string, weight: number, style: string): string {
   return `${family}:${weight}:${style}`
 }
 
-// ── Font Face API loader ────────────────────────────────────────────────
+// ── Font Face API 加载器 ────────────────────────────────────────────────
 
 /**
- * Load a single web font using the Font Face API.
- * Returns the FontFace on success, null on failure.
+ * 使用 Font Face API 加载单个 Web 字体。
+ * 成功时返回 FontFace，失败时返回 null。
  */
 export async function loadFont(
   family: string,
@@ -50,12 +50,12 @@ export async function loadFont(
 
   const key = fontKey(family, weight, style)
 
-  // Skip if already loaded
+  // 如果已加载则跳过
   if (loadedFonts.has(key)) {
     return null
   }
 
-  // Check if browser already has it
+  // 检查浏览器是否已有该字体
   if (document.fonts.check(`${style} ${weight} 12px "${family}"`)) {
     loadedFonts.add(key)
     return null
@@ -83,15 +83,15 @@ export async function loadFont(
 }
 
 /**
- * Check if a font family is available in the browser.
+ * 检查浏览器中是否可用某个字体家族。
  */
 export function isFontAvailable(family: string): boolean {
   return document.fonts.check(`12px "${family}"`)
 }
 
 /**
- * Preload critical fonts that are needed immediately.
- * Call early in app initialization.
+ * 预加载需要的关键字体。
+ * 在应用初始化早期调用。
  */
 export async function preloadCriticalFonts(): Promise<void> {
   const critical: { family: string; url: string; options: FontLoadOptions }[] = [
@@ -113,22 +113,22 @@ export async function preloadCriticalFonts(): Promise<void> {
 }
 
 /**
- * Get all loaded font keys.
+ * 获取所有已加载的字体键。
  */
 export function getLoadedFonts(): string[] {
   return Array.from(loadedFonts)
 }
 
 /**
- * Wait for all document fonts to be ready.
- * Resolves when document.fonts.ready resolves.
+ * 等待所有文档字体就绪。
+ * 当 document.fonts.ready 解析时返回。
  */
 export async function waitForFonts(): Promise<void> {
   await document.fonts.ready
 }
 
 /**
- * Load all fonts in a font entry definition.
+ * 加载字体条目定义中的所有字体。
  */
 export async function loadFontEntry(entry: FontEntry): Promise<void> {
   const weights = entry.weight ?? [400]
@@ -143,7 +143,7 @@ export async function loadFontEntry(entry: FontEntry): Promise<void> {
 }
 
 /**
- * Clear the loaded font cache (useful for testing).
+ * 清除已加载字体缓存（用于测试）。
  */
 export function clearFontCache(): void {
   loadedFonts.clear()

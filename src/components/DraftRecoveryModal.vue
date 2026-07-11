@@ -14,10 +14,10 @@
         </div>
       </div>
       <div class="modal-action mt-5">
-        <button class="btn btn-ghost btn-sm h-8 min-h-0 text-xs" @click="onDiscard">
+        <button class="btn btn-ghost btn-sm h-8 min-h-0 text-sm" @click="onDiscard">
           忽略
         </button>
-        <button class="btn btn-primary btn-sm h-8 min-h-0 text-xs" @click="onRestore">
+        <button class="btn btn-primary btn-sm h-8 min-h-0 text-sm" @click="onRestore">
           恢复
         </button>
       </div>

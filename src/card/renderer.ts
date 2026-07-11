@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════════════════════
-// CardPreview module — Canvas rendering pipeline
+// CardPreview 模块 — Canvas 渲染管线
 // ═══════════════════════════════════════════════════════════════════════════
 
 import type {
@@ -48,9 +48,10 @@ import {
 import { drawCodeBlock, measureCodeBlock } from './code-renderer'
 import { drawTableBlock, measureTableBlock } from './table-renderer'
 import { hexToRgba, hexToRgb, gradientAngleToPoints } from './color-utils'
+import { drawDecor } from './decor-renderer'
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Seeded PRNG (mulberry32) — fast, deterministic, avoids Math.random() overhead
+// 种子伪随机数发生器 (mulberry32) — 快速、确定性、避免 Math.random() 开销
 // ═══════════════════════════════════════════════════════════════════════════
 
 function mulberry32(seed: number): () => number {
@@ -63,7 +64,7 @@ function mulberry32(seed: number): () => number {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Pre-generated noise texture cache
+// 预生成的噪声纹理缓存
 // ═══════════════════════════════════════════════════════════════════════════
 
 interface NoiseCacheEntry {
@@ -77,9 +78,9 @@ interface NoiseCacheEntry {
 const _noiseCache = new Map<string, NoiseCacheEntry>()
 
 /**
- * Pre-render noise grain + paper fibers onto an offscreen canvas.
- * Regenerated only when the theme changes — reused across renders.
- * Uses a seeded PRNG for consistent, deterministic results.
+ * 将噪声纹理和纸张纤维预渲染到离屏画布上。
+ * 仅在主题更改时重新生成 — 跨渲染重复使用。
+ * 使用种子 PRNG 以获得一致、确定性的结果。
  */
 function getOrCreateNoiseTexture(
   theme: ThemeDefinition,
@@ -108,7 +109,7 @@ function getOrCreateNoiseTexture(
     return cached.canvas
   }
 
-  // Build a pre-rendered noise canvas
+  // 构建预渲染的噪声画布
   const canvas = document.createElement('canvas')
   canvas.width = PAGE_WIDTH
   canvas.height = PAGE_HEIGHT
@@ -149,7 +150,7 @@ function getOrCreateNoiseTexture(
 
   _noiseCache.set(cacheKey, { canvas, density, darkMode: dark, grainAlpha: theme.surface.grainAlpha, textColor: theme.palette.text })
 
-  // Prune cache if it grows too large (keep last 12 entries)
+  // 缓存过大时清理（保留最后 12 个条目）
   if (_noiseCache.size > 12) {
     const firstKey = _noiseCache.keys().next().value
     if (firstKey !== undefined) _noiseCache.delete(firstKey)
@@ -159,26 +160,26 @@ function getOrCreateNoiseTexture(
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Luminance cache — avoids redundant color parsing during render
+// 亮度缓存 — 避免渲染时重复解析颜色
 // ═══════════════════════════════════════════════════════════════════════════
 
 const _luminanceCache = new Map<string, number>()
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Theme helpers
+// 主题辅助函数
 // ═══════════════════════════════════════════════════════════════════════════
 
 function isDarkTheme(theme: ThemeDefinition): boolean {
-  // Mode-based fast path
+  // 基于模式的快速路径
   if (theme.mode === 'obsidian' || theme.mode === 'archive' || theme.mode === 'cyber') return true
-  // Luminance-based detection — catches dark luxe/glass/brutal themes
+  // 基于亮度的检测 — 捕获暗色 luxe/glass/brutal 主题
   return getPageLuminance(theme) < 0.35
 }
 
-/** Perceived brightness of the page background (0–1, 0 = black). */
+/** 页面背景的感知亮度（0–1，0 = 黑色）。 */
 function getPageLuminance(theme: ThemeDefinition): number {
   const raw = theme.palette.page
-  // Check cache first
+  // 先检查缓存
   const cacheKey = raw
   const cached = _luminanceCache.get(cacheKey)
   if (cached !== undefined) return cached
@@ -229,7 +230,7 @@ function isLuxeTheme(theme: ThemeDefinition): boolean {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Shape / clipping
+// 形状 / 裁剪
 // ═══════════════════════════════════════════════════════════════════════════
 
 function roundRectPath(
@@ -290,7 +291,7 @@ function drawBackground(
     gradient.addColorStop(0.5, theme.palette.page)
     gradient.addColorStop(1, '#06040d')
   } else if (theme.mode === 'brutal') {
-    // Solid background — no gradient for brutalist
+    // 纯色背景 — brutalist 不使用渐变
     gradient.addColorStop(0, theme.palette.page)
     gradient.addColorStop(1, theme.palette.page)
   } else if (theme.mode === 'luxe') {
@@ -302,7 +303,7 @@ function drawBackground(
     gradient.addColorStop(0.5, theme.palette.page)
     gradient.addColorStop(1, '#e8f0f6')
   } else if (theme.mode === 'glass') {
-    // Layered diagonal gradient for glass effect
+    // 分层对角渐变，产生玻璃效果
     const glassGrad = ctx.createLinearGradient(0, 0, PAGE_WIDTH, PAGE_HEIGHT)
     glassGrad.addColorStop(0, 'rgba(255,255,255,0.6)')
     glassGrad.addColorStop(0.3, '#f5f0ff')
@@ -326,9 +327,9 @@ function drawBackground(
 // ── Gradient overlay ──────────────────────────────────────────────────────
 
 /**
- * Draw a soft two-color gradient overlay over the entire card.
- * Blends with the existing background using a low-opacity screen/multiply.
- * Uses the CSS gradient angle convention (0deg = bottom→top).
+ * 在整个卡片上绘制柔和的双色渐变叠加层。
+ * 使用低透明度 screen/multiply 与现有背景混合。
+ * 使用 CSS 渐变角度约定（0deg = 底部→顶部）。
  */
 function drawGradientOverlay(
   ctx: CanvasRenderingContext2D,
@@ -387,7 +388,7 @@ function drawDigitalGrid(
     ctx.stroke()
   }
 
-  // Accent horizontal line
+  // 强调色水平线
   ctx.strokeStyle = hexToRgba(theme.palette.accent, 0.09)
   ctx.lineWidth = 1.2
   ctx.beginPath()
@@ -416,7 +417,7 @@ function paintAtmosphere(
   ctx.save()
   ctx.globalAlpha = theme.surface.washStrength
 
-  // Top wash
+  // 顶部淡色层
   const topWash = ctx.createRadialGradient(160, 120, 0, 160, 120, 220)
   topWash.addColorStop(
     0,
@@ -430,7 +431,7 @@ function paintAtmosphere(
   ctx.arc(160, 120, 220, 0, Math.PI * 2)
   ctx.fill()
 
-  // Side wash
+  // 侧边淡色层
   const sideWash = ctx.createRadialGradient(616, 172, 0, 616, 172, 154)
   sideWash.addColorStop(
     0,
@@ -444,7 +445,7 @@ function paintAtmosphere(
   ctx.arc(616, 172, 154, 0, Math.PI * 2)
   ctx.fill()
 
-  // Title area wash
+  // 标题区域淡色层
   const titleWash = ctx.createRadialGradient(278, 258, 18, 278, 258, 310)
   titleWash.addColorStop(
     0,
@@ -467,7 +468,7 @@ function paintAtmosphere(
   ctx.ellipse(278, 258, 310, 190, -0.08, 0, Math.PI * 2)
   ctx.fill()
 
-  // Bottom accent wash
+  // 底部强调色淡色层
   const bottomWash = ctx.createRadialGradient(94, 820, 0, 94, 820, 124)
   bottomWash.addColorStop(0, theme.palette.accentSoft)
   bottomWash.addColorStop(1, 'rgba(255,255,255,0)')
@@ -476,7 +477,7 @@ function paintAtmosphere(
   ctx.arc(94, 820, 124, 0, Math.PI * 2)
   ctx.fill()
 
-  // Vintage film sweep
+  // 复古胶片扫描效果
   if (theme.mode === 'vintage') {
     const filmSweep = ctx.createLinearGradient(0, 0, PAGE_WIDTH, PAGE_HEIGHT)
     filmSweep.addColorStop(0, hexToRgba(theme.palette.accent, 0.08))
@@ -486,12 +487,12 @@ function paintAtmosphere(
     ctx.fillRect(0, 0, PAGE_WIDTH, PAGE_HEIGHT)
   }
 
-  // Digital editor grid
+  // 数字编辑器网格
   if (isDigitalEditorTheme(theme)) {
     drawDigitalGrid(ctx, theme)
   }
 
-  // Paper bloom
+  // 纸张光晕
   if (theme.mode === 'paper' && !isDigitalEditorTheme(theme)) {
     const bloom = ctx.createLinearGradient(0, 0, PAGE_WIDTH, PAGE_HEIGHT)
     bloom.addColorStop(0, hexToRgba(theme.palette.pageAlt, 0.08))
@@ -501,7 +502,7 @@ function paintAtmosphere(
     ctx.fillRect(0, 0, PAGE_WIDTH, PAGE_HEIGHT)
   }
 
-  // Dark vignette
+  // 暗色渐晕
   if (isDarkTheme(theme)) {
     const darkVignette = ctx.createLinearGradient(0, 0, 0, PAGE_HEIGHT)
     darkVignette.addColorStop(
@@ -522,7 +523,7 @@ function paintAtmosphere(
     ctx.fillRect(0, 0, PAGE_WIDTH, PAGE_HEIGHT)
   }
 
-  // Cyber scanlines
+  // 赛博扫描线
   if (theme.mode === 'cyber') {
     ctx.globalAlpha = 0.04
     for (let y = 0; y < PAGE_HEIGHT; y += 4) {
@@ -532,7 +533,7 @@ function paintAtmosphere(
     ctx.globalAlpha = theme.surface.washStrength
   }
 
-  // Frost crystalline shimmer
+  // 霜结晶微光效果
   if (isFrostTheme(theme)) {
     ctx.globalAlpha = 0.06
     ctx.fillStyle = theme.palette.accent
@@ -548,7 +549,7 @@ function paintAtmosphere(
     ctx.globalAlpha = theme.surface.washStrength
   }
 
-  // Luxe gold foil specks
+  // 奢华金箔斑点
   if (isLuxeTheme(theme)) {
     ctx.globalAlpha = 0.08
     ctx.fillStyle = theme.palette.accent
@@ -564,7 +565,7 @@ function paintAtmosphere(
     ctx.globalAlpha = theme.surface.washStrength
   }
 
-  // Glass overlay — soft translucent gradient
+  // 玻璃叠加层 — 柔和半透明渐变
   if (isGlassTheme(theme)) {
     const glassOverlay = ctx.createLinearGradient(0, 0, PAGE_WIDTH, PAGE_HEIGHT)
     glassOverlay.addColorStop(0, 'rgba(255,255,255,0.25)')
@@ -577,7 +578,7 @@ function paintAtmosphere(
 
   ctx.restore()
 
-  // Vignette (all themes)
+  // 渐晕效果（所有主题）
   const vignette = ctx.createRadialGradient(
     PAGE_WIDTH / 2,
     PAGE_HEIGHT / 2,
@@ -600,7 +601,7 @@ function applyNoiseTexture(
   ctx: CanvasRenderingContext2D,
   theme: ThemeDefinition,
 ): void {
-  // Skip texture entirely for brutalist and glass themes
+  // brutalist 和 glass 主题完全跳过纹理
   if (isBrutalTheme(theme) || isGlassTheme(theme)) return
   if (theme.surface.grainAlpha <= 0) return
 
@@ -645,8 +646,7 @@ function drawHighlightMark(
   ctx.save()
 
   if (treatment === 'boldAccent') {
-    // No background mark — text styling (bold + accent color) is handled
-    // by drawInlineParagraph.
+    // 无背景标记 — 文本样式（粗体 + 强调色）由 drawInlineParagraph 处理
     ctx.restore()
     return
   } else if (treatment === 'swissRule') {
@@ -706,7 +706,7 @@ function drawQuoteBlock(
       ? Math.max(theme.components.quoteFillAlpha, 0.05)
       : theme.components.quoteFillAlpha
 
-  // Background fill
+  // 背景填充
   ctx.save()
   ctx.fillStyle = hexToRgba(quoteBaseColor, fillAlpha)
   roundRectPath(
@@ -719,7 +719,7 @@ function drawQuoteBlock(
   )
   ctx.fill()
 
-  // Border
+  // 边框
   ctx.strokeStyle = hexToRgba(
     quoteBaseColor,
     theme.components.quoteStrokeAlpha,
@@ -728,7 +728,7 @@ function drawQuoteBlock(
   ctx.stroke()
   ctx.restore()
 
-  // Accent bar
+  // 强调色边条
   ctx.save()
   ctx.fillStyle = hexToRgba(
     theme.palette.accent,
@@ -776,13 +776,13 @@ function getDividerBlockHeight(fontSize: number): number {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Column container drawing
+// 列容器绘制
 // ═══════════════════════════════════════════════════════════════════════════
 
 /**
- * Draw a column container (:::left / :::right) on the canvas.
- * Renders left and right blocks side-by-side, then returns the total height
- * consumed (max of the two columns).
+ * 在 canvas 上绘制列容器（:::left / :::right）。
+ * 左右并排渲染块，然后返回总高度
+ * 给布局引擎。consumed (max of the two columns).
  */
 function drawColumnContainer(
   ctx: CanvasRenderingContext2D,
@@ -798,7 +798,7 @@ function drawColumnContainer(
   const leftX = x
   const rightX = x + halfWidth + COLUMN_GAP
 
-  // Save/restore clip region so columns don't bleed into each other
+  // 保存/恢复裁剪区域，防止列之间相互渗透
   ctx.save()
   drawColumnBlocks(ctx, colBlock.leftBlocks, leftX, y, halfWidth, metrics, theme, settings, highlightStyle)
   const leftHeight = _colDrawnHeight
@@ -809,16 +809,16 @@ function drawColumnContainer(
   const rightHeight = _colDrawnHeight
   ctx.restore()
 
-  // Return the taller column's height + bottom padding
+  // 返回较高列的高度 + 底部内边距
   return Math.max(leftHeight, rightHeight) + 12
 }
 
-/** Mutable tracker for the height drawn by drawColumnBlocks. */
+/** 可变的追踪器，用于记录 drawColumnBlocks 绘制的高度。 */
 let _colDrawnHeight = 0
 
 /**
- * Draw a list of blocks within a constrained column width.
- * Recursively handles text, code, and table blocks.
+ * 在受限列宽内绘制块列表。
+ * 递归处理文本、代码和表格块。
  */
 function drawColumnBlocks(
   ctx: CanvasRenderingContext2D,
@@ -857,7 +857,7 @@ function drawColumnBlocks(
       prevBlock = paraBlock
     } else if (block.kind === 'code') {
       const m = measureCodeBlock(block, metrics.bodySize)
-      // Scale code block to column width
+      // 将代码块缩放至列宽
       const scaleFactor = Math.min(1, maxWidth / CONTENT_WIDTH)
       ctx.save()
       if (scaleFactor < 1) {
@@ -911,7 +911,7 @@ function drawInlineParagraph(
 
   const isQuote = block.kind === 'quote'
   const isSubheading = block.kind === 'subheading'
-  // Use heading level for size differentiation (H1-H6)
+  // 使用标题级别进行尺寸区分（H1-H6）
   const headingLevel = (block as any).headingLevel as number | undefined
   const activeFontSize = isSubheading
     ? Math.round(fontSize * (HEADING_SIZE_RATIOS[headingLevel || 2] ?? 1.12))
@@ -942,15 +942,15 @@ function drawInlineParagraph(
     ? quotePadTop + textHeight + quotePadBottom
     : textHeight
 
-  // Draw quote box background
+  // 绘制引用框背景
   if (isQuote && quoteMetrics) {
     drawQuoteBlock(ctx, theme, x, y, maxWidth, blockHeight, quoteMetrics)
   }
 
-  // Resolve highlight treatment once for this paragraph
+  // 为该段落一次性解析高亮处理方式
   const treatment = resolveHighlightTreatment(theme, highlightStyle)
 
-  // Draw each line
+  // 绘制每一行
   for (let li = 0; li < lines.length; li++) {
     const line = lines[li]!
     let cursorX = x + quoteInset
@@ -961,7 +961,7 @@ function drawInlineParagraph(
     for (const token of line.tokens) {
       const tokenWidth = getBodyTokenWidth(token, activeFontSize)
 
-      // Draw highlight mark behind text (no-op for 'boldAccent')
+      // 为 ==mark== 标记绘制高亮背景（'boldAccent' 不绘制）
       if (token.mark) {
         drawHighlightMark(
           ctx,
@@ -999,7 +999,7 @@ function drawInlineParagraph(
             : theme.palette.text
       ctx.fillText(token.text, cursorX, baselineY)
 
-      // Draw underline for ^underline^ tokens
+      // 为 ^underline^ token 绘制下划线
       if (token.underline) {
         const ulineY = baselineY + Math.max(2, activeFontSize * 0.08)
         ctx.strokeStyle = ctx.fillStyle
@@ -1051,7 +1051,7 @@ function drawFooter(
   const rightText = getFooterRightText(footerRightMode, index, totalPages)
   const textAlpha = Math.max(0.52, theme.surface.footerTextAlpha * 0.74)
 
-  // Horizontal rule
+  // 水平分隔线
   ctx.strokeStyle = hexToRgba(
     theme.palette.text,
     theme.surface.footerLineAlpha * 0.72,
@@ -1062,13 +1062,13 @@ function drawFooter(
   ctx.lineTo(FOOTER_LINE_RIGHT, FOOTER_LINE_Y)
   ctx.stroke()
 
-  // Left text
+  // 左侧文本
   ctx.fillStyle = hexToRgba(theme.palette.text, textAlpha)
   ctx.font = `500 13px ${FOOTER_FONT_FAMILY}`
   ctx.textBaseline = 'alphabetic'
   if (leftText) ctx.fillText(leftText, CONTENT_LEFT, FOOTER_TEXT_Y)
 
-  // Right text
+  // 右侧文本
   if (rightText) {
     ctx.save()
     ctx.textAlign = 'right'
@@ -1080,22 +1080,22 @@ function drawFooter(
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Main render function
+// 主渲染函数
 // ═══════════════════════════════════════════════════════════════════════════
 
 /**
- * Render a single card page to a Canvas element.
+ * 将单个卡片页面渲染到 Canvas 元素。
  *
- * Pipeline order:
- *   1. Create canvas (2x resolution)
- *   2. Background gradient
- *   3. Shape clipping (rounded or square)
- *   4. Atmosphere (washes, vignettes, grids)
- *   5. Texture (grain, fibers)
- *   6. Body paragraphs (with highlights + quotes)
- *   7. Footer
+ * 管线顺序：
+ *   1. 创建 canvas（2x 分辨率）
+ *   2. 背景渐变
+ *   3. 形状裁剪（圆角或方形）
+ *   4. 氛围（水洗、渐晕、网格）
+ *   5. 纹理（噪声、纤维）
+ *   6. 正文段落（含高亮和引用）
+ *   7. 页脚
  *
- * Returns the canvas with the rendered card.
+ * 返回渲染完成的卡片 canvas。
  */
 export function renderCard(opts: RenderOptions): HTMLCanvasElement {
   const {
@@ -1122,12 +1122,12 @@ export function renderCard(opts: RenderOptions): HTMLCanvasElement {
 
   // ── 1-3. Background + shape + clip ──
   if (isBrutalTheme(theme)) {
-    // Brutalist: no shadow, thick border drawn after fill
+    // Brutalist：无阴影，填充后绘制粗边框
     ctx.shadowColor = 'transparent'
     ctx.shadowBlur = 0
     ctx.shadowOffsetY = 0
   } else if (isGlassTheme(theme)) {
-    // Glass: extra glow
+    // Glass：额外发光
     ctx.shadowColor = theme.palette.shadow
     ctx.shadowBlur = 32
     ctx.shadowOffsetY = 16
@@ -1141,7 +1141,7 @@ export function renderCard(opts: RenderOptions): HTMLCanvasElement {
     isBrutalTheme(theme) ? 0 : 36)
   drawBackground(ctx, theme)
 
-  // Brutalist: draw thick border stroke
+  // Brutalist：绘制粗边框描边
   if (isBrutalTheme(theme)) {
     ctx.save()
     traceCardShape(ctx, 0, 0, PAGE_WIDTH, PAGE_HEIGHT, cardCornerMode, 0)
@@ -1169,6 +1169,9 @@ export function renderCard(opts: RenderOptions): HTMLCanvasElement {
   if (opts.gradientConfig?.enabled) {
     drawGradientOverlay(ctx, opts.gradientConfig.color1, opts.gradientConfig.color2, opts.gradientConfig.angle)
   }
+
+  // ── 5.6 Decor ornaments ──
+  drawDecor(ctx, theme)
 
   ctx.restore()
 

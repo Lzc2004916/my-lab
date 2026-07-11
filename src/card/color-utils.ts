@@ -1,8 +1,8 @@
 // ═══════════════════════════════════════════════════════════════════════════
-// CardPreview module — color utility functions
+// CardPreview 模块 — 颜色工具函数
 // ═══════════════════════════════════════════════════════════════════════════
 
-/** Convert a hex color string to an rgba() string with the given alpha. */
+/** 将十六进制颜色字符串转换为指定透明度的 rgba() 字符串。 */
 export function hexToRgba(hex: string, alpha: number): string {
   const value = hex.replace('#', '')
   if (value.length !== 6) return `rgba(36,52,70,${alpha})`
@@ -12,7 +12,7 @@ export function hexToRgba(hex: string, alpha: number): string {
   return `rgba(${r},${g},${b},${alpha})`
 }
 
-/** Convert a hex color string to an [r, g, b] tuple. */
+/** 将十六进制颜色字符串转换为 [r, g, b] 元组。 */
 export function hexToRgb(hex: string): readonly [number, number, number] {
   const value = hex.replace('#', '')
   if (value.length !== 6) return [36, 52, 70]
@@ -23,7 +23,7 @@ export function hexToRgb(hex: string): readonly [number, number, number] {
   ]
 }
 
-/** Linear-interpolate between two hex colors by ratio (0–1). */
+/** 在两个十六进制颜色之间按比例（0–1）线性插值。 */
 export function mixHexColors(fromHex: string, toHex: string, ratio: number): string {
   const from = fromHex.replace('#', '')
   const to = toHex.replace('#', '')
@@ -39,18 +39,18 @@ export function mixHexColors(fromHex: string, toHex: string, ratio: number): str
 }
 
 /**
- * Convert a CSS gradient angle (0deg = bottom→top) to canvas
- * linearGradient endpoints for a rectangle of size w x h.
+ * 将 CSS 渐变角度（0deg = 底部→顶部）转换为
+ * 尺寸为 w x h 的矩形的 canvas linearGradient 端点。
  *
- * Returns { x0, y0, x1, y1 } suitable for ctx.createLinearGradient().
+ * 返回适用于 ctx.createLinearGradient() 的 { x0, y0, x1, y1 }。
  */
 export function gradientAngleToPoints(
   angleDeg: number,
   w: number,
   h: number,
 ): { x0: number; y0: number; x1: number; y1: number } {
-  // CSS gradient angle: 0deg = bottom→top, 90deg = left→right
-  // Convert to radians: subtract 90° so 0deg maps to pointing "up" on canvas
+  // CSS 渐变角度：0deg = 下→上，90deg = 左→右
+// 转换为弧度：减去 90°，使 0deg 映射为 Canvas 上指向"上"
   const rad = (angleDeg - 90) * (Math.PI / 180)
   const cx = w / 2
   const cy = h / 2

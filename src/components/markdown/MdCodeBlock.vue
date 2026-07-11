@@ -87,7 +87,7 @@ async function copyCode(): Promise<void> {
       copied.value = false
     }, 2000)
   } catch {
-    // Fallback for older browsers
+    // 对旧浏览器的回退
     const textarea = document.createElement('textarea')
     textarea.value = props.code
     document.body.appendChild(textarea)

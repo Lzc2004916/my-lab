@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════════════════════
-// CardPreview module — JSON theme configuration (load / save / validate)
+// CardPreview 模块 — JSON 主题配置（加载 / 保存 / 验证）
 // ═══════════════════════════════════════════════════════════════════════════
 
 import type { ThemeDefinition, ThemeMode } from './types'
@@ -190,8 +190,8 @@ function validateEditor(
 // ── Public API ───────────────────────────────────────────────────────────
 
 /**
- * Validate a raw JSON object against the ThemeDefinition schema.
- * Returns a ValidationResult with either a valid theme or a list of errors.
+ * 根据 ThemeDefinition schema 验证原始 JSON 对象。
+ * 返回包含有效主题或错误列表的 ValidationResult。
  */
 export function validateThemeConfig(raw: unknown): ValidationResult {
   const errors: string[] = []
@@ -202,7 +202,7 @@ export function validateThemeConfig(raw: unknown): ValidationResult {
 
   const obj = raw as Record<string, unknown>
 
-  // Required string fields
+  // 必需的字符串字段
   const requiredStrings: [string, string][] = [
     ['id', 'id'], ['name', 'name'], ['mode', 'mode'],
   ]
@@ -212,24 +212,24 @@ export function validateThemeConfig(raw: unknown): ValidationResult {
     }
   }
 
-  // Validate mode
+  // 验证 mode
   if (typeof obj.mode === 'string' && !VALID_MODES.has(obj.mode)) {
     addError(errors, 'mode', `unknown mode "${obj.mode}". Valid: ${[...VALID_MODES].join(', ')}`)
   }
 
-  // Validate palette
+  // 验证 palette
   validatePalette(obj.palette, errors)
 
-  // Validate surface
+  // 验证 surface
   validateSurface(obj.surface, errors)
 
-  // Validate components
+  // 验证 components
   validateComponents(obj.components, errors)
 
-  // Validate editor
+  // 验证 editor
   validateEditor(obj.editor, errors)
 
-  // Validate optional fields
+  // 验证可选字段
   if ('editor' in obj && typeof obj.editor === 'object' && obj.editor) {
     const ed = obj.editor as Record<string, unknown>
     if ('bodyFontMode' in ed && typeof ed.bodyFontMode === 'string' &&
@@ -260,7 +260,7 @@ export function validateThemeConfig(raw: unknown): ValidationResult {
     return { valid: false, errors }
   }
 
-  // Build a ThemeDefinition from the validated data
+  // 从验证后的数据构建 ThemeDefinition
   const theme: ThemeDefinition = {
     id: obj.id as string,
     name: obj.name as string,
@@ -287,8 +287,8 @@ export function validateThemeConfig(raw: unknown): ValidationResult {
 }
 
 /**
- * Parse a JSON string into a validated ThemeDefinition.
- * Returns a ValidationResult.
+ * 将 JSON 字符串解析为已验证的 ThemeDefinition。
+ * 返回一个 ValidationResult。
  */
 export function loadThemeFromJSON(jsonString: string): ValidationResult {
   try {
@@ -300,15 +300,15 @@ export function loadThemeFromJSON(jsonString: string): ValidationResult {
 }
 
 /**
- * Serialize a ThemeDefinition to a pretty-printed JSON string.
+ * 将 ThemeDefinition 序列化为格式化的 JSON 字符串。
  */
 export function themeToJSON(theme: ThemeDefinition): string {
   return JSON.stringify(theme, null, 2)
 }
 
 /**
- * Load multiple themes from a JSON array string.
- * Returns successfully parsed themes and any per-item errors.
+ * 从 JSON 数组字符串加载多个主题。
+ * 返回成功解析的主题和每个项目的错误。
  */
 export function loadThemesFromJSON(
   jsonString: string,

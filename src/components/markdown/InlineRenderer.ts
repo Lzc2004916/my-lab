@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════════════════════
-// InlineRenderer — functional component rendering InlineToken[] via h()
+// InlineRenderer — 通过 h() 渲染 InlineToken[] 的函数式组件
 // ═══════════════════════════════════════════════════════════════════════════
 
 import { h, defineComponent, type PropType, type VNode } from 'vue'
@@ -9,11 +9,11 @@ import { parseInlineMarkdown } from '@/card/measure'
 export const InlineRenderer = defineComponent({
   name: 'InlineRenderer',
   props: {
-    /** Raw inline-formatted text (with **, *, ==, ^ markers). */
+    /** 带有 **、*、==、^ 标记的原始内联格式文本。 */
     raw: { type: String, required: true },
-    /** Base font size in px. */
+    /** 基础字体大小（px）。 */
     fontSize: { type: Number, default: 16 },
-    /** Current highlight style. */
+    /** 当前高亮样式。 */
     highlightStyle: { type: String as PropType<HighlightStyle>, default: 'underline' },
   },
   setup(props) {
@@ -56,7 +56,7 @@ export function renderTokens(
 
     if (token.mark) {
       if (highlightStyle === 'highlight') {
-        // Bold + accent color treatment
+        // 粗体 + 强调色处理
         style.fontWeight = '600'
         style.color = 'var(--card-highlight-bold-accent-color)'
       } else if (highlightStyle === 'underline') {

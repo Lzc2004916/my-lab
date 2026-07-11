@@ -48,7 +48,7 @@
                   class="w-full aspect-[3/2] rounded-md shadow-sm"
                   :style="{ background: theme.color, border: '1px solid ' + theme.border }"
                 ></div>
-                <span class="text-xs text-base-content/60 truncate w-full text-center">
+                <span class="text-sm text-black/70 truncate w-full text-center">
                   {{ theme.name }}
                 </span>
               </button>
@@ -68,7 +68,7 @@ import { THEMES } from '@/card/themes'
 
 const props = defineProps<{
   modelValue: boolean
-  /** Currently active card theme id (for the preview grid highlight). */
+  /** 当前激活的卡片主题 ID（用于预览网格高亮）。 */
   cardTheme?: string
 }>()
 

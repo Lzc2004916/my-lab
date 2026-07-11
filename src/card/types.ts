@@ -1,15 +1,15 @@
 // ═══════════════════════════════════════════════════════════════════════════
-// CardPreview module — type definitions
+// CardPreview 模块 — 类型定义
 // ═══════════════════════════════════════════════════════════════════════════
 
 // ── Gradient config ─────────────────────────────────────────────────────
 
-/** Gradient configuration used by the gradient picker and renderer. */
+/** 渐变选择器和渲染器使用的渐变配置。 */
 export interface GradientConfig {
   enabled: boolean
   color1: string
   color2: string
-  /** Gradient angle in degrees (CSS convention: 0 = bottom→top). Default 135. */
+  /** 渐变角度（度，CSS 约定：0 = 下→上）。默认 135。 */
   angle: number
 }
 
@@ -45,93 +45,93 @@ export type FooterRightMode = 'blank' | 'page' | 'date'
 // ── Theme definition ──────────────────────────────────────────────────────
 
 export interface ThemePalette {
-  /** Main page background */
+  /** 主页背景 */
   page: string
-  /** Secondary page tint (gradient stop) */
+  /** 次要页面色调（渐变终点） */
   pageAlt: string
-  /** Primary text color */
+  /** 主文本颜色 */
   text: string
-  /** Muted/secondary text */
+  /** 弱化/次要文本 */
   muted: string
-  /** Accent / brand color */
+  /** 强调色 / 品牌色 */
   accent: string
-  /** Soft accent for washes */
+  /** 柔和强调色（用于底色） */
   accentSoft: string
-  /** Border / divider color */
+  /** 边框 / 分隔线颜色 */
   border: string
-  /** Shadow color */
+  /** 阴影颜色 */
   shadow: string
-  /** Glow / highlight wash */
+  /** 发光 / 高亮底色 */
   glow: string
 }
 
 export interface ThemeSurface {
-  /** Grain particle opacity (0-1) */
+  /** 颗粒粒子不透明度（0-1） */
   grainAlpha: number
-  /** Vignette edge darkening (0-1) */
+  /** 暗角边缘加深（0-1） */
   vignetteAlpha: number
-  /** Atmosphere wash intensity (0-1) */
+  /** 氛围底色强度（0-1） */
   washStrength: number
-  /** Inner frame stroke opacity (0-1) */
+  /** 内框描边透明度（0-1） */
   innerFrameAlpha: number
-  /** Inner frame inset distance (px) */
+  /** 内框内缩距离（px） */
   innerFrameInset: number
-  /** Title accent color mix ratio (0-1) */
+  /** 标题强调色混合比例（0-1） */
   titleAccentMix: number
-  /** Footer horizontal rule opacity (0-1) */
+  /** 页脚水平分隔线不透明度（0-1） */
   footerLineAlpha: number
-  /** Footer text opacity (0-1) */
+  /** 页脚文本不透明度（0-1） */
   footerTextAlpha: number
   /** CSS box-shadow for preview card */
   previewShadow: string
 }
 
 export interface ThemeComponents {
-  /** Quote box background fill opacity */
+  /** 引用框背景填充不透明度 */
   quoteFillAlpha: number
-  /** Quote box border stroke opacity */
+  /** 引用框边框描边不透明度 */
   quoteStrokeAlpha: number
-  /** Quote accent bar opacity */
+  /** 引用强调条不透明度 */
   quoteBarAlpha: number
-  /** Quote box corner radius */
+  /** 引用框圆角半径 */
   quoteRadius: number
-  /** Default quote visual treatment */
+  /** 默认引用块视觉处理 */
   quoteTreatment: QuoteTreatment
-  /** Default highlight visual treatment */
+  /** 默认高亮视觉处理 */
   highlightTreatment: HighlightTreatment
-  /** Soft-underline highlight opacity */
+  /** 软下划线高亮不透明度 */
   highlightUnderlineAlpha: number
-  /** Marker-style highlight opacity */
+  /** 标记风格高亮不透明度 */
   highlightMarkerAlpha: number
-  /** Dashed-rule highlight opacity */
+  /** 虚线规则高亮不透明度 */
   highlightDashAlpha: number
 }
 
 export interface ThemeEditor {
-  /** Default body font size (px) */
+  /** 默认正文字体大小（px） */
   bodySize: number
-  /** Default line-height multiplier */
+  /** 默认行高倍率 */
   lineHeight: number
-  /** Default body font mode — theme's typographic identity for body text */
+  /** 默认正文字体模式 — 主题的正文字体标识 */
   bodyFontMode?: BodyFontMode
-  /** Default subheading visual treatment */
+  /** 默认子标题视觉处理 */
   subheadingStyle?: SubheadingStyle
-  /** Default highlight style */
+  /** 默认高亮样式 */
   highlightStyle: HighlightStyle
 }
 
 // ── Decor ornament system ──────────────────────────────────────────────────
 
-export type DecorKind = 'none' | 'cornerBracket' | 'topRule' | 'watermark' | 'geometricPattern' | 'leafMotif' | 'circuitTrace' | 'goldFoil' | 'auroraGlow' | 'fanBurst'
+export type DecorKind = 'none' | 'cornerBracket' | 'topRule' | 'watermark' | 'geometricPattern' | 'leafMotif' | 'circuitTrace' | 'goldFoil' | 'auroraGlow' | 'fanBurst' | 'macosWindow' | 'desertSun' | 'sakuraPetal' | 'coralBranch' | 'crystalFacet' | 'sketchHatch' | 'matchaRing'
 
 export interface ThemeDecor {
-  /** Which ornament to render */
+  /** 渲染哪种装饰 */
   kind: DecorKind
-  /** Opacity multiplier (0-1) */
+  /** 不透明度倍率（0-1） */
   opacity: number
-  /** Optional override color (uses theme accent if empty) */
+  /** 可选覆盖颜色（如果为空则使用主题强调色） */
   color?: string
-  /** Scale factor (1 = default) */
+  /** 缩放因子（1 = 默认） */
   scale?: number
 }
 
@@ -147,16 +147,16 @@ export interface ThemeDefinition {
   surface: ThemeSurface
   components: ThemeComponents
   editor: ThemeEditor
-  /** Theme category for grouping in the selector UI */
+  /** 主题分类，用于选择器 UI 分组 */
   category?: 'light' | 'dark' | 'artistic' | 'professional'
-  /** Decorative ornament configuration */
+  /** 装饰配置 */
   decor?: ThemeDecor
-  /** Built-in gradient colors — syncs to the gradient picker */
+  /** 内置渐变颜色 — 同步到渐变选择器 */
   gradient?: {
     enabled: boolean
     color1: string
     color2: string
-    /** Gradient angle in degrees (CSS convention, 135 = top-left → bottom-right). */
+    /** 渐变角度（度，CSS 约定，135 = 左上 → 右下）。 */
     angle?: number
   }
 }
@@ -293,7 +293,7 @@ export interface RenderOptions {
   footerRightMode: FooterRightMode
   footerEnabled: boolean
   cardCornerMode: CardCornerMode
-  /** Optional background gradient override */
+  /** 可选背景渐变覆盖 */
   gradientConfig?: GradientConfig
 }
 
@@ -308,56 +308,56 @@ export interface LayoutOptions {
 
 // ── Render constants ──────────────────────────────────────────────────────
 
-/** Logical page width in px (3:4 aspect ratio) */
+/** 逻辑页面宽度（px，3:4 宽高比） */
 export const PAGE_WIDTH = 720
 
-/** Logical page height in px */
+/** 逻辑页面高度（px） */
 export const PAGE_HEIGHT = 960
 
 /**
- * Left margin for content area.
- * Pushed to 56px (7.8% per side) so text runs close to the card edge
- * before wrapping — maximizes usable width while keeping a slim gutter.
+ * 内容区域的左边距。
+ * 推到 56px（每侧 7.8%），使文本在换行前紧贴卡片边缘 —
+ * 最大化可用宽度，同时保留窄边距。
  */
 export const CONTENT_LEFT = 56
 
 /**
- * Right boundary for content area.
- * Symmetric 56px margin: 720 − 56 = 664.
+ * 内容区域的右边界。
+ * 对称 56px 边距：720 − 56 = 664。
  */
 export const CONTENT_RIGHT = 664
 
-/** Usable content width (608px ≈ 84.4% of PAGE_WIDTH 720). */
+/** 可用内容宽度（608px ≈ PAGE_WIDTH 720 的 84.4%）。 */
 export const CONTENT_WIDTH = CONTENT_RIGHT - CONTENT_LEFT
 
-/** Device-pixel scale factor for retina output */
+/** Retina 输出的设备像素缩放因子 */
 export const CANVAS_SCALE = 2
 
 /**
- * Body area bottom Y when footer is enabled.
- * Pushed to 886 — only 6 px above the footer rule (892).
- * Every last paragraph on a page runs right up to this boundary
- * before the layout engine splits it to the next page.
+ * 启用页脚时正文区域底部 Y。
+ * 推到 886 — 仅高于页脚分隔线（892）6px。
+ * 每页的最后一个段落一直延伸到此边界
+ * 以最大化内容密度。 layout engine splits it to the next page.
  */
 export const BODY_BOTTOM_WITH_FOOTER = 886
 
 /**
- * Body area bottom Y when footer is disabled.
- * Pushed to 940 — 20 px above PAGE_HEIGHT (960), leaving
- * minimal bottom breathing room so text fills the card fully.
+ * 禁用页脚时正文区域底部 Y。
+ * 推到 940 — 高于 PAGE_HEIGHT（960）20px，
+ * 保留最小底部呼吸空间，使文本完全填充卡片。
  */
 export const BODY_BOTTOM_WITHOUT_FOOTER = 940
 
-/** Footer horizontal rule Y position */
+/** 页脚水平分隔线 Y 位置 */
 export const FOOTER_LINE_Y = 892
 
-/** Footer text baseline Y */
+/** 页脚文本基线 Y */
 export const FOOTER_TEXT_Y = 918
 
-/** Footer line left edge X (aligns with CONTENT_LEFT). */
+/** 页脚线左边缘 X（与 CONTENT_LEFT 对齐）。 */
 export const FOOTER_LINE_LEFT = 56
 
-/** Footer line right edge X (aligns with CONTENT_RIGHT). */
+/** 页脚线右边缘 X（与 CONTENT_RIGHT 对齐）。 */
 export const FOOTER_LINE_RIGHT = 664
 
 // ── Font weight constants ─────────────────────────────────────────────────
@@ -387,7 +387,7 @@ export const BODY_FONT_MODES: Record<BodyFontMode, { family: string; label: stri
 
 export const DEFAULT_BODY_FONT_MODE: BodyFontMode = 'wenkai'
 
-/** Resolve a body font mode to its CSS font-family string. */
+/** 将正文字体模式解析为 CSS font-family 字符串。 */
 export function getBodyFontFamily(mode: BodyFontMode): string {
   return BODY_FONT_MODES[mode]?.family ?? BODY_FONT_MODES[DEFAULT_BODY_FONT_MODE].family
 }
@@ -407,10 +407,10 @@ export const LEADING_PUNCTUATION = new Set([
 export const CODE_FONT_FAMILY =
   '"JetBrains Mono","Cascadia Code","SF Mono","Fira Code","Consolas",monospace'
 
-/** Code font size relative to bodySize */
+/** 代码字体大小相对于 bodySize */
 export const CODE_FONT_SIZE_RATIO = 0.92
 
-/** Code block background fill alpha */
+/** 代码块背景填充透明度 */
 export const CODE_BG_ALPHA = 0.06
 
 // ── Heading size ratios (relative to bodySize) ────────────────────────
@@ -426,5 +426,5 @@ export const HEADING_SIZE_RATIOS: Record<number, number> = {
 
 // ── Column layout ─────────────────────────────────────────────────────
 
-/** Gap between left and right columns in px */
+/** 左右列之间的间距（px） */
 export const COLUMN_GAP = 20

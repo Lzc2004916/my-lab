@@ -77,15 +77,15 @@ import MdColumns from './MdColumns.vue'
 
 const props = withDefaults(
   defineProps<{
-    /** Raw markdown source text. When empty, renders the parseInputBlocks auto-generated source. */
+    /** 原始 markdown 源文本。为空时，渲染 parseInputBlocks 自动生成的源。 */
     source?: string
-    /** Pre-parsed blocks (mutually exclusive with source). When provided, skips parsing. */
+    /** 预解析的块（与 source 互斥）。提供时跳过解析。 */
     blocks?: Block[]
-    /** Highlight style applied to ==marked== text. */
+    /** 应用于 ==标记== 文本的高亮样式。 */
     highlightStyle?: HighlightStyle
-    /** Show line numbers on code blocks. */
+    /** 在代码块上显示行号。 */
     showLineNumbers?: boolean
-    /** Compact mode reduces vertical spacing. */
+    /** 紧凑模式减少垂直间距。 */
     compact?: boolean
   }>(),
   {
@@ -102,13 +102,13 @@ const props = withDefaults(
 const ctx = useMarkdownTheme()
 
 // ── Blocks ─────────────────────────────────────────────────────────────────
-// Use shallowRef to avoid deep reactivity tracking on the parsed block tree.
-// Blocks are replaced wholesale (never mutated in place), so shallowRef
+// 使用 shallowRef 避免对解析后的块树进行深度响应式跟踪。
+// 块是整体替换的（从不原地修改），所以 shallowRef
 // gives correct rendering with zero overhead on nested block properties.
 
 const parsedBlocks = shallowRef<Block[]>([])
 
-/** Re-parse only when the input source or pre-parsed blocks change. */
+/** 仅在输入源或预解析块变更时重新解析。 */
 const sourceKey = computed(() => props.blocks ? `blocks:${props.blocks.length}` : props.source)
 
 watch(
@@ -125,7 +125,7 @@ watch(
   { immediate: true },
 )
 
-/** Blocks to render — always reads from the shallowRef. */
+/** 要渲染的块 — 始终从 shallowRef 读取。 */
 const blocks = computed<Block[]>(() => parsedBlocks.value)
 
 // ── Empty state ────────────────────────────────────────────────────────────

@@ -3,7 +3,7 @@ import { createPinia } from 'pinia'
 import App from './App.vue'
 import './style.css'
 
-// ── Bootstrap ────────────────────────────────────────────────────────
+// ── 启动 ────────────────────────────────────────────────────────
 
 const app = createApp(App)
 

@@ -1,8 +1,8 @@
 // ═══════════════════════════════════════════════════════════════════════════
-// CardPreview module — barrel export
+// CardPreview 模块 — 统一导出
 // ═══════════════════════════════════════════════════════════════════════════
 
-// Types
+// 类型
 export type {
   ThemeDefinition,
   ThemePalette,
@@ -54,17 +54,17 @@ export {
   COLUMN_GAP,
 } from './types'
 
-// Color utilities
+// 颜色工具
 export { hexToRgba, hexToRgb, mixHexColors, gradientAngleToPoints } from './color-utils'
 
-// Design tokens
+// 设计令牌
 export { extractTokens, applyTokensToElement, tokensToJSON, tokensFromJSON, TOKEN_CSS_VAR_MAP } from './design-tokens'
 export type { CardDesignTokens } from './design-tokens'
 
-// Themes
+// 主题
 export { THEMES, DEFAULT_THEME_ID, getTheme } from './themes'
 
-// Dynamic theme registry
+// 动态主题注册表
 export {
   registerTheme,
   unregisterTheme,
@@ -76,7 +76,7 @@ export {
   resetRegistry,
 } from './theme-registry'
 
-// Theme JSON config
+// 主题 JSON 配置
 export {
   validateThemeConfig,
   loadThemeFromJSON,
@@ -85,21 +85,21 @@ export {
 } from './theme-config'
 export type { ValidationResult, ThemeConfigJSON } from './theme-config'
 
-// Engine
+// 引擎
 export { renderAllPages, renderAllPagesAsync, canvasToPreviewUrl, canvasToExportUrl } from './engine'
 export type { EngineOptions } from './engine'
 
-// Layout
+// 布局
 export { layoutPages, getParagraphBlock, parseInputBlocks } from './layout'
 
-// Renderer
+// 渲染器
 export { renderCard } from './renderer'
 
-// Block renderers
+// 块渲染器
 export { drawCodeBlock, measureCodeBlock, tokenizeCode } from './code-renderer'
 export { drawTableBlock, measureTableBlock } from './table-renderer'
 
-// Measure
+// 测量
 export {
   splitTextForWrapping,
   getBodyTokenWidth,
@@ -113,5 +113,5 @@ export {
   getGapBetweenBlocks,
 } from './measure'
 
-// Component — use the one in src/components/CardPreview.vue
-// (imports from this module)
+// 组件 — 使用 src/components/CardPreview.vue 中的组件
+// （从此模块导入）

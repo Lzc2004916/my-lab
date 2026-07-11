@@ -20,7 +20,7 @@ import { highlightDecorations } from './highlight-decorations'
 
 interface Props {
   modelValue: string
-  /** CodeMirror theme identifier. 'one-dark' (default) | 'light'. */
+  /** CodeMirror 主题标识符。'one-dark'（默认） | 'light'。 */
   theme?: string
 }
 
@@ -31,29 +31,30 @@ const props = defineProps<Props>()
 const emit = defineEmits<{
   (e: 'update:modelValue', value: string): void
   (e: 'ready', view: EditorView): void
+  (e: 'headingChange', level: number): void
 }>()
 
 // ── Refs & state ────────────────────────────────────────────────────
 
 const editorRef = ref<HTMLDivElement | null>(null)
 
-/** The singleton CodeMirror EditorView instance. */
+/** 单例 CodeMirror EditorView 实例。 */
 let editorView: EditorView | null = null
 
 /**
- * Guard flag to prevent emit loops.
- * Set to `true` when the editor dispatches a change internally,
- * so the external modelValue watcher skips syncing back.
+ * 防止 emit 循环的守卫标志。
+ * 当编辑器内部派发变更时设置为 `true`，
+ * 使外部 modelValue watcher 跳过同步。
  */
 let isInternalChange = false
 
 /**
- * Compartment so the theme can be swapped at runtime without
- * recreating the entire EditorState.
+ * Compartment，使主题可以在运行时替换，而无需
+ * 重新创建整个编辑器状态。
  */
 const themeCompartment = new Compartment()
 
-/** Map theme prop value -> Extension. */
+/** 将主题 prop 值映射为 Extension。 */
 function resolveThemeExtension(name: string): Extension {
   switch (name) {
     case 'light':
@@ -67,39 +68,38 @@ function resolveThemeExtension(name: string): Extension {
 // ── Extension factory ───────────────────────────────────────────────
 
 /**
- * Build the extension array for EditorState.
+ * 为 EditorState 构建扩展数组。
  *
- * Extracted so additional extensions (autocompletion, Vim, Emacs,
- * AI completions, search/replace, custom keybindings) can be added
- * without touching the component's core logic.
+ * 提取为独立函数，以便将来添加额外扩展（自动补全、Vim、Emacs、
+ * AI 补全、搜索/替换、自定义快捷键）而不需要改变组件的核心逻辑。
  */
 function createExtensions(): Extension[] {
   return [
-    // Gutter
+    // 行号栏
     lineNumbers(),
 
-    // Active line highlight
+    // 当前行高亮
     highlightActiveLine(),
 
-    // Markdown language support
+    // Markdown 语言支持
     markdown(),
 
-    // Custom highlight / underline decoration layer (==text== and ^text^)
+    // 自定义高亮 / 下划线装饰层（==text== 和 ^text^）
     highlightDecorations,
 
-    // Undo / redo history (required by defaultKeymap)
+    // 撤销 / 重做历史（defaultKeymap 所需）
     history(),
 
-    // Default PC keybindings (Enter, Backspace, etc.)
+    // 默认 PC 键盘绑定（Enter、Backspace 等）
     keymap.of(defaultKeymap),
 
-    // Undo / Redo keybindings (Ctrl-Z, Ctrl-Y, Ctrl-Shift-Z)
+    // 撤销 / 重做键盘绑定（Ctrl-Z、Ctrl-Y、Ctrl-Shift-Z）
     keymap.of(historyKeymap),
 
-    // Theme — managed via Compartment for hot-swapping
+    // 主题 — 通过 Compartment 管理以支持热切换
     themeCompartment.of(resolveThemeExtension(props.theme ?? 'one-dark')),
 
-    // Soft line wrapping
+    // 软换行
     EditorView.lineWrapping,
 
     // ── Content sync: editor -> model ──
@@ -109,6 +109,9 @@ function createExtensions(): Extension[] {
         const value = update.state.doc.toString()
         emit('update:modelValue', value)
         isInternalChange = false
+      }
+      if (update.selectionSet || update.docChanged) {
+        emit('headingChange', detectHeadingAtCursor(update.state))
       }
     }),
   ]
@@ -120,25 +123,25 @@ onMounted(() => {
   const container = editorRef.value
   if (!container) return
 
-  // Build initial state with the current modelValue
+  // 使用当前 modelValue 构建初始状态
   const state = EditorState.create({
     doc: props.modelValue,
     extensions: createExtensions(),
   })
 
-  // Create the singleton EditorView
+  // 创建单例 EditorView
   editorView = new EditorView({
     state,
     parent: container,
   })
 
-  // Notify parent that the editor is ready
+  // 通知父组件编辑器已就绪
   emit('ready', editorView)
 })
 
 /**
- * Watch for theme changes -> hot-swap via Compartment so we don't
- * have to recreate the entire EditorState.
+ * 监听主题变更 -> 通过 Compartment 热替换，避免重新创建 
+ * 整个 EditorState。
  */
 watch(
   () => props.theme,
@@ -154,7 +157,7 @@ watch(
 )
 
 /**
- * Watch for external modelValue changes and sync into the editor.
+ * 监听外部 modelValue 变更并同步到编辑器中。
  */
 watch(
   () => props.modelValue,
@@ -177,19 +180,69 @@ watch(
 )
 
 onBeforeUnmount(() => {
-  // Destroy editor, DOM, and all listeners
+  // 销毁编辑器、DOM 和所有监听器
   if (editorView) {
     editorView.destroy()
     editorView = null
   }
 })
 
+// ── Heading helpers ──────────────────────────────────────────────────
+
+/**
+ * 检测光标所在行的标题级别。
+ *
+ * 返回 0-6 之间的数字，表示光标所在行的 `#` 数量。
+ * 返回 0 表示该行不是标题（不以 `#{1,6} ` 开头）。
+ */
+function detectHeadingAtCursor(state: EditorState): number {
+  const { from } = state.selection.main
+  const line = state.doc.lineAt(from)
+  const match = line.text.match(/^(#{1,6})\s/)
+  return match ? match[1].length : 0
+}
+
+/**
+ * 设置光标所在行的标题级别。
+ *
+ * `level` 为 0 表示移除标题标记；1-6 表示设置对应级别的标题。
+ * 操作保留该行的非前缀内容（标题文本），且保留撤销历史。
+ */
+function setCurrentLineHeading(level: number): void {
+  const view = editorView
+  if (!view) return
+
+  const { state } = view
+  const { from } = state.selection.main
+  const line = state.doc.lineAt(from)
+
+  // 移除现有的标题标记
+  const stripped = line.text.replace(/^#{1,6}\s*/, '')
+
+  // 构建新行
+  const newLine = level > 0 ? '#'.repeat(level) + ' ' + stripped : stripped
+
+  view.dispatch({
+    changes: { from: line.from, to: line.to, insert: newLine },
+    scrollIntoView: true,
+  })
+}
+
+/**
+ * 获取光标所在行的标题级别（供外部调用）。
+ */
+function getCurrentLineHeadingLevel(): number {
+  const view = editorView
+  if (!view) return 0
+  return detectHeadingAtCursor(view.state)
+}
+
 // ── Exposed API ─────────────────────────────────────────────────────
 
 /**
- * Insert text at the current cursor position.
- * Supports multi-line text. Cursor moves to the end of inserted text.
- * Preserves undo history.
+ * 在当前光标位置插入文本。
+ * 支持多行文本。光标移动到插入文本的末尾。
+ * 保留撤销历史。
  */
 function insertAtCursor(text: string): void {
   const view = editorView
@@ -209,13 +262,13 @@ function insertAtCursor(text: string): void {
 }
 
 /**
- * Strip inline Markdown formatting markers from text.
+ * 去除文本中的内联 Markdown 格式化标记。
  *
- * Removes the markers recognised by the app's inline parser
- * (==highlight==, ^underline^, **bold**, *italic*).
+ * 移除应用内联解析器（==highlight==, ^underline^, **bold**, *italic*）
+ * 所识别的标记。
  *
- * The stripping runs in a loop so nested formatting
- * (e.g. **bold *and* text**) is progressively unwrapped
+ * 剥离在循环中运行，以便嵌套格式化
+ * （例如 **bold *and* text**）能被逐步解开
  * from the outside in.
  */
 function stripInlineMarkdown(text: string): string {
@@ -245,20 +298,18 @@ function stripInlineMarkdown(text: string): string {
 }
 
 /**
- * Wrap selected text with markdown syntax markers, or insert a placeholder
- * when nothing is selected.
+ * 用 markdown 语法标记包裹选中的文本，或在没有选中时插入占位符。
  *
- * - If text IS selected: **strips existing inline Markdown formatting** from
- *   the selection, then wraps the cleaned text with `prefix + cleanedText + suffix`,
- *   and places the cursor AFTER the closing suffix marker.  This ensures
- *   re-styling already-formatted text produces the expected result instead
- *   of stacking markers (e.g. selecting **hello** and clicking italic
- *   produces *hello*, not ***hello***).
- * - If nothing is selected: inserts `prefix + placeholder + suffix`,
- *   then SELECTS the placeholder text so the user can type immediately.
+ * - 如果选中了文本：**先去除选中文本中已有的内联 Markdown 格式**，
+ *   然后用 `prefix + 清理后的文本 + suffix` 包裹，
+ *   并将光标放在关闭后缀标记之后。这确保重新样式化
+ *   已格式化的文本能产生预期结果，而不是堆叠标记
+ *   （例如选中 **hello** 并点击斜体生成 *hello*，而不是 ***hello***）。
+ * - 如果没有选中：插入 `prefix + 占位符 + suffix`，
+ *   然后选中占位符文本，以便用户可以直接输入。
  *
- * Uses `changeByRange` so it works correctly with multiple selections.
- * Preserves undo history.
+ * 使用 `changeByRange` 使其在多选情况下也能正常工作。
+ * 保留撤销历史。
  */
 function wrapSelectionOrInsert(prefix: string, suffix: string, placeholder: string): void {
   const view = editorView
@@ -269,7 +320,7 @@ function wrapSelectionOrInsert(prefix: string, suffix: string, placeholder: stri
     const selectedText = state.doc.sliceString(range.from, range.to)
 
     if (selectedText) {
-      // Case 1: text is selected — strip existing formatting, then wrap
+      // 情况 1：已选中文本 — 先去除现有格式，再包裹
       const cleaned = stripInlineMarkdown(selectedText)
       const wrapped = prefix + cleaned + suffix
       const cursorPos = range.from + wrapped.length
@@ -279,7 +330,7 @@ function wrapSelectionOrInsert(prefix: string, suffix: string, placeholder: stri
       }
     }
 
-    // Case 2: no selection — insert template with placeholder selected
+    // 情况 2：无选中 — 插入带占位符选中的模板
     const insertText = prefix + placeholder + suffix
     const placeholderStart = range.from + prefix.length
     const placeholderEnd = placeholderStart + placeholder.length
@@ -297,7 +348,7 @@ function wrapSelectionOrInsert(prefix: string, suffix: string, placeholder: stri
 }
 
 /**
- * Return the currently selected text, or an empty string.
+ * 返回当前选中的文本，或空字符串。
  */
 function getSelectedText(): string {
   const view = editorView
@@ -312,22 +363,22 @@ function getSelectedText(): string {
   return selected
 }
 
-/** Focus the editor. */
+/** 聚焦编辑器。 */
 function focus(): void {
   editorView?.focus()
 }
 
-/** Blur the editor. */
+/** 使编辑器失去焦点。 */
 function blur(): void {
   editorView?.contentDOM.blur()
 }
 
-/** Return the full document content as a string. */
+/** 返回完整文档内容作为字符串。 */
 function getValue(): string {
   return editorView ? editorView.state.doc.toString() : ''
 }
 
-/** Replace the entire document content. */
+/** 替换整个文档内容。 */
 function setValue(text: string): void {
   const view = editorView
   if (!view) return
@@ -340,12 +391,12 @@ function setValue(text: string): void {
   }
 }
 
-/** Return the underlying EditorView for advanced use cases. */
+/** 返回底层的 EditorView 供高级用例使用。 */
 function getEditorView(): EditorView | null {
   return editorView
 }
 
-/** Undo the last edit (CodeMirror history). */
+/** 撤销上一次编辑（CodeMirror 历史）。 */
 function undoEdit(): void {
   const view = editorView
   if (!view) return
@@ -355,6 +406,8 @@ function undoEdit(): void {
 defineExpose({
   insertAtCursor,
   wrapSelectionOrInsert,
+  setCurrentLineHeading,
+  getCurrentLineHeadingLevel,
   getSelectedText,
   focus,
   blur,

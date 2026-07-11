@@ -1,18 +1,18 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 
-// ── Types ────────────────────────────────────────────────────────────
+// ── 类型 ────────────────────────────────────────────────────────────
 
 export interface Document {
   id: string
   title: string
   content: string
   savedAt: string
-  /** Frontmatter tags extracted from YAML, if any. */
+  /** 从 YAML 中提取的前置元数据标签（如果有）。 */
   tags: string[]
 }
 
-// ── Frontmatter parser ──────────────────────────────────────────────
+// ── 前置元数据解析器 ──────────────────────────────────────────────
 
 interface Frontmatter {
   title?: string
@@ -23,9 +23,9 @@ interface Frontmatter {
 }
 
 /**
- * Naive YAML frontmatter parser.
- * Handles `key: value`, `key: "quoted value"`, and `key: [a, b, c]`.
- * Returns `null` if the content doesn't start with `---`.
+ * 简单的 YAML 前置元数据解析器。
+ * 处理 `key: value`、`key: "带引号的值"` 和 `key: [a, b, c]`。
+ * 如果内容不以 `---` 开头，返回 `null`。
  */
 function parseFrontmatter(content: string): Frontmatter | null {
   const trimmed = content.trimStart()
@@ -44,7 +44,7 @@ function parseFrontmatter(content: string): Frontmatter | null {
     const key = line.slice(0, colonIdx).trim()
     let value = line.slice(colonIdx + 1).trim()
 
-    // Remove surrounding quotes
+    // 移除周围的引号
     if (
       (value.startsWith('"') && value.endsWith('"')) ||
       (value.startsWith("'") && value.endsWith("'"))
@@ -52,7 +52,7 @@ function parseFrontmatter(content: string): Frontmatter | null {
       value = value.slice(1, -1)
     }
 
-    // Array value: [a, b, c]
+    // 数组值：[a, b, c]
     const arrayKeys = new Set<string>(['tags'])
     if (value.startsWith('[') && value.endsWith(']')) {
       const inner = value.slice(1, -1)
@@ -92,27 +92,27 @@ function parseFrontmatter(content: string): Frontmatter | null {
 }
 
 /**
- * Extract a human-readable title from Markdown content.
- * Priority: frontmatter `title` → first `# Heading` → `'Untitled'`.
+ * 从 Markdown 内容中提取可读标题。
+ * 优先级：前置元数据 `title` → 第一个 `# Heading` → `'Untitled'`。
  */
 export function extractTitle(content: string): string {
   const fm = parseFrontmatter(content)
   if (fm?.title) return fm.title
 
-  // Fallback: first # heading
+  // 回退：第一个 # 标题
   const headingMatch = content.match(/^#\s+(.+)$/m)
   if (headingMatch) return headingMatch[1].trim()
 
-  return '' // caller should handle fallback to i18n 'Untitled'
+  return '' // 调用方应处理回退到 i18n 的 'Untitled'
 }
 
-/** Extract tags from frontmatter, or return empty array. */
+/** 从前置元数据中提取标签，或返回空数组。 */
 export function extractTags(content: string): string[] {
   const fm = parseFrontmatter(content)
   return fm?.tags ?? []
 }
 
-// ── Helpers ─────────────────────────────────────────────────────────
+// ── 辅助函数 ─────────────────────────────────────────────────────────
 
 function uid(): string {
   return Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 8)
@@ -128,7 +128,7 @@ function defaultDoc(): Document {
   }
 }
 
-// ── Welcome content ─────────────────────────────────────────────────
+// ── 欢迎内容 ─────────────────────────────────────────────────
 
 const WELCOME_CONTENT = `# Welcome to Markdown Card
 
@@ -166,12 +166,12 @@ Enjoy writing! 😊
 // ── Store ────────────────────────────────────────────────────────────
 
 export const useDocumentsStore = defineStore('documents', () => {
-  // ── State ───────────────────────────────────────────────────
+  // ── 状态 ───────────────────────────────────────────────────
 
   const documents = ref<Document[]>([])
   const activeId = ref<string>('')
 
-  // ── Getters ─────────────────────────────────────────────────
+  // ── 获取器 ─────────────────────────────────────────────────
 
   const activeDocument = computed<Document | null>(() => {
     return documents.value.find((d) => d.id === activeId.value) ?? null
@@ -179,9 +179,9 @@ export const useDocumentsStore = defineStore('documents', () => {
 
   const documentCount = computed(() => documents.value.length)
 
-  // ── Actions ─────────────────────────────────────────────────
+  // ── 操作 ─────────────────────────────────────────────────
 
-  /** Initialise the store. Creates a welcome doc if empty. */
+  /** 初始化 store。如果为空则创建欢迎文档。 */
   function init(): void {
     if (documents.value.length > 0) return
     const doc = defaultDoc()
@@ -192,7 +192,7 @@ export const useDocumentsStore = defineStore('documents', () => {
     activeId.value = doc.id
   }
 
-  /** Create a new blank document and switch to it. */
+  /** 创建一个新的空白文档并切换到它。 */
   function addDocument(content: string = ''): string {
     const doc = defaultDoc()
     doc.content = content
@@ -203,10 +203,10 @@ export const useDocumentsStore = defineStore('documents', () => {
     return doc.id
   }
 
-  /** Remove a document by id. Refuses to remove the last document. */
+  /** 通过 ID 移除文档。拒绝移除最后一个文档。 */
   function removeDocument(id: string): void {
     if (documents.value.length <= 1) {
-      // Replace with a fresh blank doc instead of deleting
+      // 用新的空白文档替换而不是删除
       const doc = defaultDoc()
       documents.value = [doc]
       activeId.value = doc.id
@@ -218,21 +218,21 @@ export const useDocumentsStore = defineStore('documents', () => {
 
     documents.value.splice(idx, 1)
 
-    // If the active doc was removed, switch to the neighbour
+    // 如果活动文档被移除，切换到相邻文档
     if (activeId.value === id) {
       const newIdx = Math.min(idx, documents.value.length - 1)
       activeId.value = documents.value[newIdx].id
     }
   }
 
-  /** Switch active document. */
+  /** 切换活动文档。 */
   function setActive(id: string): void {
     if (documents.value.some((d) => d.id === id)) {
       activeId.value = id
     }
   }
 
-  /** Update content + auto-extract title & tags. */
+  /** 更新内容 + 自动提取标题和标签。 */
   function updateContent(id: string, content: string): void {
     const doc = documents.value.find((d) => d.id === id)
     if (!doc) return
@@ -242,7 +242,7 @@ export const useDocumentsStore = defineStore('documents', () => {
     doc.savedAt = new Date().toISOString()
   }
 
-  // ── Return ──────────────────────────────────────────────────
+  // ── 返回 ──────────────────────────────────────────────────
 
   return {
     documents,

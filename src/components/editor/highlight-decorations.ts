@@ -1,14 +1,12 @@
 // ═══════════════════════════════════════════════════════════════════════════
-// CodeMirror decoration layer — visual highlighting for ==mark== and ^underline^
+// CodeMirror 装饰层 — 为 ==mark== 和 ^underline^ 提供视觉高亮
 // ═══════════════════════════════════════════════════════════════════════════
 //
-// @codemirror/lang-markdown only provides syntax highlighting for standard
-// CommonMark syntax (**bold**, *italic*, etc.).  The ==mark== and ^underline^
-// syntax is a custom extension used by this app for card rendering.
+// @codemirror/lang-markdown 仅为标准 CommonMark 语法（**bold**, *italic* 等）
+// 提供语法高亮。==mark== 和 ^underline^ 语法是本应用用于卡片渲染的自定义扩展。
 //
-// This module adds a ViewPlugin that decorates these custom inline markers
-// so they are visually distinct in the editor — the same way **bold** text
-// appears bold in CodeMirror.
+// 此模块添加了一个 ViewPlugin，为这些自定义内联标记添加装饰，
+// 使其在编辑器中视觉上与众不同 — 就像 **bold** 文本在 CodeMirror 中显示为粗体一样。
 //
 
 import {
@@ -21,35 +19,35 @@ import {
 
 // ── Decoration marks ──────────────────────────────────────────────────────
 
-/** Applied to the entire ==…== span (including the delimiters). */
+/** 应用于整个 ==…== 区域（含分隔符）。 */
 const HIGHLIGHT_MARK = Decoration.mark({ class: 'cm-mark' })
 
-/** Applied to the entire ^…^ span (including the delimiters). */
+/** 应用于整个 ^…^ 区域（含分隔符）。 */
 const UNDERLINE_MARK = Decoration.mark({ class: 'cm-underline' })
 
 // ── Regex patterns ────────────────────────────────────────────────────────
 
 /**
- * Match ==highlight== spans.
+ * 匹配 ==highlight== 范围。
  *
- * Uses [\s\S] (instead of `.`) so the match can span multiple lines.
- * Lazy (`+?`) to avoid merging multiple highlights on the same line
- * into one giant span.
+ * 使用 [\s\S]（而非 `.`）使匹配可以跨越多行。
+ * 惰性匹配（`+?`）避免将同一行上的多个高亮合并
+ * 为单个巨大范围。
  */
 const HIGHLIGHT_RE = /==[\s\S]+?==/g
 
 /**
- * Match ^underline^ spans.
+ * 匹配 ^underline^ 范围。
  *
- * Excludes internal `^` characters so the match doesn't accidentally
- * span across unrelated `^` tokens.
+ * 排除内部的 `^` 字符，使匹配不会意外地
+ * 跨越多个范围。across unrelated `^` tokens.
  */
 const UNDERLINE_RE = /\^[^^\n]+\^/g
 
 // ── Decoration builder ────────────────────────────────────────────────────
 
 /**
- * Scan the entire document and build a DecorationSet for all highlight and
+ * 扫描整个文档并为所有高亮和下划线范围构建 DecorationSet。
  * underline spans in the visible viewport.
  */
 function buildDecorations(view: EditorView): DecorationSet {
@@ -75,7 +73,7 @@ function buildDecorations(view: EditorView): DecorationSet {
     })
   }
 
-  // Sort by position for DecorationSet
+  // 按位置排序以构建 DecorationSet
   decorations.sort((a, b) => a.from - b.from)
 
   return Decoration.set(
@@ -87,12 +85,12 @@ function buildDecorations(view: EditorView): DecorationSet {
 // ── ViewPlugin ────────────────────────────────────────────────────────────
 
 /**
- * CodeMirror ViewPlugin that re-scans the document on every content or
- * viewport change and applies mark/underline decorations.
+ * CodeMirror ViewPlugin，在每次内容或视口变更时重新扫描文档
+ * 并应用 mark/underline 装饰。
  *
- * Usage:
+ * 用法：
  *   import { highlightDecorations } from './highlight-decorations'
- *   // add to EditorState extensions:
+ *   // 添加到 EditorState 扩展中：
  *   extensions: [..., highlightDecorations]
  */
 export const highlightDecorations = ViewPlugin.fromClass(

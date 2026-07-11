@@ -4,10 +4,10 @@
       <input
         :checked="modelValue?.enabled ?? false"
         type="checkbox"
-        class="checkbox checkbox-xs"
+        class="checkbox checkbox-xs checkbox-primary"
         @change="toggleEnabled"
       />
-      <span class="text-xs text-base-content/50 whitespace-nowrap">渐变背景</span>
+      <span class="text-xs font-medium text-base-content/60 whitespace-nowrap">渐变背景</span>
     </label>
 
     <Transition name="fade-slide">
@@ -56,7 +56,7 @@
             title="渐变角度"
             @input="updateAngle"
           />
-          <span class="text-3xs text-base-content/45 w-[22px] text-right tabular-nums">{{ angle }}°</span>
+          <span class="text-2xs text-base-content/50 w-[22px] text-right tabular-nums">{{ angle }}°</span>
         </div>
 
         <!-- Reset button -->
@@ -98,7 +98,7 @@ const color1 = computed(() => props.modelValue?.color1 ?? '#6c5ce7')
 const color2 = computed(() => props.modelValue?.color2 ?? '#a29bfe')
 const angle = computed(() => props.modelValue?.angle ?? 135)
 
-/** Live CSS gradient matching the rendered card overlay angle. */
+/** 与渲染的卡片叠加层角度匹配的实时 CSS 渐变。 */
 const gradientCSS = computed(
   () => `linear-gradient(${angle.value}deg, ${color1.value}, ${color2.value})`,
 )

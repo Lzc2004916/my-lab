@@ -1,7 +1,7 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 
 /**
- * Composable for tracking the online/offline status of the application.
+ * 用于跟踪应用程序在线/离线状态的可组合函数。
  */
 export function useOnlineStatus() {
   const isOnline = ref(navigator.onLine)
