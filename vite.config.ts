@@ -41,4 +41,27 @@ export default defineConfig({
       '@': resolve(__dirname, 'src'),
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vendor-codemirror': [
+            '@codemirror/view',
+            '@codemirror/state',
+            '@codemirror/commands',
+            '@codemirror/lang-markdown',
+            '@codemirror/theme-one-dark',
+          ],
+          'vendor-markdown': [
+            'markdown-it',
+            'markdown-it-attrs',
+            'markdown-it-container',
+            'markdown-it-emoji',
+          ],
+          'vendor-pdf': ['jspdf', 'html2canvas'],
+          'vendor-prism': ['prismjs'],
+        },
+      },
+    },
+  },
 })

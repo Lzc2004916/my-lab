@@ -17,49 +17,16 @@ export interface GradientConfig {
 
 export type ThemeMode = 'paper' | 'sage' | 'vintage' | 'obsidian' | 'archive' | 'swiss' | 'cyber' | 'glass' | 'brutal' | 'luxe' | 'frost'
 
-// ── Title font modes ──────────────────────────────────────────────────────
-
-export type TitleFontMode = 'serif' | 'kai' | 'sans' | 'puhuiti' | 'retroSerif' | 'display' | 'handwriting' | 'monoTitle'
-
 // ── Subheading style ──────────────────────────────────────────────────────
 
 export type SubheadingStyle = 'large' | 'accent'
 
-// ── Title alignment ───────────────────────────────────────────────────────
-
-export type TitleAlignment = 'left' | 'center' | 'right'
-
-// ── Title customization ───────────────────────────────────────────────────
-
-export interface TitleCustomization {
-  /** Override theme-derived title color (empty string = use theme default). */
-  color: string
-  /** Title text alignment within the content area. */
-  alignment: TitleAlignment
-  /** Custom font weight (0 = auto, use mode default). */
-  fontWeight: number
-  /** Custom letter-spacing in px (0 = auto, use mode default). */
-  letterSpacing: number
-}
-
-/** Default title customization (all auto/theme-driven). */
-export const DEFAULT_TITLE_CUSTOM: TitleCustomization = {
-  color: '',
-  alignment: 'left',
-  fontWeight: 0,
-  letterSpacing: 0,
-}
-
 // ── Highlight style / treatment ───────────────────────────────────────────
 
-export type HighlightStyle = 'underline' | 'marker' | 'border' | 'highlight'
+export type HighlightStyle = 'underline' | 'border' | 'highlight'
 
 export type HighlightTreatment =
   | 'softUnderline'
-  | 'editorMark'
-  | 'botanicalStroke'
-  | 'warmSwipe'
-  | 'darkGlow'
   | 'swissRule'
   | 'boldAccent'
 
@@ -141,14 +108,10 @@ export interface ThemeComponents {
 }
 
 export interface ThemeEditor {
-  /** Default title font size (px) */
-  titleSize: number
   /** Default body font size (px) */
   bodySize: number
   /** Default line-height multiplier */
   lineHeight: number
-  /** Default title font mode */
-  titleFontMode: TitleFontMode
   /** Default body font mode — theme's typographic identity for body text */
   bodyFontMode?: BodyFontMode
   /** Default subheading visual treatment */
@@ -210,13 +173,10 @@ export interface CardPage {
 // ── Typography settings ───────────────────────────────────────────────────
 
 export interface TypographySettings {
-  titleSize: number
   bodySize: number
   lineHeight: number
-  titleFontMode: TitleFontMode
   bodyFontMode: BodyFontMode
   subheadingStyle: SubheadingStyle
-  titleCustom: TitleCustomization
 }
 
 // ── Inline token (parsed from markdown) ───────────────────────────────────
@@ -261,24 +221,6 @@ export interface CodeBlock {
   lineCount?: number
 }
 
-export interface MathDisplayBlock {
-  kind: 'mathBlock'
-  formula: string         // LaTeX source without $$ delimiters
-  renderedWidth?: number
-  renderedHeight?: number
-  html2canvasImage?: HTMLCanvasElement
-}
-
-export interface MermaidDisplayBlock {
-  kind: 'mermaid'
-  code: string
-  estimatedHeight: number
-  renderedSvg?: string
-  renderedWidth?: number
-  renderedHeight?: number
-  renderedImage?: HTMLImageElement
-}
-
 export interface TableDisplayBlock {
   kind: 'table'
   headers: string[]
@@ -299,12 +241,10 @@ export interface ColumnContainerBlock {
 export type Block =
   | TextBlock
   | CodeBlock
-  | MathDisplayBlock
-  | MermaidDisplayBlock
   | TableDisplayBlock
   | ColumnContainerBlock
 
-// ── Text range (for title accent ranges) ──────────────────────────────────
+// ── Text range ───────────────────────────────────────────────────
 
 export interface TextRange {
   start: number
@@ -314,15 +254,10 @@ export interface TextRange {
 // ── Poster metrics (computed layout values for one page) ──────────────────
 
 export interface PosterMetrics {
-  titleSize: number
-  titleLineHeight: number
   bodySize: number
   bodyLineHeight: number
   bodyParagraphGap: number
   bodyFontFamily: string
-  titleLines: string[]
-  titleAccentRanges: TextRange[]
-  titleStartY: number
   separatorY: number
   bodyTopY: number
   bodyBottomY: number
@@ -366,7 +301,6 @@ export interface RenderOptions {
 
 export interface LayoutOptions {
   source: string
-  manualTitle: string
   settings: TypographySettings
   theme: ThemeDefinition
   footerEnabled: boolean
@@ -461,53 +395,6 @@ export function getBodyFontFamily(mode: BodyFontMode): string {
 export const FOOTER_FONT_FAMILY =
   '"LXGW WenKai","Noto Serif SC","PingFang SC","Microsoft YaHei",sans-serif'
 
-/** Title font mode configurations */
-export const TITLE_FONT_MODES: Record<
-  TitleFontMode,
-  { family: string; latinFamily: string; tracking: number }
-> = {
-  serif: {
-    family: '"Noto Serif SC","Songti SC","SimSun",serif',
-    latinFamily: '"Cormorant Garamond","EB Garamond","Times New Roman",serif',
-    tracking: 0,
-  },
-  kai: {
-    family: '"LXGW WenKai","KaiTi","STKaiti",serif',
-    latinFamily: '"Cormorant Garamond","EB Garamond","Times New Roman",serif',
-    tracking: 0,
-  },
-  sans: {
-    family: '"PingFang SC","Microsoft YaHei","Helvetica Neue",sans-serif',
-    latinFamily: '"Inter","Helvetica Neue","Arial",sans-serif',
-    tracking: 0,
-  },
-  puhuiti: {
-    family: '"Alibaba PuHuiTi","PingFang SC","Microsoft YaHei",sans-serif',
-    latinFamily: '"Inter","Helvetica Neue","Arial",sans-serif',
-    tracking: 0,
-  },
-  retroSerif: {
-    family: '"Noto Serif SC","Songti SC","SimSun",serif',
-    latinFamily: '"Playfair Display","Cormorant Garamond","Times New Roman",serif',
-    tracking: 2,
-  },
-  display: {
-    family: '"PingFang SC","Microsoft YaHei","Helvetica Neue",sans-serif',
-    latinFamily: '"Inter","Helvetica Neue","Arial Black",sans-serif',
-    tracking: -1,
-  },
-  handwriting: {
-    family: '"KaiTi","STKaiti","LXGW WenKai",cursive',
-    latinFamily: '"Caveat","Dancing Script","Brush Script MT",cursive',
-    tracking: 1,
-  },
-  monoTitle: {
-    family: '"JetBrains Mono","Cascadia Code","SF Mono","Consolas",monospace',
-    latinFamily: '"JetBrains Mono","Cascadia Code","SF Mono","Consolas",monospace',
-    tracking: 0,
-  },
-}
-
 // ── Leading punctuation (should not appear at line start) ─────────────────
 
 export const LEADING_PUNCTUATION = new Set([
@@ -529,10 +416,10 @@ export const CODE_BG_ALPHA = 0.06
 // ── Heading size ratios (relative to bodySize) ────────────────────────
 
 export const HEADING_SIZE_RATIOS: Record<number, number> = {
-  1: 1.60,
-  2: 1.40,
-  3: 1.22,
-  4: 1.10,
+  1: 3.20,
+  2: 1.65,
+  3: 1.35,
+  4: 1.15,
   5: 1.04,
   6: 0.98,
 }

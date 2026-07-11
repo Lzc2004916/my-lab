@@ -1,4 +1,5 @@
 <template>
+  <ThemeProvider :theme-id="cardTheme">
   <div class="h-screen flex flex-col overflow-hidden bg-base-200">
     <!-- ═══ Navbar (draggable) ═══════════════════════════════════════ -->
     <div class="navbar bg-base-100 border-b border-base-300/60 z-20 shrink-0 min-h-0 py-0 h-11">
@@ -7,6 +8,23 @@
       </div>
 
       <div class="navbar-center flex items-center gap-0.5">
+        <!-- App theme toggle (light/dark) -->
+        <button
+          class="btn btn-ghost btn-sm btn-square h-7 w-7 min-h-0"
+          :aria-label="appTheme === 'dark' ? '切换到亮色模式' : '切换到暗色模式'"
+          :title="appTheme === 'dark' ? '切换到亮色模式' : '切换到暗色模式'"
+          @click="toggleAppTheme"
+        >
+          <!-- Sun icon (shown in dark mode → switch to light) -->
+          <svg v-if="appTheme === 'dark'" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+          </svg>
+          <!-- Moon icon (shown in light mode → switch to dark) -->
+          <svg v-else class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+          </svg>
+        </button>
+
         <!-- Editor theme -->
         <div class="dropdown dropdown-hover">
           <label tabindex="0" class="btn btn-sm btn-ghost text-xs h-7 min-h-0">
@@ -39,10 +57,10 @@
       </div>
 
       <div class="navbar-end">
-        <!-- Window controls (frameless) -->
+        <!-- Window controls (frameless) — Tailwind-driven with scoped CSS only for Electron specifics -->
         <div class="flex items-center h-full win-controls" role="group" :aria-label="isMaximized ? '还原' : '最大化'">
           <button
-            class="win-btn win-btn--minimize"
+            class="win-btn"
             aria-label="最小化"
             title="最小化"
             @click="handleMinimize"
@@ -50,7 +68,7 @@
             <svg class="w-3.5 h-3.5" viewBox="0 0 12 12" aria-hidden="true"><rect x="1" y="5.5" width="10" height="1" fill="currentColor"/></svg>
           </button>
           <button
-            class="win-btn win-btn--maximize"
+            class="win-btn"
             :aria-label="isMaximized ? '还原' : '最大化'"
             :title="isMaximized ? '还原' : '最大化'"
             @click="handleToggleMaximize"
@@ -59,7 +77,7 @@
             <svg v-else class="w-3.5 h-3.5" viewBox="0 0 12 12" aria-hidden="true"><rect x="3" y="0.5" width="8" height="8" rx="1" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="0.5" y="3" width="8" height="8" rx="1" fill="none" stroke="currentColor" stroke-width="1.2"/></svg>
           </button>
           <button
-            class="win-btn win-btn--close"
+            class="win-btn win-btn-close"
             aria-label="关闭"
             title="关闭"
             @click="handleCloseRequest"
@@ -73,23 +91,22 @@
     <!-- ═══ Control bar ═══════════════════════════════════════════════ -->
     <div class="bg-base-100/70 border-b border-base-300/60 select-none shadow-sm">
       <!-- Row 1: Quick settings ────────────────────────────────────── -->
-      <div class="flex items-center gap-x-4 gap-y-1 px-4 py-2 flex-wrap">
+      <div class="ctrl-row">
         <!-- Body font size -->
-        <div class="flex items-center gap-1.5">
+        <div class="ctrl-group">
           <span class="text-xs text-base-content/50 whitespace-nowrap">正文字号</span>
           <input
             v-model.number="bodyFontSize"
             type="range" min="20" max="40" step="1"
-            class="range range-sm range-primary w-14"
+            class="range range-xs range-primary w-14"
           />
           <span class="text-xs tabular-nums w-6 text-right text-base-content/60">{{ bodyFontSize }}</span>
         </div>
 
-
         <!-- Footer toggle -->
-        <div class="flex items-center gap-1">
+        <div class="ctrl-group">
           <label class="flex items-center gap-1.5 cursor-pointer">
-            <input v-model="footerEnabled" type="checkbox" class="checkbox checkbox-sm" />
+            <input v-model="footerEnabled" type="checkbox" class="checkbox checkbox-xs" />
             <span class="text-xs text-base-content/50 whitespace-nowrap">Footer</span>
           </label>
         </div>
@@ -97,10 +114,25 @@
         <!-- Spacer -->
         <div class="flex-1"></div>
 
-        <!-- Content Font — inline dropdown -->
+        <!-- Content Font -->
         <FontPicker v-model="bodyFontMode" :fonts="BODY_FONT_OPTIONS" />
 
-        <span class="w-px h-4 bg-base-300/50"></span>
+        <!-- Highlight style selector -->
+        <div class="ctrl-group">
+          <span class="text-xs text-base-content/50 whitespace-nowrap">高亮</span>
+          <div class="join">
+            <button
+              v-for="opt in HIGHLIGHT_STYLE_OPTIONS"
+              :key="opt.value"
+              class="btn btn-xs join-item h-6 min-h-0 px-1.5 text-xs"
+              :class="{ 'btn-active': highlightStyle === opt.value }"
+              :title="opt.label"
+              @click="highlightStyle = opt.value"
+            >{{ opt.short }}</button>
+          </div>
+        </div>
+
+        <span class="inline-divider"></span>
 
         <!-- Gradient picker -->
         <GradientPicker v-model="gradientConfig" />
@@ -117,144 +149,19 @@
             viewBox="0 0 10 6"
           ><path d="M0 0l5 6 5-6z" fill="currentColor"/></svg>
         </button>
-
-        <!-- Title settings toggle -->
-        <button
-          class="btn btn-sm btn-ghost text-base-content/50 gap-1.5 h-7 min-h-0 text-xs"
-          @click="showTitlePanel = !showTitlePanel"
-        >
-          <span>标题设置</span>
-          <svg
-            class="w-3 h-3 transition-transform duration-200"
-            :class="{ 'rotate-180': showTitlePanel }"
-            viewBox="0 0 10 6"
-          ><path d="M0 0l5 6 5-6z" fill="currentColor"/></svg>
-        </button>
       </div>
 
       <!-- Row 1b: Card Theme selector (collapsible) ──────────────────── -->
-      <div
-        class="border-t border-base-300/40 bg-base-200/50"
-        :class="showThemePanel ? '' : 'hidden'"
-      >
-        <div class="px-4 pt-2.5 pb-2.5">
-          <ThemeSelector v-model="cardTheme" :themes="THEMES" />
-        </div>
-      </div>
-
-      <!-- Row 2: Title customization (collapsible) ──────────────────── -->
-      <div
-        class="border-t border-base-300/40 bg-base-200/50"
-        :class="showTitlePanel ? '' : 'hidden'"
-      >
-        <!-- Title input — full width, prominent -->
-        <div class="flex items-start gap-2 px-4 pt-2 pb-1.5">
-          <span class="text-[10px] font-semibold text-base-content/35 uppercase tracking-widest whitespace-nowrap shrink-0 mt-1">标题</span>
-          <div class="flex-1 flex flex-col gap-0.5 min-w-0">
-            <div class="relative">
-              <input
-                v-model="manualTitle"
-                type="text"
-                placeholder="输入自定义标题，留空则自动提取…"
-                class="input input-sm input-bordered text-xs h-7 min-h-0 w-full pr-12"
-                :class="{ 'input-error': isTitleOverLimit }"
-                :aria-invalid="isTitleOverLimit"
-                :aria-describedby="isTitleOverLimit ? 'title-error-msg' : undefined"
-                @input="onTitleInput"
-              />
-              <span
-                class="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] tabular-nums pointer-events-none select-none"
-                :class="titleCharCount >= MAX_TITLE_LENGTH ? 'text-warning' : 'text-base-content/30'"
-                aria-hidden="true"
-              >{{ titleCharCount }}/{{ MAX_TITLE_LENGTH }}</span>
-            </div>
-            <p
-              v-if="isTitleOverLimit"
-              id="title-error-msg"
-              role="alert"
-              class="text-[10px] text-error leading-none pl-0.5"
-            >标题长度不能超过35字符</p>
-          </div>
-          <button
-            class="btn btn-sm btn-ghost text-base-content/40 h-7 min-h-0 text-xs shrink-0"
-            @click="resetTitleCustom()"
-          >↺ 重置</button>
-        </div>
-
-        <!-- Title font selector -->
-        <div class="px-4 pb-1.5">
-          <FontPicker v-model="titleFontMode" :fonts="BODY_FONT_OPTIONS" label="标题字体" />
-        </div>
-
-        <!-- Formatting controls — compact row below -->
-        <div class="flex items-center gap-x-3 gap-y-1 px-4 pb-2 flex-wrap">
-          <!-- Font size -->
-          <div class="flex items-center gap-1">
-            <span class="text-xs text-base-content/50">字号</span>
-            <input
-              v-model.number="titleFontSize"
-              type="range" min="40" max="90" step="1"
-              class="range range-sm range-primary w-14"
-            />
-            <span class="text-xs tabular-nums w-6 text-right text-base-content/60">{{ titleFontSize }}</span>
-          </div>
-
-          <!-- Weight -->
-          <div class="flex items-center gap-1">
-            <span class="text-xs text-base-content/50">字重</span>
-            <select v-model.number="titleWeight" class="select select-sm select-bordered w-20 text-xs h-7 min-h-0">
-              <option :value="0">自动</option>
-              <option :value="300">300</option>
-              <option :value="400">400</option>
-              <option :value="500">500</option>
-              <option :value="600">600</option>
-              <option :value="700">700</option>
-              <option :value="800">800</option>
-              <option :value="900">900</option>
-            </select>
-          </div>
-
-          <!-- Color -->
-          <div class="flex items-center gap-1">
-            <span class="text-xs text-base-content/50">颜色</span>
-            <div class="relative">
-              <input
-                :value="titleColor || effectiveTitleColor"
-                type="color"
-                class="w-6 h-6 rounded cursor-pointer border border-base-300"
-                @input="titleColor = ($event.target as HTMLInputElement).value"
-              />
-              <span
-                v-if="!titleColor"
-                class="absolute -bottom-0.5 left-1/2 -translate-x-1/2 text-[8px] leading-none text-base-content/25 pointer-events-none select-none"
-              >auto</span>
-            </div>
-            <button
-              v-if="titleColor"
-              class="btn btn-xs btn-ghost h-6 min-h-0 px-1"
-              title="重置为自动"
-              @click="titleColor = ''"
-            ><svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
-          </div>
-
-          <!-- Alignment -->
-          <div class="flex items-center gap-1">
-            <span class="text-xs text-base-content/50">对齐</span>
-            <div class="join">
-              <button
-                v-for="opt in TITLE_ALIGN_OPTIONS"
-                :key="opt.value"
-                class="btn btn-sm join-item px-2.5 h-7 min-h-0 text-xs"
-                :class="{ 'btn-primary': titleAlignment === opt.value, 'btn-ghost': titleAlignment !== opt.value }"
-                :title="opt.label"
-                @click="titleAlignment = opt.value"
-              >
-                {{ opt.icon }}
-              </button>
-            </div>
+      <Transition name="collapse">
+        <div
+          v-show="showThemePanel"
+          class="border-t border-base-300/40 bg-base-200/50"
+        >
+          <div class="px-4 pt-2.5 pb-2.5">
+            <ThemeSelector v-model="cardTheme" :themes="THEMES" />
           </div>
         </div>
-      </div>
+      </Transition>
     </div>
 
     <!-- ═══ Document tabs ═══════════════════════════════════════════ -->
@@ -286,7 +193,7 @@
 
       <!-- Drag bar — wider hit area via negative margin pseudo-elements prevents cursor flicker -->
       <div
-        class="w-1 cursor-col-resize select-none shrink-0 z-10 drag-bar"
+        class="w-1 cursor-col-resize select-none shrink-0 z-10 transition-colors duration-200 drag-bar"
         :class="dragging ? 'bg-primary' : 'bg-base-300'"
         @mousedown="onDragStart"
       ></div>
@@ -299,7 +206,6 @@
           ref="cardPreviewRef"
           v-model:current-page="currentPage"
           :source="source"
-          :manual-title="manualTitle"
           :theme-id="cardTheme"
           :typography="typography"
           :highlight-style="highlightStyle"
@@ -371,6 +277,7 @@
       </form>
     </dialog>
   </div>
+  </ThemeProvider>
 </template>
 
 <script setup lang="ts">
@@ -380,20 +287,20 @@ import MarkdownEditor from '@/components/editor/MarkdownEditor.vue'
 import EditorToolbar from '@/components/editor/EditorToolbar.vue'
 import type { ToolbarItem } from '@/components/editor/EditorToolbar.vue'
 import CardPreview from '@/components/CardPreview.vue'
+import ThemeProvider from '@/components/ThemeProvider.vue'
 import DocumentTabs from '@/components/DocumentTabs.vue'
 import { useMarkdown } from '@/composables/useMarkdown'
 import { useExport } from '@/composables/useExport'
 import { useDocumentsStore } from '@/stores/documents'
 import { useDrafts, type AppSettings } from '@/composables/useDrafts'
-import { THEMES, BODY_FONT_MODES, getTheme, mixHexColors, type BodyFontMode } from '@/card'
+import { THEMES, BODY_FONT_MODES, getTheme, type BodyFontMode } from '@/card'
 import DraftRecoveryModal from '@/components/DraftRecoveryModal.vue'
 import LoadingSpinner from '@/components/LoadingSpinner.vue'
 import ThemeSelector from '@/components/ThemeSelector.vue'
 import FontPicker from '@/components/FontPicker.vue'
 import GradientPicker from '@/components/GradientPicker.vue'
 import type { GradientConfig } from '@/card'
-import type { TypographySettings, HighlightStyle, TitleFontMode, SubheadingStyle, TitleCustomization, TitleAlignment } from '@/card'
-import { DEFAULT_TITLE_CUSTOM } from '@/card'
+import type { TypographySettings, HighlightStyle, SubheadingStyle } from '@/card'
 
 // ── Theme configs ───────────────────────────────────────────────────────
 
@@ -402,6 +309,12 @@ const EDITOR_THEMES = [
   { label: '☀️ Light', value: 'light' },
 ] as const
 
+const HIGHLIGHT_STYLE_OPTIONS = [
+  { value: 'underline' as HighlightStyle, label: '下划线', short: 'U̲' },
+  { value: 'border' as HighlightStyle, label: '边框', short: '◧' },
+  { value: 'highlight' as HighlightStyle, label: '加粗着色', short: 'B' },
+]
+
 const editorThemeLabel = computed(
   () => EDITOR_THEMES.find((t) => t.value === editorTheme.value)?.label ?? 'Dark',
 )
@@ -409,6 +322,26 @@ const editorThemeLabel = computed(
 const currentCardThemeName = computed(
   () => THEMES.find((t) => t.id === cardTheme.value)?.name ?? '苔绿纸书',
 )
+
+// ── App theme (light/dark) toggle ──────────────────────────────────────
+
+const appTheme = ref<'light' | 'dark'>(
+  (localStorage.getItem('app-theme') as 'light' | 'dark') || 'light',
+)
+
+function applyAppTheme(): void {
+  document.documentElement.setAttribute('data-theme', appTheme.value)
+}
+
+function toggleAppTheme(): void {
+  appTheme.value = appTheme.value === 'light' ? 'dark' : 'light'
+  localStorage.setItem('app-theme', appTheme.value)
+  applyAppTheme()
+}
+
+onMounted(() => {
+  applyAppTheme()
+})
 
 // ── Document store ──────────────────────────────────────────────────────
 
@@ -453,27 +386,14 @@ const editorTheme = ref<string>('one-dark')
 const cardTheme = ref<string>('moss-paper')
 const bodyFontMode = ref<BodyFontMode>('wenkai')
 
-// Map theme titleFontMode → closest BodyFontMode for the UI picker
-const TITLE_TO_BODY_PICKER: Partial<Record<TitleFontMode, BodyFontMode>> = {
-  serif: 'simsun',
-  kai: 'kaiti',
-  sans: 'yahei',
-  puhuiti: 'dengxian',
-  retroSerif: 'simsun',
-  display: 'dengxian',
-  handwriting: 'kaiti',
-  monoTitle: 'dengxian',
-}
-
 // Sync font refs + gradient to theme defaults when the theme changes
 watch(cardTheme, (newThemeId) => {
   const theme = getTheme(newThemeId)
   if (theme.editor.bodyFontMode) {
     bodyFontMode.value = theme.editor.bodyFontMode
   }
-  if (theme.editor.titleFontMode) {
-    titleFontMode.value = TITLE_TO_BODY_PICKER[theme.editor.titleFontMode] ?? theme.editor.bodyFontMode ?? 'wenkai'
-  }
+  // Sync highlight style to theme's native style
+  highlightStyle.value = theme.editor.highlightStyle
   // Sync gradient colors + angle to theme — preserve user's enabled preference
   if (theme.gradient) {
     gradientConfig.value = {
@@ -494,11 +414,9 @@ const BODY_FONT_OPTIONS = Object.entries(BODY_FONT_MODES).map(([id, def]) => ({
 // ── UI state ─────────────────────────────────────────────────────────────
 
 const showThemePanel = ref<boolean>(false)
-const showTitlePanel = ref<boolean>(false)
 
 // ── Card rendering settings ─────────────────────────────────────────────
 
-const titleFontSize = ref<number>(75)
 const bodyFontSize = ref<number>(30)
 const highlightStyle = ref<HighlightStyle>('underline' as HighlightStyle)
 const footerEnabled = ref<boolean>(true)
@@ -508,26 +426,6 @@ const gradientConfig = ref<GradientConfig>({
   color2: '#a29bfe',
   angle: 135,
 })
-
-// ── Title customization ──────────────────────────────────────────────────
-
-const manualTitle = ref<string>('')
-
-// ── Title validation ──────────────────────────────────────────────────────
-
-const MAX_TITLE_LENGTH = 35
-
-const titleCharCount = computed(() => manualTitle.value.length)
-
-const isTitleOverLimit = computed(() => titleCharCount.value >= MAX_TITLE_LENGTH)
-
-function onTitleInput(e: Event): void {
-  const target = e.target as HTMLInputElement
-  if (target.value.length > MAX_TITLE_LENGTH) {
-    target.value = target.value.slice(0, MAX_TITLE_LENGTH)
-    manualTitle.value = target.value
-  }
-}
 
 // ── Window controls ──────────────────────────────────────────────────────
 
@@ -598,62 +496,15 @@ onMounted(() => {
   initWindowControls()
 })
 
-/** Map body font mode to the closest title font mode (for the rendering engine). */
-const BODY_TO_TITLE_FONT: Record<BodyFontMode, TitleFontMode> = {
-  wenkai: 'kai',
-  yahei: 'sans',
-  simsun: 'serif',
-  kaiti: 'kai',
-  dengxian: 'sans',
-  fangsong: 'serif',
-}
-
-const titleFontMode = ref<BodyFontMode>('kaiti')
-
-const titleColor = ref<string>('')
-const titleAlignment = ref<TitleAlignment>('left')
-const titleWeight = ref<number>(0)
-const titleSpacing = ref<number>(0)
-
-/** Effective title color from the active theme — shown in the picker when no custom color is set. */
-const effectiveTitleColor = computed(() => {
-  const theme = getTheme(cardTheme.value)
-  return mixHexColors(theme.palette.text, theme.palette.accent, theme.surface.titleAccentMix)
-})
-
-const TITLE_ALIGN_OPTIONS: { value: TitleAlignment; label: string; icon: string }[] = [
-  { value: 'left', label: '左对齐', icon: '⫷' },
-  { value: 'center', label: '居中', icon: '≡' },
-  { value: 'right', label: '右对齐', icon: '⫸' },
-]
-
-const titleCustom = computed<TitleCustomization>(() => ({
-  color: titleColor.value,
-  alignment: titleAlignment.value,
-  fontWeight: titleWeight.value,
-  letterSpacing: titleSpacing.value,
-}))
-
 const typography = computed<TypographySettings>(() => {
   const theme = getTheme(cardTheme.value)
   return {
-    titleSize: titleFontSize.value,
     bodySize: bodyFontSize.value,
     lineHeight: 1.84,
-    titleFontMode: BODY_TO_TITLE_FONT[titleFontMode.value] ?? 'serif',
     bodyFontMode: bodyFontMode.value,
     subheadingStyle: (theme.editor.subheadingStyle ?? 'large') as SubheadingStyle,
-    titleCustom: titleCustom.value,
   }
 })
-
-/** Reset title customization to theme defaults */
-function resetTitleCustom(): void {
-  titleColor.value = DEFAULT_TITLE_CUSTOM.color
-  titleAlignment.value = DEFAULT_TITLE_CUSTOM.alignment
-  titleWeight.value = DEFAULT_TITLE_CUSTOM.fontWeight
-  titleSpacing.value = DEFAULT_TITLE_CUSTOM.letterSpacing
-}
 
 // ── Markdown / page state ──────────────────────────────────────────────
 
@@ -678,20 +529,13 @@ const split = ref<number>(50)
 /** Snapshot all current UI settings into a plain object for persistence. */
 function collectSettings(): AppSettings {
   return {
-    manualTitle: manualTitle.value,
     editorTheme: editorTheme.value,
     cardTheme: cardTheme.value,
     bodyFontMode: bodyFontMode.value,
-    titleFontMode: titleFontMode.value,
-    titleFontSize: titleFontSize.value,
     bodyFontSize: bodyFontSize.value,
     highlightStyle: highlightStyle.value,
     footerEnabled: footerEnabled.value,
-    titleColor: titleColor.value,
-    titleAlignment: titleAlignment.value,
-    titleWeight: titleWeight.value,
     showThemePanel: showThemePanel.value,
-    showTitlePanel: showTitlePanel.value,
     split: split.value,
     gradientConfig: { ...gradientConfig.value },
   }
@@ -699,34 +543,29 @@ function collectSettings(): AppSettings {
 
 /** Apply persisted settings to all reactive refs. */
 function applySettings(s: AppSettings): void {
-  manualTitle.value = s.manualTitle
   editorTheme.value = s.editorTheme
   cardTheme.value = s.cardTheme
   bodyFontMode.value = (s.bodyFontMode as BodyFontMode) || 'wenkai'
-  titleFontMode.value = (s.titleFontMode as BodyFontMode) || 'kaiti'
-  titleFontSize.value = s.titleFontSize
   bodyFontSize.value = s.bodyFontSize
   highlightStyle.value = s.highlightStyle as HighlightStyle
   footerEnabled.value = s.footerEnabled
-  titleColor.value = s.titleColor
-  titleAlignment.value = s.titleAlignment as TitleAlignment
-  titleWeight.value = s.titleWeight
   showThemePanel.value = s.showThemePanel
-  showTitlePanel.value = s.showTitlePanel
   split.value = s.split
   if (s.gradientConfig) {
     gradientConfig.value = { ...s.gradientConfig }
   }
 }
 
-// Auto-persist whenever any setting changes (1s debounce inside saveSettings)
+// Auto-persist whenever any setting changes (1s debounce inside saveSettings).
+// Shallow watch is sufficient — each ref is a leaf value (string, number, boolean)
+// except gradientConfig which is replaced on change (never mutated in place).
 watch(
   [
-    manualTitle, editorTheme, cardTheme, bodyFontMode, titleFontMode, titleFontSize, bodyFontSize,
-    highlightStyle, footerEnabled, titleColor, titleAlignment,
-    titleWeight, showThemePanel, showTitlePanel, split, gradientConfig,
+    editorTheme, cardTheme, bodyFontMode, bodyFontSize,
+    highlightStyle, footerEnabled, showThemePanel, split, gradientConfig,
   ],
   () => saveSettings(collectSettings()),
+  { deep: false },
 )
 
 const dragging = ref<boolean>(false)
@@ -837,22 +676,18 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
-/* ═══ Window control buttons (frameless title bar) ═══════════════════ */
+/* ═══ Window control buttons (Electron frameless title bar) ═══════════════
+
+   Most properties are Tailwind utilities applied via class on the button.
+   Only Electron-specific behaviors (no-drag, close-red) remain here.       */
 
 .win-btn {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  @apply relative inline-flex items-center justify-center border-none bg-transparent cursor-pointer shrink-0;
   height: 44px;
   width: 40px;
-  border: none;
-  background: transparent;
   color: oklch(var(--bc) / 0.55);
-  cursor: pointer;
   transition: background-color 0.12s ease, color 0.12s ease;
   -webkit-app-region: no-drag;
-  flex-shrink: 0;
 }
 
 .win-btn:hover {
@@ -865,23 +700,23 @@ onBeforeUnmount(() => {
 }
 
 .win-btn:focus-visible {
-  outline: 2px solid oklch(0.62 0.19 250);
+  outline: 2px solid oklch(0.55 0.22 252);
   outline-offset: -2px;
 }
 
-/* ── Close button ──────────────────────────────────────────────────── */
+/* ── Close button: Electron convention red ──────────────────────────── */
 
-.win-btn--close:hover {
+.win-btn-close:hover {
   background-color: #e81123;
   color: #fff;
 }
 
-.win-btn--close:active {
+.win-btn-close:active {
   background-color: #bf0f1b;
   color: #fff;
 }
 
-/* ── Drag bar: invisible hit-area padding via pseudo-elements ────────── */
+/* ── Drag bar: wider hit area via negative-margin pseudo-elements ──── */
 
 .drag-bar {
   position: relative;
@@ -902,5 +737,25 @@ onBeforeUnmount(() => {
 
 .drag-bar::after {
   left: 100%;
+}
+
+/* ── Theme panel collapse transition ────────────────────────────────── */
+
+.collapse-enter-active {
+  transition: all 0.25s ease-out;
+}
+.collapse-leave-active {
+  transition: all 0.2s ease-in;
+}
+.collapse-enter-from,
+.collapse-leave-to {
+  opacity: 0;
+  max-height: 0;
+  overflow: hidden;
+}
+.collapse-enter-to,
+.collapse-leave-from {
+  opacity: 1;
+  max-height: 200px;
 }
 </style>

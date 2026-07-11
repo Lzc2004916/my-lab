@@ -11,8 +11,6 @@ import type {
   Block,
   TextBlock,
   CodeBlock,
-  MathDisplayBlock,
-  MermaidDisplayBlock,
   TableDisplayBlock,
   ColumnContainerBlock,
   HeadingLevel,
@@ -118,12 +116,11 @@ function splitTableCells(line: string): string[] {
  *
  * Handles multi-line constructs:
  * - Fenced code blocks (``` ... ```)
- * - Math blocks ($$ ... $$)
  * - Tables (consecutive |...| lines)
  * - Column containers (:::left / :::right ... :::)
  * - Regular text (split by blank lines, classified by getParagraphBlock)
  */
-function parseInputBlocks(raw: string): Block[] {
+export function parseInputBlocks(raw: string): Block[] {
   const lines = raw.split('\n')
   const blocks: Block[] = []
   let i = 0
@@ -186,10 +183,10 @@ function parseInputBlocks(raw: string): Block[] {
       const code = codeLines.join('\n')
       if (lang.toLowerCase() === 'mermaid') {
         blocks.push({
-          kind: 'mermaid',
+          kind: 'code',
+          language: 'mermaid',
           code,
-          estimatedHeight: Math.max(180, 180 + (codeLines.length - 4) * 20),
-        } as MermaidDisplayBlock)
+        } as CodeBlock)
       } else {
         blocks.push({
           kind: 'code',
@@ -201,23 +198,6 @@ function parseInputBlocks(raw: string): Block[] {
       continue
     }
 
-    // ── Math block ($$ ... $$) ─────────────────────────────────
-    if (line.trim() === '$$') {
-      flushTextBuffer(textBuffer)
-      textBuffer = ''
-      const mathLines: string[] = []
-      i++
-      while (i < lines.length && lines[i]!.trim() !== '$$') {
-        mathLines.push(lines[i]!)
-        i++
-      }
-      blocks.push({
-        kind: 'mathBlock',
-        formula: mathLines.join('\n'),
-      } as MathDisplayBlock)
-      i++ // skip closing $$
-      continue
-    }
 
     // ── Table (consecutive |...| lines) ────────────────────────
     if (isTableLine(line)) {
@@ -312,12 +292,12 @@ function parseInputBlocks(raw: string): Block[] {
 // Paragraph serialization
 // ═══════════════════════════════════════════════════════════════════════════
 
-function serializeParagraphBlock(raw: string, kind: ParagraphBlock['kind']): string {
+function serializeParagraphBlock(raw: string, kind: ParagraphBlock['kind'], headingLevel?: number): string {
   const trimmed = raw.trim()
   if (kind === 'divider') return '---'
   if (!trimmed) return ''
   if (kind === 'quote') return `> ${trimmed}`
-  if (kind === 'subheading') return `# ${trimmed}`
+  if (kind === 'subheading') return `${'#'.repeat(headingLevel || 1)} ${trimmed}`
   return trimmed
 }
 
@@ -413,7 +393,7 @@ function splitParagraphBlockBySentence(block: ParagraphBlock, sourceText: string
   return {
     parts: splitParagraphBySentence(sourceRaw),
     separator: sourceRaw.includes('\n') ? '\n' : '',
-    serialize: (raw: string) => serializeParagraphBlock(raw, block.kind),
+    serialize: (raw: string) => serializeParagraphBlock(raw, block.kind, (block as any).headingLevel),
   }
 }
 
@@ -421,21 +401,23 @@ function splitInlineLines(
   lines: InlineLine[],
   count: number,
 ): {
-  takenRaw: (kind: ParagraphBlock['kind']) => string
-  restRaw: (kind: ParagraphBlock['kind']) => string
+  takenRaw: (kind: ParagraphBlock['kind'], headingLevel?: number) => string
+  restRaw: (kind: ParagraphBlock['kind'], headingLevel?: number) => string
 } {
   const taken = lines.slice(0, count)
   const rest = lines.slice(count)
   return {
-    takenRaw: (kind) =>
+    takenRaw: (kind, headingLevel) =>
       serializeParagraphBlock(
         serializeInlineTokens(taken.flatMap((l) => l.tokens)),
         kind,
+        headingLevel,
       ),
-    restRaw: (kind) =>
+    restRaw: (kind, headingLevel) =>
       serializeParagraphBlock(
         serializeInlineTokens(rest.flatMap((l) => l.tokens)),
         kind,
+        headingLevel,
       ),
   }
 }
@@ -462,12 +444,6 @@ function estimateBlockHeight(block: Block, bodySize: number): number {
         return 32 + lineCount * monoLineHeight
       }
     }
-    case 'mathBlock':
-      return 60 // placeholder — will be refined during measurement
-    case 'mermaid': {
-      const mb = block as MermaidDisplayBlock
-      return mb.estimatedHeight
-    }
     case 'table': {
       const tb = block as TableDisplayBlock
       return 20 + (tb.rows.length + 1) * (bodySize * 1.8)
@@ -486,20 +462,6 @@ function estimateBlockHeight(block: Block, bodySize: number): number {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Title comparison
-// ═══════════════════════════════════════════════════════════════════════════
-
-function normalizeComparableText(text: string): string {
-  return text
-    .replace(/\s+/g, '')
-    .replace(/[*_~`#]/g, '')
-    .toLowerCase()
-}
-
-function parseTitleMarkupForPlain(raw: string): string {
-  return raw.replace(/\*\*([\s\S]+?)\*\*/g, '$1').trim()
-}
-
 // ═══════════════════════════════════════════════════════════════════════════
 // Main pagination engine
 // ═══════════════════════════════════════════════════════════════════════════
@@ -509,29 +471,16 @@ function parseTitleMarkupForPlain(raw: string): string {
  *
  * Algorithm:
  * 1. Parse markdown source into paragraph blocks
- * 2. Remove duplicate title from body
- * 3. Pre-split long paragraphs (>180 chars)
- * 4. Accumulate paragraphs on each page by measuring heights
- * 5. When overflow: try sentence split → try line split → carry-over
+ * 2. Pre-split long paragraphs (>180 chars)
+ * 3. Accumulate paragraphs on each page by measuring heights
+ * 4. When overflow: try sentence split → try line split → carry-over
  */
 export function layoutPages(opts: LayoutOptions): CardPage[] {
-  const { source, manualTitle, settings, theme, footerEnabled } = opts
+  const { source, settings, theme, footerEnabled } = opts
   const bodyFontFamily = getBodyFontFamily(settings.bodyFontMode)
 
   const allBlocks = parseInputBlocks(source)
-  const title = manualTitle.trim()
-  const renderableTitle = parseTitleMarkupForPlain(title)
-
-  // Remove duplicate title from first body block
-  if (
-    renderableTitle &&
-    allBlocks.length > 0 &&
-    allBlocks[0]!.kind === 'body' &&
-    normalizeComparableText(allBlocks[0]!.raw) ===
-      normalizeComparableText(renderableTitle)
-  ) {
-    allBlocks.shift()
-  }
+  const title = ''
 
   if (allBlocks.length === 0) {
     return [
@@ -555,11 +504,11 @@ export function layoutPages(opts: LayoutOptions): CardPage[] {
       } else {
         const chunks = splitLongParagraph(tb.raw, chunkSize)
         for (const chunk of chunks) {
-          expandedParagraphs.push(getParagraphBlock(serializeParagraphBlock(chunk, tb.kind)))
+          expandedParagraphs.push(getParagraphBlock(serializeParagraphBlock(chunk, tb.kind, (tb as any).headingLevel)))
         }
       }
     } else {
-      // Non-text blocks (code, math, mermaid, table, column) — keep as-is
+      // Non-text blocks (code, table, column) — keep as-is
       expandedParagraphs.push(block)
     }
   }
@@ -622,8 +571,8 @@ export function layoutPages(opts: LayoutOptions): CardPage[] {
       const block = nextBlock
 
       // ── For non-text blocks: measure and fit atomically ─────
-      if (block.kind === 'code' || block.kind === 'mathBlock' ||
-          block.kind === 'mermaid' || block.kind === 'table' ||
+      if (block.kind === 'code' ||
+          block.kind === 'table' ||
           block.kind === 'columnContainer') {
         // Estimate height for non-text blocks
         const estHeight = estimateBlockHeight(block, metrics.bodySize)
@@ -653,11 +602,14 @@ export function layoutPages(opts: LayoutOptions): CardPage[] {
       // ── For text blocks: existing measurement + splitting ──
       // If the block came from expandedParagraphs (not a carry), use it directly
       // to preserve headingLevel and block kind.  Carry text is re-serialized
-      // with kind prefixes so re-parsing is safe.
+      // with kind prefixes so getParagraphBlock has already correctly classified
+      // it — don't re-parse from .raw (which lacks the prefix), use the block as-is.
       const blockRaw = (block as TextBlock).raw
-      const paraBlock: TextBlock = (nextIsCarried || (block as TextBlock).kind === 'body')
-        ? getParagraphBlock(blockRaw)
-        : (block as TextBlock)
+      const paraBlock: TextBlock = nextIsCarried
+        ? (block as TextBlock)
+        : (block as TextBlock).kind === 'body'
+          ? getParagraphBlock(blockRaw)
+          : (block as TextBlock)
       const currentText = blockRaw
       const leadingGap = getGapBetweenBlocks(previousBlock, paraBlock, metrics)
       const { lines, height } = measureParagraphBlock(
@@ -733,7 +685,7 @@ export function layoutPages(opts: LayoutOptions): CardPage[] {
                 metrics.bodyWidth, theme, settings.subheadingStyle,
               )
               const gapFill = splitInlineLines(sLines, maxGapLines)
-              const gapTaken = gapFill.takenRaw(sentenceBlock.kind)
+              const gapTaken = gapFill.takenRaw(sentenceBlock.kind, (sentenceBlock as any).headingLevel)
               if (gapTaken) {
                 const combinedRaw = `${fittedRaw}${sentenceSplit.separator}${gapTaken}`
                 const combined = sentenceSplit.serialize(combinedRaw)
@@ -787,7 +739,7 @@ export function layoutPages(opts: LayoutOptions): CardPage[] {
           )
           if (fillMaxLines > 0) {
             const { takenRaw, restRaw } = splitInlineLines(lines, fillMaxLines)
-            const fillTaken = takenRaw(paraBlock.kind)
+            const fillTaken = takenRaw(paraBlock.kind, (paraBlock as any).headingLevel)
             if (fillTaken) {
               page.blocks.push(getParagraphBlock(fillTaken))
               cursorY = blockTop + (measureParagraphBlock(
@@ -795,7 +747,7 @@ export function layoutPages(opts: LayoutOptions): CardPage[] {
                 metrics.bodyWidth, theme, settings.subheadingStyle, bodyFontFamily,
               )).height
               previousBlock = getParagraphBlock(fillTaken)
-              const fillRest = restRaw(paraBlock.kind)
+              const fillRest = restRaw(paraBlock.kind, (paraBlock as any).headingLevel)
               if (fillRest) {
                 pendingCarries.push(fillRest)
                 pendingWasSplits.push(!nextIsCarried)
@@ -821,8 +773,8 @@ export function layoutPages(opts: LayoutOptions): CardPage[] {
       )
       if (maxLines <= 0) break
       const { takenRaw, restRaw } = splitInlineLines(lines, maxLines)
-      const taken = takenRaw(paraBlock.kind)
-      const rest = restRaw(paraBlock.kind)
+      const taken = takenRaw(paraBlock.kind, (paraBlock as any).headingLevel)
+      const rest = restRaw(paraBlock.kind, (paraBlock as any).headingLevel)
       if (taken) {
         page.blocks.push(getParagraphBlock(taken))
         const takenBlock = getParagraphBlock(taken)

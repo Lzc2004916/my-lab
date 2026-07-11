@@ -53,7 +53,7 @@ let isInternalChange = false
  */
 const themeCompartment = new Compartment()
 
-/** Map theme prop value → Extension. */
+/** Map theme prop value -> Extension. */
 function resolveThemeExtension(name: string): Extension {
   switch (name) {
     case 'light':
@@ -102,7 +102,7 @@ function createExtensions(): Extension[] {
     // Soft line wrapping
     EditorView.lineWrapping,
 
-    // ── Content sync: editor → model ──
+    // ── Content sync: editor -> model ──
     EditorView.updateListener.of((update) => {
       if (update.docChanged) {
         isInternalChange = true
@@ -137,7 +137,7 @@ onMounted(() => {
 })
 
 /**
- * Watch for theme changes → hot-swap via Compartment so we don't
+ * Watch for theme changes -> hot-swap via Compartment so we don't
  * have to recreate the entire EditorState.
  */
 watch(
@@ -155,13 +155,6 @@ watch(
 
 /**
  * Watch for external modelValue changes and sync into the editor.
- *
- * 🔧 Uses `flush: 'sync'` so the watcher fires synchronously during the
- * reactive update.  This is required for the `isInternalChange` guard to
- * work: with the default `flush: 'pre'` the callback runs in a microtask,
- * after `isInternalChange` has already been reset to `false`, defeating
- * the guard.  Synchronous flush ensures the guard sees `isInternalChange`
- * as `true` during the emit → parent-update → watcher chain.
  */
 watch(
   () => props.modelValue,
@@ -216,11 +209,51 @@ function insertAtCursor(text: string): void {
 }
 
 /**
+ * Strip inline Markdown formatting markers from text.
+ *
+ * Removes the markers recognised by the app's inline parser
+ * (==highlight==, ^underline^, **bold**, *italic*).
+ *
+ * The stripping runs in a loop so nested formatting
+ * (e.g. **bold *and* text**) is progressively unwrapped
+ * from the outside in.
+ */
+function stripInlineMarkdown(text: string): string {
+  let result = text
+  let changed = true
+
+  while (changed) {
+    changed = false
+    const before = result
+
+    // 1. ==highlight== (longest marker — strip first)
+    result = result.replace(/==([\s\S]+?)==/g, '$1')
+
+    // 2. ^underline^
+    result = result.replace(/\^([^^\n]+?)\^/g, '$1')
+
+    // 3. **bold** (strip before *italic* so ** is not mis-parsed as two *)
+    result = result.replace(/\*\*([\s\S]+?)\*\*/g, '$1')
+
+    // 4. *italic* (remaining single * are guaranteed not to be part of **)
+    result = result.replace(/\*([\s\S]+?)\*/g, '$1')
+
+    if (result !== before) changed = true
+  }
+
+  return result
+}
+
+/**
  * Wrap selected text with markdown syntax markers, or insert a placeholder
  * when nothing is selected.
  *
- * - If text IS selected: wraps it with `prefix + selectedText + suffix`,
- *   then places the cursor AFTER the closing suffix marker.
+ * - If text IS selected: **strips existing inline Markdown formatting** from
+ *   the selection, then wraps the cleaned text with `prefix + cleanedText + suffix`,
+ *   and places the cursor AFTER the closing suffix marker.  This ensures
+ *   re-styling already-formatted text produces the expected result instead
+ *   of stacking markers (e.g. selecting **hello** and clicking italic
+ *   produces *hello*, not ***hello***).
  * - If nothing is selected: inserts `prefix + placeholder + suffix`,
  *   then SELECTS the placeholder text so the user can type immediately.
  *
@@ -236,8 +269,9 @@ function wrapSelectionOrInsert(prefix: string, suffix: string, placeholder: stri
     const selectedText = state.doc.sliceString(range.from, range.to)
 
     if (selectedText) {
-      // ── Case 1: text is selected → wrap it ──
-      const wrapped = prefix + selectedText + suffix
+      // Case 1: text is selected — strip existing formatting, then wrap
+      const cleaned = stripInlineMarkdown(selectedText)
+      const wrapped = prefix + cleaned + suffix
       const cursorPos = range.from + wrapped.length
       return {
         changes: { from: range.from, to: range.to, insert: wrapped },
@@ -245,7 +279,7 @@ function wrapSelectionOrInsert(prefix: string, suffix: string, placeholder: stri
       }
     }
 
-    // ── Case 2: no selection → insert template with placeholder selected ──
+    // Case 2: no selection — insert template with placeholder selected
     const insertText = prefix + placeholder + suffix
     const placeholderStart = range.from + prefix.length
     const placeholderEnd = placeholderStart + placeholder.length
@@ -369,24 +403,18 @@ defineExpose({
   outline: none;
 }
 
-/* ── Custom inline marks (==highlight== and ^underline^) ────────────────── */
+/* Custom inline marks (==highlight== and ^underline^) */
 
 .markdown-editor :deep(.cm-mark) {
-  background: rgba(255, 200, 0, 0.22);
+  background: var(--card-highlight-marker-bg, rgba(255, 200, 0, 0.22));
   border-radius: 3px;
   padding: 1px 2px;
   margin: 0 -1px;
 }
 
-/* In one-dark: slightly warmer / lighter to stay readable on dark bg */
-.markdown-editor :deep(.cm-theme-dark .cm-mark),
-.cm-theme-dark .markdown-editor :deep(.cm-mark) {
-  background: rgba(255, 210, 50, 0.18);
-}
-
 .markdown-editor :deep(.cm-underline) {
   text-decoration: underline;
-  text-decoration-color: oklch(0.62 0.19 250);
+  text-decoration-color: var(--card-highlight-underline-color, oklch(0.62 0.19 250));
   text-underline-offset: 3px;
   text-decoration-thickness: 1px;
 }

@@ -19,13 +19,8 @@ const VALID_MODES: Set<string> = new Set([
   'cyber', 'glass', 'brutal', 'luxe', 'frost',
 ])
 
-const VALID_FONT_MODES: Set<string> = new Set([
-  'serif', 'kai', 'sans', 'puhuiti', 'retroSerif',
-  'display', 'handwriting', 'monoTitle',
-])
-
 const VALID_HIGHLIGHT_STYLES: Set<string> = new Set([
-  'underline', 'marker', 'border',
+  'underline', 'border', 'highlight',
 ])
 
 const VALID_BODY_FONT_MODES: Set<string> = new Set([
@@ -178,7 +173,7 @@ function validateEditor(
     return false
   }
   const e = editor as Record<string, unknown>
-  const numericKeys = ['titleSize', 'bodySize', 'lineHeight']
+  const numericKeys = ['bodySize', 'lineHeight']
   let ok = true
   for (const key of numericKeys) {
     if (!(key in e)) {
@@ -237,11 +232,6 @@ export function validateThemeConfig(raw: unknown): ValidationResult {
   // Validate optional fields
   if ('editor' in obj && typeof obj.editor === 'object' && obj.editor) {
     const ed = obj.editor as Record<string, unknown>
-    if ('titleFontMode' in ed && typeof ed.titleFontMode === 'string' &&
-        !VALID_FONT_MODES.has(ed.titleFontMode)) {
-      addError(errors, 'editor.titleFontMode',
-        `unknown font mode "${ed.titleFontMode}". Valid: ${[...VALID_FONT_MODES].join(', ')}`)
-    }
     if ('bodyFontMode' in ed && typeof ed.bodyFontMode === 'string' &&
         !VALID_BODY_FONT_MODES.has(ed.bodyFontMode)) {
       addError(errors, 'editor.bodyFontMode',
@@ -283,10 +273,8 @@ export function validateThemeConfig(raw: unknown): ValidationResult {
     surface: obj.surface as ThemeDefinition['surface'],
     components: obj.components as ThemeDefinition['components'],
     editor: {
-      titleSize: (obj.editor as Record<string, unknown>).titleSize as number,
       bodySize: (obj.editor as Record<string, unknown>).bodySize as number,
       lineHeight: (obj.editor as Record<string, unknown>).lineHeight as number,
-      titleFontMode: ((obj.editor as Record<string, unknown>).titleFontMode as ThemeDefinition['editor']['titleFontMode']) ?? 'serif',
       bodyFontMode: ((obj.editor as Record<string, unknown>).bodyFontMode as ThemeDefinition['editor']['bodyFontMode']) ?? 'wenkai',
       subheadingStyle: ((obj.editor as Record<string, unknown>).subheadingStyle as ThemeDefinition['editor']['subheadingStyle']) ?? 'large',
       highlightStyle: ((obj.editor as Record<string, unknown>).highlightStyle as ThemeDefinition['editor']['highlightStyle']) ?? 'underline',

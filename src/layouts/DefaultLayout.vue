@@ -23,7 +23,7 @@
           <li>
             <router-link
               :to="{ name: 'home' }"
-              class="px-3 py-1.5 text-[13px] rounded-md transition-colors leading-none"
+              class="px-3 py-1.5 text-sm rounded-md transition-colors leading-none"
               :class="$route.name === 'home' ? 'text-base-content font-medium bg-base-200/80' : 'text-base-content/60 hover:text-base-content hover:bg-base-200/40'"
             >
               首页
@@ -32,7 +32,7 @@
           <li>
             <router-link
               :to="{ name: 'editor' }"
-              class="px-3 py-1.5 text-[13px] rounded-md transition-colors leading-none"
+              class="px-3 py-1.5 text-sm rounded-md transition-colors leading-none"
               :class="$route.name === 'editor' ? 'text-base-content font-medium bg-base-200/80' : 'text-base-content/60 hover:text-base-content hover:bg-base-200/40'"
             >
               编辑器

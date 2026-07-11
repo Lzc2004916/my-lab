@@ -22,59 +22,47 @@
       v-for="item in toolbarItems"
       :key="item.id"
       class="tooltip tooltip-bottom"
-      :data-tip="item.label"
+      :data-tip="item.id === 'heading' ? headingLabel : item.label"
     >
-      <!-- ── Highlight split button (WPS-style): main → insert, caret ▼ → dropdown ── -->
-      <template v-if="item.id === 'highlight'">
-        <div class="hl-dropdown" :class="{ 'hl-dropdown--open': hlDropdownOpen }">
-          <div class="highlight-split">
-            <!-- Main button: click to insert highlight markdown -->
+      <!-- ── Heading split button: main → insert H2, caret ▼ → H1/H2/H3 ── -->
+      <template v-if="item.id === 'heading'">
+        <div class="relative">
+          <div class="join">
             <button
-              class="btn btn-ghost btn-sm h-7 min-h-0 px-1.5 highlight-main-btn"
+              class="btn btn-ghost btn-sm h-7 min-h-0 px-1.5 join-item"
               :aria-label="item.label"
               @mousedown.prevent
               @click="emit('insert', item)"
             >
-              <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M9 3l-1 4"/><path d="M15 3l1 4"/><rect x="2" y="7" width="20" height="6" rx="1"/><path d="M5 13v7h14v-7"/><line x1="12" y1="17" x2="12" y2="21"/>
+              <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M6 4v16"/><path d="M18 4v16"/><path d="M6 12h12"/><line x1="6" y1="4" x2="18" y2="4"/>
               </svg>
             </button>
-            <!-- Caret: click to toggle style dropdown -->
             <button
-              class="highlight-caret-btn"
-              aria-label="选择高亮样式"
-              @click.stop="hlDropdownOpen = !hlDropdownOpen"
+              class="btn btn-ghost btn-sm h-7 min-h-0 px-0 join-item"
+              aria-label="选择标题级别"
+              @click.stop="headingDropdownOpen = !headingDropdownOpen"
             >
-              <svg
-                class="highlight-caret-icon"
-                viewBox="0 0 10 6"
-                fill="currentColor"
-                :style="{ color: highlightStyleColor }"
-              >
+              <svg class="w-[7px] h-[4px] pointer-events-none rotate-180" viewBox="0 0 10 6" fill="currentColor">
                 <path d="M0 0l5 6 5-6z"/>
               </svg>
             </button>
           </div>
-          <!-- Dropdown menu -->
           <ul
-            v-show="hlDropdownOpen"
-            class="hl-dropdown-menu menu p-1.5 shadow bg-base-200 rounded-box w-32 z-50 text-xs"
+            v-show="headingDropdownOpen"
+            class="absolute top-full right-0 mt-1 menu p-1.5 shadow bg-base-200 rounded-box w-36 z-50 text-xs whitespace-nowrap"
           >
-            <li class="menu-title"><span class="text-[10px] opacity-50">渲染样式</span></li>
-            <li v-for="hs in HIGHLIGHT_STYLES" :key="hs.value">
-              <a
-                :class="{ active: highlightStyle === hs.value }"
-                @click="onStyleSelect(hs.value)"
-              >
-                <span class="w-3 h-3 rounded-full mr-1.5 inline-block flex-shrink-0" :style="{ background: hs.color }"></span>
-                {{ hs.label }}
+            <li class="menu-title"><span class="text-[10px] opacity-50">标题级别</span></li>
+            <li v-for="hl in HEADING_LEVELS" :key="hl.level">
+              <a @click="onHeadingSelect(hl); headingDropdownOpen = false">
+                <span class="text-xs font-bold">{{ hl.level }}</span>
               </a>
             </li>
           </ul>
         </div>
       </template>
 
-      <!-- ── Normal button (non-highlight items) ── -->
+      <!-- ── Normal button (non-split items) ── -->
       <button
         v-else
         class="btn btn-ghost btn-sm btn-square h-7 w-7 min-h-0"
@@ -90,13 +78,9 @@
         <svg v-else-if="item.id === 'italic'" class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <line x1="19" y1="4" x2="10" y2="4"/><line x1="14" y1="20" x2="5" y2="20"/><line x1="15" y1="4" x2="9" y2="20"/>
         </svg>
-        <!-- Heading -->
-        <svg v-else-if="item.id === 'heading'" class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M6 4v16"/><path d="M18 4v16"/><path d="M6 12h12"/><line x1="6" y1="4" x2="18" y2="4"/>
-        </svg>
-        <!-- Underline -->
-        <svg v-else-if="item.id === 'underline'" class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M6 4v7a6 6 0 0 0 12 0V4"/><line x1="4" y1="20" x2="20" y2="20"/>
+        <!-- Highlight -->
+        <svg v-else-if="item.id === 'highlight'" class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="m9 11 3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
         </svg>
         <!-- Link -->
         <svg v-else-if="item.id === 'link'" class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -109,14 +93,6 @@
         <!-- Code -->
         <svg v-else-if="item.id === 'code'" class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>
-        </svg>
-        <!-- Math -->
-        <svg v-else-if="item.id === 'math'" class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="12" y2="12"/><line x1="4" y1="17" x2="8" y2="17"/><circle cx="16" cy="17" r="3"/><line x1="14" y1="15" x2="18" y2="19"/>
-        </svg>
-        <!-- Mermaid -->
-        <svg v-else-if="item.id === 'mermaid'" class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="2" y="2" width="8" height="8" rx="1"/><rect x="14" y="2" width="8" height="8" rx="1"/><rect x="8" y="14" width="8" height="8" rx="1"/><line x1="6" y1="10" x2="6" y2="14"/><line x1="18" y1="10" x2="14" y2="14"/>
         </svg>
         <!-- Table -->
         <svg v-else-if="item.id === 'table'" class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -135,14 +111,14 @@
           <rect x="3" y="3" width="8" height="18" rx="1"/><rect x="14" y="3" width="7" height="18" rx="1"/><line x1="11" y1="3" x2="11" y2="21" stroke-width="1" stroke-dasharray="2 2"/>
         </svg>
         <!-- Fallback -->
-        <span v-else class="toolbar-icon" v-html="item.icon"></span>
+        <span v-else class="inline-flex items-center justify-center w-full h-full text-[13px] leading-none pointer-events-none" v-html="item.icon"></span>
       </button>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { ref } from 'vue'
 
 // ── Types ────────────────────────────────────────────────────────────
 
@@ -166,48 +142,46 @@ export interface ToolbarItem {
   }
 }
 
-// ── Highlight style types ────────────────────────────────────────────
-
-export type HighlightStyle = 'underline' | 'marker' | 'border' | 'highlight'
-
-// ── Props ────────────────────────────────────────────────────────────
-
-const props = defineProps<{
-  /** Currently active highlight render style. */
-  highlightStyle?: HighlightStyle
-}>()
-
 // ── Emits ────────────────────────────────────────────────────────────
 
 const emit = defineEmits<{
   (e: 'insert', item: ToolbarItem): void
   (e: 'command', action: 'undo'): void
-  (e: 'update:highlightStyle', style: HighlightStyle): void
 }>()
 
-// ── Dropdown toggle logic ────────────────────────────────────────────
+// ── Heading dropdown logic ───────────────────────────────────────────
 
-const hlDropdownOpen = ref(false)
+const headingDropdownOpen = ref(false)
+const headingLabel = ref('标题 (H2)')
 
-/** Select a style and close the dropdown. */
-function onStyleSelect(style: HighlightStyle): void {
-  emit('update:highlightStyle', style)
-  hlDropdownOpen.value = false
+interface HeadingLevelOption {
+  level: string
+  label: string
+  prefix: string
+  placeholder: string
 }
 
-// ── Highlight style config ───────────────────────────────────────────
-
-const HIGHLIGHT_STYLES: { value: HighlightStyle; label: string; color: string }[] = [
-  { value: 'underline', label: '下划线',   color: '#3b82f6' },
-  { value: 'marker',    label: '荧光笔',   color: '#f59e0b' },
-  { value: 'border',    label: '边框',     color: '#8b5cf6' },
-  { value: 'highlight', label: '文本高亮', color: '#fde047' },
+const HEADING_LEVELS: HeadingLevelOption[] = [
+  { level: 'H1', label: '一级标题', prefix: '# ', placeholder: '' },
+  { level: 'H2', label: '二级标题', prefix: '## ', placeholder: '' },
+  { level: 'H3', label: '三级标题', prefix: '### ', placeholder: '' },
 ]
 
-const highlightStyleColor = computed(() => {
-  const found = HIGHLIGHT_STYLES.find((hs) => hs.value === (props.highlightStyle ?? 'underline'))
-  return found?.color ?? '#3b82f6'
-})
+/** Replace the heading toolbar item's wrap config with the selected level, then emit. */
+function onHeadingSelect(hl: HeadingLevelOption): void {
+  headingLabel.value = `标题 (${hl.level})`
+  emit('insert', {
+    id: 'heading',
+    icon: '<strong>H</strong>',
+    label: `标题 (${hl.level})`,
+    template: hl.prefix,
+    wrap: {
+      prefix: hl.prefix,
+      suffix: '',
+      placeholder: '',
+    },
+  })
+}
 
 // ── Toolbar config ───────────────────────────────────────────────────
 
@@ -223,23 +197,17 @@ const toolbarItems: readonly ToolbarItem[] = [
     wrap: { prefix: '**', suffix: '**', placeholder: '粗体文本' } },
   { id: 'italic',      icon: '<em>I</em>',          label: '斜体', template: '*斜体文本*',
     wrap: { prefix: '*',  suffix: '*',  placeholder: '斜体文本' } },
-  { id: 'heading',     icon: '<strong>H</strong>',  label: '标题', template: '## 标题',
-    wrap: { prefix: '## ', suffix: '',   placeholder: '标题' } },
-  { id: 'highlight',   icon: '🖊',                   label: '高亮', template: '==高亮文本==',
+  { id: 'highlight',   icon: '🖍',                   label: '高亮', template: '==高亮文本==',
     wrap: { prefix: '==', suffix: '==', placeholder: '高亮文本' } },
-  { id: 'underline',   icon: '<u>U</u>',            label: '下划线', template: '^下划线文本^',
-    wrap: { prefix: '^',  suffix: '^',  placeholder: '下划线文本' } },
+  { id: 'heading',     icon: '<strong>H</strong>',  label: '标题 (H2)', template: '## ',
+    wrap: { prefix: '## ', suffix: '',   placeholder: '' } },
 
   // ── Link & media ──
   { id: 'link',        icon: '🔗',                   label: '链接', template: '[链接文本](url)' },
   { id: 'image',       icon: '🖼',                   label: '图片', template: '![图片描述](url)' },
 
-  // ── Code & math ──
+  // ── Code ──
   { id: 'code',        icon: '⟨⟩',                   label: '代码块', template: '```\n代码\n```' },
-  { id: 'math',        icon: '𝑓',                    label: '公式', template: '$$\n公式\n$$' },
-
-  // ── Diagrams ──
-  { id: 'mermaid',     icon: '🔷',                   label: 'Mermaid', template: '```mermaid\ngraph TD\n  A --> B\n```' },
 
   // ── Table ──
   { id: 'table',       icon: '⊞',                    label: '表格', template: '| 列1 | 列2 | 列3 |\n| --- | --- | --- |\n| 内容 | 内容 | 内容 |' },
@@ -252,71 +220,3 @@ const toolbarItems: readonly ToolbarItem[] = [
   { id: 'right-column', icon: '◨',                   label: '右分栏', template: ':::right\n右栏内容\n:::' },
 ]
 </script>
-
-<style scoped>
-.toolbar-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  height: 100%;
-  font-size: 13px;
-  line-height: 1;
-  pointer-events: none;
-}
-
-/* ── Highlight split button ─────────────────────────────────────────────── */
-
-.hl-dropdown {
-  position: relative;
-}
-
-.highlight-split {
-  display: inline-flex;
-  align-items: center;
-  height: 28px;
-  border-radius: 0.375rem;
-}
-
-.highlight-main-btn {
-  border-top-right-radius: 0;
-  border-bottom-right-radius: 0;
-  border-right: none;
-}
-
-.highlight-caret-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 14px;
-  height: 28px;
-  cursor: pointer;
-  border: none;
-  border-top-right-radius: 0.375rem;
-  border-bottom-right-radius: 0.375rem;
-  background: transparent;
-  flex-shrink: 0;
-  padding: 0;
-  color: inherit;
-}
-
-.highlight-caret-btn:hover {
-  background-color: oklch(var(--bc) / 0.06);
-}
-
-.highlight-caret-icon {
-  width: 7px;
-  height: 4px;
-  pointer-events: none;
-}
-
-/* ── Dropdown menu ──────────────────────────────────────────────────────── */
-
-.hl-dropdown-menu {
-  position: absolute;
-  top: 100%;
-  right: 0;
-  margin-top: 4px;
-  white-space: nowrap;
-}
-</style>

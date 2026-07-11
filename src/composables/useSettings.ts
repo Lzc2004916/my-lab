@@ -1,5 +1,4 @@
 import { ref, watch } from 'vue'
-import type { TitleAlignment } from '@/card'
 
 // ── Types ────────────────────────────────────────────────────────────────
 
@@ -14,13 +13,12 @@ export type CardThemeId = string
 export interface AppSettings {
   cardSize: CardSizePreset
   bodyFontSize: number
-  titleFontSize: number
   exportFormat: 'PNG' | 'JPG' | 'PDF'
   splitMode: SplitMode
   /** Card theme ID (Canvas-based themes) */
   cardTheme: CardThemeId
   /** Highlight style */
-  highlightStyle: 'underline' | 'marker' | 'border' | 'highlight'
+  highlightStyle: 'underline' | 'border' | 'highlight'
   /** Footer left text */
   footerLeft: string
   /** Footer right display mode */
@@ -29,8 +27,6 @@ export interface AppSettings {
   footerEnabled: boolean
   /** Card corner mode */
   cardCornerMode: 'rounded' | 'square'
-  /** Card title font mode */
-  titleFontMode: 'serif' | 'kai' | 'sans' | 'puhuiti' | 'retroSerif' | 'display' | 'handwriting' | 'monoTitle'
   /** Body font mode */
   bodyFontMode: 'wenkai' | 'yahei' | 'simsun' | 'kaiti' | 'dengxian' | 'fangsong'
   /** Subheading style */
@@ -47,9 +43,6 @@ const cardSize = ref<CardSizePreset>(
 const bodyFontSize = ref<number>(
   Number(localStorage.getItem(STORAGE_PREFIX + 'bodyFontSize')) || 16,
 )
-const titleFontSize = ref<number>(
-  Number(localStorage.getItem(STORAGE_PREFIX + 'titleFontSize')) || 24,
-)
 const exportFormat = ref<'PNG' | 'JPG' | 'PDF'>(
   (localStorage.getItem(STORAGE_PREFIX + 'exportFormat') as 'PNG' | 'JPG' | 'PDF') || 'PNG',
 )
@@ -61,8 +54,8 @@ const splitMode = ref<SplitMode>(
 const cardTheme = ref<CardThemeId>(
   (localStorage.getItem(STORAGE_PREFIX + 'cardTheme') as CardThemeId) || 'moss-paper',
 )
-const highlightStyle = ref<'underline' | 'marker' | 'border' | 'highlight'>(
-  (localStorage.getItem(STORAGE_PREFIX + 'highlightStyle') as 'underline' | 'marker' | 'border' | 'highlight') || 'underline',
+const highlightStyle = ref<'underline' | 'border' | 'highlight'>(
+  (localStorage.getItem(STORAGE_PREFIX + 'highlightStyle') as 'underline' | 'border' | 'highlight') || 'underline',
 )
 const footerLeft = ref<string>(
   localStorage.getItem(STORAGE_PREFIX + 'footerLeft') || '',
@@ -76,9 +69,6 @@ const footerEnabled = ref<boolean>(
 const cardCornerMode = ref<'rounded' | 'square'>(
   (localStorage.getItem(STORAGE_PREFIX + 'cardCornerMode') as 'rounded' | 'square') || 'square',
 )
-const titleFontMode = ref<'serif' | 'kai' | 'sans' | 'puhuiti' | 'retroSerif' | 'display' | 'handwriting' | 'monoTitle'>(
-  (localStorage.getItem(STORAGE_PREFIX + 'titleFontMode') as 'serif' | 'kai' | 'sans' | 'puhuiti' | 'retroSerif' | 'display' | 'handwriting' | 'monoTitle') || 'serif',
-)
 const subheadingStyle = ref<'large' | 'accent'>(
   (localStorage.getItem(STORAGE_PREFIX + 'subheadingStyle') as 'large' | 'accent') || 'large',
 )
@@ -86,25 +76,10 @@ const bodyFontMode = ref<'wenkai' | 'yahei' | 'simsun' | 'kaiti' | 'dengxian' | 
   (localStorage.getItem(STORAGE_PREFIX + 'bodyFontMode') as 'wenkai' | 'yahei' | 'simsun' | 'kaiti' | 'dengxian' | 'fangsong') || 'wenkai',
 )
 
-// Title customization
-const titleColor = ref<string>(
-  localStorage.getItem(STORAGE_PREFIX + 'titleColor') || '',
-)
-const titleAlignment = ref<TitleAlignment>(
-  (localStorage.getItem(STORAGE_PREFIX + 'titleAlignment') as TitleAlignment) || 'left',
-)
-const titleCustomWeight = ref<number>(
-  Number(localStorage.getItem(STORAGE_PREFIX + 'titleCustomWeight')) || 0,
-)
-const titleCustomSpacing = ref<number>(
-  Number(localStorage.getItem(STORAGE_PREFIX + 'titleCustomSpacing')) || 0,
-)
-
 // ── Auto-persist ────────────────────────────────────────────────────────
 
 watch(cardSize, (v) => localStorage.setItem(STORAGE_PREFIX + 'cardSize', v))
 watch(bodyFontSize, (v) => localStorage.setItem(STORAGE_PREFIX + 'bodyFontSize', String(v)))
-watch(titleFontSize, (v) => localStorage.setItem(STORAGE_PREFIX + 'titleFontSize', String(v)))
 watch(exportFormat, (v) => localStorage.setItem(STORAGE_PREFIX + 'exportFormat', v))
 watch(splitMode, (v) => localStorage.setItem(STORAGE_PREFIX + 'splitMode', v))
 watch(cardTheme, (v) => localStorage.setItem(STORAGE_PREFIX + 'cardTheme', v))
@@ -113,20 +88,14 @@ watch(footerLeft, (v) => localStorage.setItem(STORAGE_PREFIX + 'footerLeft', v))
 watch(footerRightMode, (v) => localStorage.setItem(STORAGE_PREFIX + 'footerRightMode', v))
 watch(footerEnabled, (v) => localStorage.setItem(STORAGE_PREFIX + 'footerEnabled', String(v)))
 watch(cardCornerMode, (v) => localStorage.setItem(STORAGE_PREFIX + 'cardCornerMode', v))
-watch(titleFontMode, (v) => localStorage.setItem(STORAGE_PREFIX + 'titleFontMode', v))
 watch(subheadingStyle, (v) => localStorage.setItem(STORAGE_PREFIX + 'subheadingStyle', v))
 watch(bodyFontMode, (v) => localStorage.setItem(STORAGE_PREFIX + 'bodyFontMode', v))
-watch(titleColor, (v) => localStorage.setItem(STORAGE_PREFIX + 'titleColor', v))
-watch(titleAlignment, (v) => localStorage.setItem(STORAGE_PREFIX + 'titleAlignment', v))
-watch(titleCustomWeight, (v) => localStorage.setItem(STORAGE_PREFIX + 'titleCustomWeight', String(v)))
-watch(titleCustomSpacing, (v) => localStorage.setItem(STORAGE_PREFIX + 'titleCustomSpacing', String(v)))
 
 // ── Composable ───────────────────────────────────────────────────────────
 
 export function useSettings(): {
   cardSize: typeof cardSize
   bodyFontSize: typeof bodyFontSize
-  titleFontSize: typeof titleFontSize
   exportFormat: typeof exportFormat
   splitMode: typeof splitMode
   cardTheme: typeof cardTheme
@@ -135,18 +104,12 @@ export function useSettings(): {
   footerRightMode: typeof footerRightMode
   footerEnabled: typeof footerEnabled
   cardCornerMode: typeof cardCornerMode
-  titleFontMode: typeof titleFontMode
   subheadingStyle: typeof subheadingStyle
   bodyFontMode: typeof bodyFontMode
-  titleColor: typeof titleColor
-  titleAlignment: typeof titleAlignment
-  titleCustomWeight: typeof titleCustomWeight
-  titleCustomSpacing: typeof titleCustomSpacing
 } {
   return {
     cardSize,
     bodyFontSize,
-    titleFontSize,
     exportFormat,
     splitMode,
     cardTheme,
@@ -155,12 +118,7 @@ export function useSettings(): {
     footerRightMode,
     footerEnabled,
     cardCornerMode,
-    titleFontMode,
     subheadingStyle,
     bodyFontMode,
-    titleColor,
-    titleAlignment,
-    titleCustomWeight,
-    titleCustomSpacing,
   }
 }

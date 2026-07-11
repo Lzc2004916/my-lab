@@ -1,6 +1,6 @@
 /* ═══════════════════════════════════════════════════════════════════════════
-   Rich Text Editor — Design System
-   DaisyUI (Application) + Canvas-based Card Themes (src/card/themes.ts)
+   Markdown Card — Design System
+   DaisyUI (Application UI) + Card Theme CSS Variables (Card Content)
    ═══════════════════════════════════════════════════════════════════════════ */
 
 @import './themes/variables.css';
@@ -45,7 +45,7 @@
 
   /* ── Focus ring: visible for keyboard nav, hidden for mouse ────── */
   :focus-visible {
-    outline: 2px solid oklch(0.62 0.19 250);
+    outline: 2px solid oklch(0.55 0.22 252);
     outline-offset: 2px;
     border-radius: 2px;
   }
@@ -55,31 +55,16 @@
 
   /* ── Selection color ────────────────────────────────────────────── */
   ::selection {
-    background-color: oklch(0.62 0.19 250 / 0.18);
+    background-color: oklch(0.55 0.22 252 / 0.18);
   }
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   Components Layer — Interactive states, cards, buttons
+   Components Layer — Interactive states, abstractions, reusable patterns
    ═══════════════════════════════════════════════════════════════════════════ */
 
 @layer components {
-  /* ── Button active state: tactile press feedback ────────────────── */
-  .btn:active {
-    transform: scale(0.97);
-    transition: transform 0.1s ease;
-  }
-
-  /* ── Hover lift for interactive cards ───────────────────────────── */
-  .card-interactive {
-    transition: box-shadow 0.25s ease, transform 0.25s ease;
-  }
-  .card-interactive:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 16px oklch(0 0 0 / 0.06);
-  }
-
-  /* ── Smooth transitions for common interactive elements ─────────── */
+  /* ── Common interactive transitions ─────────────────────────────── */
   .btn,
   .select,
   .input,
@@ -94,9 +79,74 @@
                 opacity 0.15s ease;
   }
 
-  /* ── Canvas transition on theme switch ─────────────────────────── */
+  /* ── Button press feedback ──────────────────────────────────────── */
+  .btn:active {
+    transform: scale(0.97);
+    transition: transform 0.1s ease;
+  }
+
+  /* ── Card hover lift ────────────────────────────────────────────── */
+  .card-interactive {
+    transition: box-shadow 0.25s ease, transform 0.25s ease;
+  }
+  .card-interactive:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px oklch(0 0 0 / 0.06);
+  }
+
+  /* ── Canvas card transition on theme switch ─────────────────────── */
   .card-canvas {
     transition: box-shadow 0.35s ease, filter 0.3s ease;
+  }
+
+  /* ════════════════════════════════════════════════════════════════════
+     @apply Abstractions — Reusable composite patterns (Phase 5)
+     ════════════════════════════════════════════════════════════════ */
+
+  /* ── Control bar row (used in App.vue control sections) ─────────── */
+  .ctrl-row {
+    @apply flex items-center gap-x-4 gap-y-1 px-4 py-2 flex-wrap;
+  }
+
+  /* ── Control label + input pair ─────────────────────────────────── */
+  .ctrl-group {
+    @apply flex items-center gap-1.5;
+  }
+
+  /* ── Inline vertical divider ────────────────────────────────────── */
+  .inline-divider {
+    @apply w-px h-4 bg-base-300/50;
+  }
+
+  /* ── Section header label ───────────────────────────────────────── */
+  .section-header {
+    @apply text-xs font-semibold text-base-content/40 uppercase tracking-wider;
+  }
+
+  /* ── Panel: bordered rounded container ──────────────────────────── */
+  .panel {
+    @apply border border-base-300/60 bg-base-100 rounded-lg;
+  }
+
+  /* ── Empty state placeholder ────────────────────────────────────── */
+  .empty-placeholder {
+    @apply flex items-center justify-center border-2 border-dashed border-base-300/50 rounded-lg text-base-content/40;
+  }
+
+  /* ── Generic hover lift (opt-in) ────────────────────────────────── */
+  .hover-lift {
+    @apply transition-transform duration-200;
+  }
+  .hover-lift:hover {
+    @apply -translate-y-0.5;
+  }
+
+  /* ── Focus ring utility ─────────────────────────────────────────── */
+  .focus-ring {
+    @apply transition-shadow duration-150;
+  }
+  .focus-ring:focus-visible {
+    @apply ring-2 ring-primary ring-offset-2 ring-offset-base-100 outline-none;
   }
 }
 
@@ -113,6 +163,15 @@
       transparent 1px
     );
     background-size: 16px 16px;
+  }
+
+  /* ── Hide native scrollbar (use with custom scrollbar) ──────────── */
+  .scrollbar-none {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
   }
 }
 

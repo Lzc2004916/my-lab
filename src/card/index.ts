@@ -14,16 +14,12 @@ export type {
   DecorKind,
   CardPage,
   TypographySettings,
-  TitleAlignment,
-  TitleCustomization,
   GradientConfig,
   InlineToken,
   InlineLine,
   ParagraphBlock,
   TextBlock,
   CodeBlock,
-  MathDisplayBlock,
-  MermaidDisplayBlock,
   TableDisplayBlock,
   ColumnContainerBlock,
   Block,
@@ -33,7 +29,6 @@ export type {
   QuoteBoxMetrics,
   RenderOptions,
   LayoutOptions,
-  TitleFontMode,
   BodyFontMode,
   SubheadingStyle,
   HighlightStyle,
@@ -43,7 +38,7 @@ export type {
   FooterRightMode,
 } from './types'
 
-export { DEFAULT_TITLE_CUSTOM, BODY_FONT_MODES, DEFAULT_BODY_FONT_MODE, getBodyFontFamily } from './types'
+export { BODY_FONT_MODES, DEFAULT_BODY_FONT_MODE, getBodyFontFamily } from './types'
 
 export {
   PAGE_WIDTH,
@@ -95,7 +90,7 @@ export { renderAllPages, renderAllPagesAsync, canvasToPreviewUrl, canvasToExport
 export type { EngineOptions } from './engine'
 
 // Layout
-export { layoutPages, getParagraphBlock } from './layout'
+export { layoutPages, getParagraphBlock, parseInputBlocks } from './layout'
 
 // Renderer
 export { renderCard } from './renderer'
@@ -103,8 +98,6 @@ export { renderCard } from './renderer'
 // Block renderers
 export { drawCodeBlock, measureCodeBlock, tokenizeCode } from './code-renderer'
 export { drawTableBlock, measureTableBlock } from './table-renderer'
-export { drawMathBlock, measureMathBlock } from './math-renderer'
-export { drawMermaidBlock, renderMermaid } from './mermaid'
 
 // Measure
 export {
@@ -112,9 +105,6 @@ export {
   getBodyTokenWidth,
   wrapInlineTokensByWidth,
   parseInlineMarkdown,
-  measureTitleText,
-  fitTitleLines,
-  parseTitleMarkup,
   getPosterMetrics,
   getParagraphVisualHeight,
   getQuoteBoxMetrics,

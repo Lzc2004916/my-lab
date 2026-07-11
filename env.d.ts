@@ -30,13 +30,6 @@ declare module 'markdown-it-emoji' {
   export const light: PluginWithOptions
 }
 
-declare module 'mermaid' {
-  const mermaid: {
-    run: (opts?: { nodes?: (string | Element)[] }) => Promise<void>
-    initialize: (config: Record<string, unknown>) => void
-  }
-  export default mermaid
-}
 
 declare module 'prismjs' {
   const Prism: {

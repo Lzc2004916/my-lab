@@ -140,7 +140,6 @@ This is a **Markdown editor** with live card preview.
 
 - Real-time preview
 - Syntax highlighting
-- Math support: $E = mc^2$
 
 ### Code Example
 
@@ -159,7 +158,6 @@ function greet(name) {
 | Feature | Status |
 |---------|--------|
 | Markdown | ✅ |
-| Math | ✅ |
 | Diagrams | ✅ |
 
 Enjoy writing! 😊

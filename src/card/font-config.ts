@@ -2,8 +2,8 @@
 // CardPreview module — extended font configuration with web font URLs
 // ═══════════════════════════════════════════════════════════════════════════
 
-import type { TitleFontMode, BodyFontMode, ThemeDefinition } from './types'
-import { TITLE_FONT_MODES, BODY_FONT_MODES } from './types'
+import type { BodyFontMode, ThemeDefinition } from './types'
+import { BODY_FONT_MODES } from './types'
 import type { FontEntry } from '@/utils/font-loader'
 
 // ── Web font manifest ──────────────────────────────────────────────────────
@@ -88,25 +88,6 @@ export const WEB_FONT_MANIFEST: Record<string, FontEntry> = {
 // ── Font dependency resolver ────────────────────────────────────────────────
 
 /**
- * Extract all font families referenced in a title font mode.
- */
-function getTitleFontFamilies(mode: TitleFontMode): string[] {
-  const config = TITLE_FONT_MODES[mode] ?? TITLE_FONT_MODES.serif
-  const families: string[] = []
-
-  // Parse CSS font-family strings
-  for (const fontStr of [config.family, config.latinFamily]) {
-    const parsed = fontStr
-      .split(',')
-      .map((s) => s.trim().replace(/^['"]|['"]$/g, ''))
-      .filter(Boolean)
-    families.push(...parsed)
-  }
-
-  return [...new Set(families)]
-}
-
-/**
  * Extract all font families referenced in a body font mode.
  */
 function getBodyFontFamilies(mode: BodyFontMode): string[] {
@@ -123,12 +104,6 @@ function getBodyFontFamilies(mode: BodyFontMode): string[] {
  */
 export function getRequiredWebFonts(theme: ThemeDefinition): FontEntry[] {
   const familySet = new Set<string>()
-
-  // Title fonts
-  const titleMode = theme.editor.titleFontMode ?? 'serif'
-  for (const family of getTitleFontFamilies(titleMode)) {
-    familySet.add(family)
-  }
 
   // Body fonts — only the theme's bodyFontMode, not all six
   const bodyMode = theme.editor.bodyFontMode ?? 'wenkai'

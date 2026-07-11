@@ -7,23 +7,14 @@
 // Canvas rendering + CSS custom properties.
 //
 
-import type { ThemeDefinition, TitleCustomization, GradientConfig } from './types'
-import { DEFAULT_TITLE_CUSTOM, BODY_TEXT_WEIGHT } from './types'
-import { mixHexColors } from './color-utils'
+import type { ThemeDefinition, GradientConfig } from './types'
+import { BODY_TEXT_WEIGHT } from './types'
 
 // ── Design token shape ──────────────────────────────────────────────────────
 
 export interface CardDesignTokens {
   /** Main card background color */
   bgColor: string
-  /** Title text color */
-  titleColor: string
-  /** Title font weight (number, e.g. 600) */
-  titleFontWeight: number
-  /** Title font size in px */
-  titleFontSize: number
-  /** Title line-height multiplier */
-  titleLineHeight: number
   /** Body / content text color */
   bodyColor: string
   /** Body font weight (number, e.g. 400) */
@@ -42,20 +33,6 @@ export interface CardDesignTokens {
   gradientAngle: number
 }
 
-// ── Title font weight resolver ──────────────────────────────────────────────
-// Mirrors getTitleFontWeight in renderer.ts — keep in sync.
-// Extracted here to avoid circular dependency between renderer ↔ design-tokens.
-
-function getTitleFontWeight(mode: string, custom?: TitleCustomization): number {
-  if (custom && custom.fontWeight > 0) return custom.fontWeight
-  if (mode === 'display') return 800
-  if (mode === 'handwriting') return 500
-  if (mode === 'monoTitle') return 700
-  return mode === 'retroSerif' || mode === 'sans' || mode === 'puhuiti'
-    ? 700
-    : 600
-}
-
 // ── Token extraction ────────────────────────────────────────────────────────
 
 /** Default gradient angle used when none is specified. */
@@ -68,22 +45,11 @@ const DEFAULT_GRADIENT_ANGLE = 135
 export function extractTokens(
   theme: ThemeDefinition,
   gradientOverride?: GradientConfig,
-  titleCustom?: TitleCustomization,
 ): CardDesignTokens {
-  const tc = titleCustom ?? DEFAULT_TITLE_CUSTOM
   const grad = gradientOverride ?? theme.gradient
-
-  // Title color: custom override > blended accent > raw text color
-  const titleColor = tc.color
-    ? tc.color
-    : mixHexColors(theme.palette.text, theme.palette.accent, theme.surface.titleAccentMix)
 
   return {
     bgColor: theme.palette.page,
-    titleColor,
-    titleFontWeight: getTitleFontWeight(theme.editor.titleFontMode, tc),
-    titleFontSize: theme.editor.titleSize,
-    titleLineHeight: theme.editor.lineHeight,
     bodyColor: theme.palette.text,
     bodyFontWeight: BODY_TEXT_WEIGHT,
     bodyFontSize: theme.editor.bodySize,
@@ -100,10 +66,6 @@ export function extractTokens(
 /** Maps each design token to its corresponding CSS custom property name. */
 export const TOKEN_CSS_VAR_MAP: Record<keyof CardDesignTokens, string> = {
   bgColor: '--card-bg-color',
-  titleColor: '--card-title-color',
-  titleFontWeight: '--card-title-font-weight',
-  titleFontSize: '--card-title-font-size',
-  titleLineHeight: '--card-title-line-height',
   bodyColor: '--card-body-color',
   bodyFontWeight: '--card-body-font-weight',
   bodyFontSize: '--card-body-font-size',
@@ -143,8 +105,7 @@ export function tokensFromJSON(json: string): CardDesignTokens | null {
     const parsed = JSON.parse(json)
     // Basic structural validation
     const required: (keyof CardDesignTokens)[] = [
-      'bgColor', 'titleColor', 'titleFontWeight', 'titleFontSize',
-      'titleLineHeight', 'bodyColor', 'bodyFontWeight', 'bodyFontSize',
+      'bgColor', 'bodyColor', 'bodyFontWeight', 'bodyFontSize',
       'bodyLineHeight',
     ]
     for (const key of required) {

@@ -1,12 +1,14 @@
 <template>
-  <div class="theme-selector">
+  <div class="flex flex-col gap-2.5">
     <!-- ── Category filter pills ────────────────────────────────────── -->
-    <div v-if="categories.length > 1" class="filter-row">
+    <div v-if="categories.length > 1" class="flex gap-1.5 flex-wrap">
       <button
         v-for="cat in categories"
         :key="cat.key"
-        class="filter-pill"
-        :class="{ 'filter-pill--active': activeCategory === cat.key }"
+        class="text-2xs font-medium px-3 py-[3px] rounded-full border cursor-pointer transition-all duration-200 whitespace-nowrap"
+        :class="activeCategory === cat.key
+          ? 'bg-base-content/10 border-base-content/25 text-base-content/85 font-semibold'
+          : 'border-base-content/10 text-base-content/45 hover:border-base-content/25 hover:text-base-content/70'"
         @click="activeCategory = cat.key"
       >
         {{ cat.label }}
@@ -16,7 +18,7 @@
     <!-- ── Horizontal scroll track ──────────────────────────────────── -->
     <div
       ref="scrollRef"
-      class="scroll-track"
+      class="flex gap-3 overflow-x-auto overflow-y-hidden pt-1 pb-1.5 px-0.5 scrollbar-none"
       role="radiogroup"
       :aria-label="label || '卡片主题'"
       @scroll="onScroll"
@@ -27,16 +29,19 @@
         v-for="(theme, idx) in filteredThemes"
         :key="theme.id"
         :ref="(el: unknown) => setRadioRef(el, idx)"
-        class="theme-card"
-        :class="{ 'theme-card--selected': theme.id === modelValue }"
+        class="flex flex-col items-center gap-2 shrink-0 w-[146px] p-1.5 rounded-lg border-1.5 bg-transparent cursor-pointer transition-all duration-200"
+        :class="theme.id === modelValue
+          ? 'border-primary/50 bg-primary/5'
+          : 'border-transparent hover:bg-base-200/40 hover:-translate-y-px'"
         :aria-checked="theme.id === modelValue"
         :tabindex="theme.id === modelValue ? 0 : -1"
         role="radio"
         :title="`${theme.name} — ${theme.mood}`"
         @click="select(theme.id, idx)"
       >
+        <!-- Theme preview thumbnail -->
         <div
-          class="theme-preview"
+          class="relative w-[134px] h-[82px] rounded-md overflow-hidden shrink-0 transition-shadow duration-250"
           :style="{
             background: theme.palette.page,
             boxShadow: theme.id === modelValue
@@ -44,24 +49,47 @@
               : `0 2px 8px ${theme.palette.shadow}`,
           }"
         >
-          <div class="theme-preview-grain" :style="{ opacity: theme.surface.grainAlpha * 3 }" />
-          <div class="theme-preview-accent" :style="{ background: theme.palette.accent, opacity: Math.max(0.35, theme.surface.titleAccentMix) }" />
-          <div class="theme-preview-content">
-            <div class="preview-title-line" :style="{ background: theme.palette.text, opacity: 0.65, width: theme.editor.titleFontMode === 'handwriting' ? '65%' : '72%' }" />
-            <div class="preview-body-line" :style="{ background: theme.palette.text, opacity: 0.30, width: '94%' }" />
-            <div class="preview-body-line" :style="{ background: theme.palette.text, opacity: 0.30, width: '88%' }" />
-            <div class="preview-body-line" :style="{ background: theme.palette.muted, opacity: 0.22, width: '60%' }" />
+          <!-- Grain texture overlay -->
+          <div
+            class="absolute inset-0 pointer-events-none theme-preview-grain"
+            :style="{ opacity: theme.surface.grainAlpha * 3 }"
+          />
+          <!-- Accent bar -->
+          <div
+            class="absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-r-[2px]"
+            :style="{ background: theme.palette.accent, opacity: Math.max(0.35, theme.surface.titleAccentMix) }"
+          />
+          <!-- Content lines preview -->
+          <div class="relative z-[1] p-2.5 pl-3.5 flex flex-col gap-[3px]">
+            <div class="h-[3px] rounded-[1.5px] mb-[3px]" :style="{ background: theme.palette.text, opacity: 0.65, width: '72%' }" />
+            <div class="h-[2px] rounded-[1px]" :style="{ background: theme.palette.text, opacity: 0.30, width: '94%' }" />
+            <div class="h-[2px] rounded-[1px]" :style="{ background: theme.palette.text, opacity: 0.30, width: '88%' }" />
+            <div class="h-[2px] rounded-[1px]" :style="{ background: theme.palette.muted, opacity: 0.22, width: '60%' }" />
           </div>
-          <span class="preview-mood-badge" :style="{ background: theme.palette.accentSoft, color: theme.palette.accent }">{{ theme.mood }}</span>
+          <!-- Mood badge -->
+          <span
+            class="absolute bottom-1 right-1 text-3xs font-medium px-1.5 rounded-full leading-[1.4] whitespace-nowrap max-w-[70px] overflow-hidden text-ellipsis pointer-events-none"
+            :style="{ background: theme.palette.accentSoft, color: theme.palette.accent }"
+          >{{ theme.mood }}</span>
+          <!-- Check mark (animated) -->
           <Transition name="check-pop">
-            <div v-if="showCheck && theme.id === modelValue" class="preview-check" :style="{ background: theme.palette.accent }">
+            <div
+              v-if="showCheck && theme.id === modelValue"
+              class="absolute top-1 right-1 w-[18px] h-[18px] rounded-full flex items-center justify-center z-[2] shadow-[0_2px_4px_rgba(0,0,0,0.15)]"
+              :style="{ background: theme.palette.accent }"
+            >
               <svg class="w-3 h-3 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
             </div>
           </Transition>
         </div>
-        <div class="theme-meta">
-          <span class="theme-name" :class="{ 'theme-name--selected': theme.id === modelValue }">{{ theme.name }}</span>
-          <span class="theme-preset">{{ theme.preset }}</span>
+
+        <!-- Card metadata -->
+        <div class="flex flex-col items-center gap-px w-full min-w-0">
+          <span
+            class="text-xs font-medium leading-[1.2] whitespace-nowrap overflow-hidden text-ellipsis max-w-[130px] transition-colors duration-200"
+            :class="theme.id === modelValue ? 'text-base-content/90 font-bold' : 'text-base-content/55'"
+          >{{ theme.name }}</span>
+          <span class="text-3xs text-base-content/30 whitespace-nowrap overflow-hidden text-ellipsis max-w-[130px]">{{ theme.preset }}</span>
         </div>
       </button>
     </div>
@@ -70,11 +98,11 @@
     <div
       v-if="scrollViewW > 0 && scrollContentW > scrollViewW"
       ref="scrollbarRef"
-      class="custom-scrollbar"
+      class="relative h-[5px] bg-base-content/5 rounded-full cursor-pointer shrink-0"
       @mousedown="onScrollbarClick"
     >
       <div
-        class="custom-scrollbar-thumb"
+        class="absolute top-0 bottom-0 rounded-full bg-base-content/18 cursor-grab transition-[background] duration-150 will-change-transform active:bg-base-content/35 active:cursor-grabbing"
         :style="thumbStyle"
         @mousedown.stop="onThumbDragStart"
       />
@@ -366,240 +394,24 @@ watch(activeCategory, () => {
 </script>
 
 <style scoped>
-/* ═══════════════════════════════════════════════════════════════════════════════
-   Theme Selector — Horizontal scrollable theme gallery
-   ═══════════════════════════════════════════════════════════════════════════ */
-
-.theme-selector {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-/* ── Filter pills ─────────────────────────────────────────────────────────── */
-
-.filter-row {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-}
-
-.filter-pill {
-  font-size: 0.6875rem;
-  font-weight: 500;
-  padding: 3px 12px;
-  border-radius: 9999px;
-  border: 1px solid oklch(var(--bc) / 0.12);
-  background: transparent;
-  color: oklch(var(--bc) / 0.45);
-  cursor: pointer;
-  transition: all 0.18s ease;
-  white-space: nowrap;
-}
-
-.filter-pill:hover {
-  border-color: oklch(var(--bc) / 0.25);
-  color: oklch(var(--bc) / 0.7);
-}
-
-.filter-pill--active {
-  background: oklch(var(--bc) / 0.1);
-  border-color: oklch(var(--bc) / 0.25);
-  color: oklch(var(--bc) / 0.85);
-  font-weight: 600;
-}
-
-/* ── Scroll track ─────────────────────────────────────────────────────────── */
-
-.scroll-track {
-  display: flex;
-  gap: 12px;
-  overflow-x: auto;
-  overflow-y: hidden;
-  padding: 4px 2px 6px;
-  /* Hide native scrollbar — custom one below takes over */
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-
-.scroll-track::-webkit-scrollbar {
-  display: none;
-}
-
-/* ── Custom scrollbar ─────────────────────────────────────────────────────── */
-
-.custom-scrollbar {
-  position: relative;
-  height: 5px;
-  background: oklch(var(--bc) / 0.05);
-  border-radius: 9999px;
-  cursor: pointer;
-  flex-shrink: 0;
-}
-
-.custom-scrollbar-thumb {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  border-radius: 9999px;
-  background: oklch(var(--bc) / 0.18);
-  cursor: grab;
-  transition: background 0.15s ease;
-  will-change: transform;
-}
-
-.custom-scrollbar-thumb:hover,
-.custom-scrollbar-thumb:active {
-  background: oklch(var(--bc) / 0.35);
-}
-
-.custom-scrollbar-thumb:active {
-  cursor: grabbing;
-}
-
-/* ── Individual theme card ────────────────────────────────────────────────── */
-
-.theme-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  flex-shrink: 0;
-  width: 146px;
-  padding: 6px;
-  border-radius: 10px;
-  border: 1.5px solid transparent;
-  background: transparent;
-  cursor: pointer;
-  transition: border-color 0.2s ease, background-color 0.2s ease, transform 0.2s ease;
-}
-
-.theme-card:hover {
-  background-color: oklch(var(--b2) / 0.4);
-  transform: translateY(-1px);
-}
-
-.theme-card:focus-visible {
-  outline: 2px solid oklch(0.62 0.19 250);
-  outline-offset: 3px;
-  border-radius: 10px;
-}
-
-.theme-card--selected {
-  border-color: oklch(0.62 0.19 250 / 0.5);
-  background-color: oklch(0.62 0.19 250 / 0.05);
-}
-
-/* ── Theme preview ────────────────────────────────────────────────────────── */
-
-.theme-preview {
-  position: relative;
-  width: 134px;
-  height: 82px;
-  border-radius: 6px;
-  overflow: hidden;
-  transition: box-shadow 0.25s ease;
-  flex-shrink: 0;
-}
+/* ═══ Grain texture (SVG data URL — must be in CSS) ═══════════════════ */
 
 .theme-preview-grain {
-  position: absolute;
-  inset: 0;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 64 64' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   background-size: 64px 64px;
-  pointer-events: none;
 }
 
-.theme-preview-accent {
-  position: absolute;
-  left: 0;
-  top: 6px;
-  bottom: 6px;
-  width: 3px;
-  border-radius: 0 2px 2px 0;
-}
-
-.theme-preview-content {
-  position: relative;
-  z-index: 1;
-  padding: 10px 10px 10px 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-
-.preview-title-line { height: 3px; border-radius: 1.5px; margin-bottom: 3px; }
-.preview-body-line  { height: 2px; border-radius: 1px; }
-
-.preview-mood-badge {
-  position: absolute;
-  bottom: 5px;
-  right: 5px;
-  font-size: 0.5625rem;
-  font-weight: 500;
-  padding: 1px 6px;
-  border-radius: 9999px;
-  line-height: 1.4;
-  white-space: nowrap;
-  max-width: 70px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  pointer-events: none;
-}
-
-.preview-check {
-  position: absolute;
-  top: 4px;
-  right: 4px;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 2;
-  box-shadow: 0 2px 4px oklch(0 0 0 / 0.15);
-}
+/* ═══ Check animation (Vue Transition) ══════════════════════════════════ */
 
 .check-pop-enter-active { transition: all 0.15s cubic-bezier(0.34, 1.56, 0.64, 1); }
 .check-pop-leave-active { transition: all 0.2s ease-in; }
 .check-pop-enter-from   { opacity: 0; transform: scale(0.4); }
 .check-pop-leave-to     { opacity: 0; transform: scale(1.2); }
 
-/* ── Card metadata ────────────────────────────────────────────────────────── */
-
-.theme-meta {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1px;
-  width: 100%;
-  min-width: 0;
-}
-
-.theme-name {
-  font-size: 0.75rem;
-  font-weight: 500;
-  line-height: 1.2;
-  color: oklch(var(--bc) / 0.55);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 130px;
-  transition: color 0.2s ease;
-}
-
-.theme-name--selected {
-  color: oklch(var(--bc) / 0.9);
-  font-weight: 700;
-}
-
-.theme-preset {
-  font-size: 0.625rem;
-  color: oklch(var(--bc) / 0.3);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 130px;
+/* ── Override daisyUI focus style on radio buttons ──────────────────── */
+button[role="radio"]:focus-visible {
+  outline: 2px solid oklch(0.55 0.22 252);
+  outline-offset: 3px;
+  border-radius: 10px;
 }
 </style>

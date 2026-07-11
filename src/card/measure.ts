@@ -8,20 +8,15 @@ import type {
   ParagraphBlock,
   PosterMetrics,
   QuoteBoxMetrics,
-  TextRange,
   ThemeDefinition,
-  TitleFontMode,
-  TitleCustomization,
   SubheadingStyle,
   TypographySettings,
   CardPage,
 } from './types'
-import { DEFAULT_TITLE_CUSTOM } from './types'
 import {
   BODY_TEXT_WEIGHT,
   BODY_BOLD_WEIGHT,
   BODY_FONT_FAMILY,
-  TITLE_FONT_MODES,
   LEADING_PUNCTUATION,
   CONTENT_WIDTH,
   BODY_BOTTOM_WITH_FOOTER,
@@ -34,14 +29,39 @@ import {
 // Low-level text measurement
 // ═══════════════════════════════════════════════════════════════════════════
 
-/** Get a shared off-screen canvas 2D context for text measurement. */
+/**
+ * Singleton measurement context — reused for all text measurement.
+ * Avoids creating/destroying hundreds of canvas elements per render.
+ */
+let _measureCtx: CanvasRenderingContext2D | null = null
+let _measureCtxFont = ''
+
 function getMeasureCtx(font: string): CanvasRenderingContext2D {
-  const canvas = document.createElement('canvas')
-  const ctx = canvas.getContext('2d')
-  if (!ctx) throw new Error('Failed to create measure canvas')
-  ctx.font = font
-  return ctx
+  if (_measureCtx && _measureCtxFont === font) {
+    return _measureCtx
+  }
+  if (!_measureCtx) {
+    const canvas = document.createElement('canvas')
+    const ctx = canvas.getContext('2d')
+    if (!ctx) throw new Error('Failed to create measure canvas')
+    _measureCtx = ctx
+  }
+  _measureCtx.font = font
+  _measureCtxFont = font
+  return _measureCtx
 }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Inline-markdown parse + wrap caches (simple Map-based, LRU-ish via cap)
+// ═══════════════════════════════════════════════════════════════════════════
+
+const MAX_CACHE_SIZE = 256
+
+/** Cache for parseInlineMarkdown results. Keyed by raw text string. */
+const _parseCache = new Map<string, InlineToken[]>()
+
+/** Cache for wrapInlineTokensByWidth results. Keyed by composite key string. */
+const _wrapCache = new Map<string, InlineLine[]>()
 
 /** Split text into CJK characters, Latin runs, whitespace, and newlines. */
 export function splitTextForWrapping(text: string): string[] {
@@ -92,6 +112,18 @@ function splitOversizedUnit(
   return Array.from(token.text).map((char) => ({ ...token, text: char }))
 }
 
+/**
+ * Build a composite cache key for the wrap cache.
+ * Token identity is too complex for Map keying directly, so we derive a
+ * compact key from the serialized token text + layout params.
+ */
+function wrapCacheKey(tokens: InlineToken[], fontSize: number, maxWidth: number, fontFamily?: string): string {
+  // Use first + last token text + total count as a cheap fingerprint
+  const first = tokens.length > 0 ? tokens[0]!.text : ''
+  const last = tokens.length > 0 ? tokens[tokens.length - 1]!.text : ''
+  return `${tokens.length}:${first}:${last}:${fontSize}:${Math.round(maxWidth)}:${fontFamily ?? ''}`
+}
+
 /** Wrap inline tokens to fit within `maxWidth`, returning lines. */
 export function wrapInlineTokensByWidth(
   tokens: InlineToken[],
@@ -99,6 +131,10 @@ export function wrapInlineTokensByWidth(
   maxWidth: number,
   fontFamily?: string,
 ): InlineLine[] {
+  const key = wrapCacheKey(tokens, fontSize, maxWidth, fontFamily)
+  const cached = _wrapCache.get(key)
+  if (cached) return cached
+
   const charTokens = explodeInlineTokens(tokens)
   const lines: InlineLine[] = []
   let currentLine: InlineToken[] = []
@@ -149,6 +185,13 @@ export function wrapInlineTokensByWidth(
   }
 
   pushLine()
+
+  // Cap cache size
+  if (_wrapCache.size >= MAX_CACHE_SIZE) {
+    const firstKey = _wrapCache.keys().next().value
+    if (firstKey !== undefined) _wrapCache.delete(firstKey)
+  }
+  _wrapCache.set(key, lines)
   return lines
 }
 
@@ -159,8 +202,13 @@ export function wrapInlineTokensByWidth(
 /**
  * Parse inline markdown — extract **bold**, *italic*, ==highlight==,
  * and ^underline^ markers into InlineToken[].
+ *
+ * Results are cached per raw text — most blocks don't change between renders.
  */
 export function parseInlineMarkdown(text: string): InlineToken[] {
+  const cached = _parseCache.get(text)
+  if (cached) return cached
+
   const tokens: InlineToken[] = []
   // Bold (**) must match before italic (*) to avoid mis-parsing ** as two *.
   // Uses lookbehind/lookahead to ensure single * is not part of **.
@@ -194,245 +242,14 @@ export function parseInlineMarkdown(text: string): InlineToken[] {
     }
     tokens.push({ text: part, bold: false, italic: false, mark: false, underline: false })
   }
+
+  // Cap cache size to avoid memory leaks on large documents
+  if (_parseCache.size >= MAX_CACHE_SIZE) {
+    const firstKey = _parseCache.keys().next().value
+    if (firstKey !== undefined) _parseCache.delete(firstKey)
+  }
+  _parseCache.set(text, tokens)
   return tokens
-}
-
-// ═══════════════════════════════════════════════════════════════════════════
-// Title measurement
-// ═══════════════════════════════════════════════════════════════════════════
-
-function getTitleFontWeight(mode: TitleFontMode, custom?: TitleCustomization): number {
-  if (custom && custom.fontWeight > 0) return custom.fontWeight
-  return mode === 'retroSerif' || mode === 'sans' || mode === 'puhuiti' ? 700 : 600
-}
-
-function getTitleTracking(size: number, mode: TitleFontMode, custom?: TitleCustomization): number {
-  if (custom && custom.letterSpacing > 0) return custom.letterSpacing
-  if (mode === 'retroSerif') return Math.max(2, size * 0.03)
-  return 0
-}
-
-function getTitleLineHeightRatio(mode: TitleFontMode): number {
-  if (mode === 'puhuiti') return 1.38
-  if (mode === 'sans') return 1.32
-  return 1.28
-}
-
-function resolveTitleFontFamily(mode: TitleFontMode, isLatin: boolean): string {
-  const config = TITLE_FONT_MODES[mode] ?? TITLE_FONT_MODES.serif
-  return isLatin ? config.latinFamily : config.family
-}
-
-/** Split text into Latin/CJK segments for font-appropriate measurement. */
-function splitLatinRuns(text: string): string[] {
-  return text.match(/[A-Za-z0-9][A-Za-z0-9\s'&/.-]*|[^A-Za-z0-9]+/g) ?? [text]
-}
-
-/** Measure a title text segment with per-character tracking. */
-function measureTrackedTitleSegment(
-  segment: string,
-  size: number,
-  mode: TitleFontMode,
-  isLatin: boolean,
-  custom?: TitleCustomization,
-): number {
-  const ctx = getMeasureCtx(
-    `${getTitleFontWeight(mode, custom)} ${size}px ${resolveTitleFontFamily(mode, isLatin)}`,
-  )
-  const chars = Array.from(segment)
-  const tracking = getTitleTracking(size, mode, custom)
-  let width = 0
-
-  chars.forEach((char, index) => {
-    width += ctx.measureText(char).width
-    const nextChar = chars[index + 1]
-    if (nextChar && !/\s/.test(char) && !/\s/.test(nextChar)) {
-      width += tracking
-    }
-  })
-
-  return width
-}
-
-/** Measure the total rendered width of title text. */
-export function measureTitleText(
-  text: string,
-  size: number,
-  mode: TitleFontMode,
-  custom?: TitleCustomization,
-): number {
-  let width = 0
-  for (const segment of splitLatinRuns(text)) {
-    const isLatin = /^[A-Za-z0-9\s'&/.-]+$/.test(segment)
-    width += measureTrackedTitleSegment(segment, size, mode, isLatin, custom)
-  }
-  return width
-}
-
-/** Get title text segments for wrapping.
- *  Latin words (with letters/spaces/symbols) stay as word segments.
- *  CJK characters stay as individual segments (breakable between any two).
- *  Pure-digit runs and pure-letter runs are broken into individual characters —
- *  they have no word-boundary semantics and would otherwise overflow as one
- *  unbreakable segment (e.g. a long number or letter string as a custom title).
- *  Mixed alphanumeric runs with no spaces are handled by the overflow safety
- *  net in wrapTitleByWidth. */
-function getTitleSegments(text: string): string[] {
-  const runs = splitLatinRuns(text)
-  const segments: string[] = []
-  for (const run of runs) {
-    const chars = Array.from(run)
-    // Determine if this run is Latin
-    const isLatinRun = /^[A-Za-z0-9\s'&/.-]+$/.test(run)
-    // Pure-digit or pure-letter runs have no word boundaries — break into chars
-    const isPureDigits = /^\d+$/.test(run)
-    const isPureLetters = /^[A-Za-z]+$/.test(run)
-    if (isLatinRun && !isPureDigits && !isPureLetters) {
-      // Latin run with mixed content — keep as one word segment
-      segments.push(run)
-    } else if (isPureDigits || isPureLetters) {
-      // Digit-only or letter-only run — each char is a breakable segment
-      for (const char of chars) {
-        segments.push(char)
-      }
-    } else {
-      // CJK / punctuation run — each char is a breakable segment
-      for (const char of chars) {
-        if (/\s/.test(char) && segments.length > 0) {
-          // Whitespace in CJK context: skip, it's handled by measuring
-          segments.push(char)
-        } else if (!/\s/.test(char)) {
-          segments.push(char)
-        }
-      }
-    }
-  }
-  return segments
-}
-
-/** Wrap title text to fit within maxWidth. */
-function wrapTitleByWidth(
-  text: string,
-  ctx: CanvasRenderingContext2D,
-  maxWidth: number,
-  mode: TitleFontMode,
-  custom?: TitleCustomization,
-): string[] {
-  const manualLines = text
-    .split('\n')
-    .map((l) => l.trim())
-    .filter(Boolean)
-  if (manualLines.length > 1) return manualLines
-
-  const segments = getTitleSegments(text)
-  const lines: string[] = []
-  let currentLine = ''
-  const sizeMatch = ctx.font.match(/(\d+)px/)
-  const titleSize = sizeMatch ? Number(sizeMatch[1]) : 62
-
-  for (const segment of segments) {
-    const candidate = `${currentLine}${segment}`
-    if (currentLine && measureTitleText(candidate, titleSize, mode, custom) > maxWidth) {
-      lines.push(currentLine.trim())
-      currentLine = segment.trimStart()
-    } else if (!currentLine && segment.length > 1 && measureTitleText(segment, titleSize, mode, custom) > maxWidth) {
-      // Segment alone exceeds maxWidth — break into individual characters
-      for (const char of Array.from(segment)) {
-        const charCandidate = `${currentLine}${char}`
-        if (currentLine && measureTitleText(charCandidate, titleSize, mode, custom) > maxWidth) {
-          lines.push(currentLine.trim())
-          currentLine = char
-        } else {
-          currentLine = charCandidate
-        }
-      }
-    } else {
-      currentLine = candidate
-    }
-  }
-  if (currentLine.trim()) lines.push(currentLine.trim())
-  return lines.length > 0 ? lines : [text]
-}
-
-/** Auto-shrink title size until it fits in ≤2 lines. */
-export function fitTitleLines(
-  title: string,
-  settings: TypographySettings,
-): {
-  titleSize: number
-  titleLineHeight: number
-  titleLines: string[]
-} {
-  const cleanTitle = title.trim()
-  const ratio = getTitleLineHeightRatio(settings.titleFontMode)
-  const custom = settings.titleCustom ?? DEFAULT_TITLE_CUSTOM
-  if (!cleanTitle) {
-    return { titleSize: settings.titleSize, titleLineHeight: settings.titleSize * ratio, titleLines: [] }
-  }
-  const minSize = Math.max(34, settings.titleSize - 18)
-  const weight = getTitleFontWeight(settings.titleFontMode, custom)
-
-  /** Verify every line fits within the content width. */
-  function allLinesFit(lines: string[], size: number, maxW: number): boolean {
-    for (const line of lines) {
-      if (measureTitleText(line, size, settings.titleFontMode, custom) > maxW) {
-        return false
-      }
-    }
-    return true
-  }
-
-  for (let size = settings.titleSize; size >= minSize; size -= 2) {
-    const ctx = getMeasureCtx(
-      `${weight} ${size}px ${TITLE_FONT_MODES[settings.titleFontMode].family}`,
-    )
-    const lines = wrapTitleByWidth(cleanTitle, ctx, CONTENT_WIDTH, settings.titleFontMode, custom)
-    if (lines.length <= 2 && allLinesFit(lines, size, CONTENT_WIDTH)) {
-      return { titleSize: size, titleLineHeight: size * ratio, titleLines: lines }
-    }
-  }
-  // Minimum size fallback
-  const ctx = getMeasureCtx(
-    `${weight} ${minSize}px ${TITLE_FONT_MODES[settings.titleFontMode].family}`,
-  )
-  return {
-    titleSize: minSize,
-    titleLineHeight: minSize * ratio,
-    titleLines: wrapTitleByWidth(cleanTitle, ctx, CONTENT_WIDTH, settings.titleFontMode, custom),
-  }
-}
-
-/** Parse title markup to extract accent (bold) ranges. */
-export function parseTitleMarkup(raw: string): {
-  plainText: string
-  accentRanges: TextRange[]
-} {
-  const ranges: TextRange[] = []
-  let plainText = ''
-  let sourceCursor = 0
-  let charCursor = 0
-  const pattern = /\*\*([\s\S]+?)\*\*/g
-
-  const countVisibleChars = (t: string) => Array.from(t.replace(/\n/g, '')).length
-
-  for (const match of raw.matchAll(pattern)) {
-    const matchIndex = match.index ?? 0
-    const before = raw.slice(sourceCursor, matchIndex)
-    plainText += before
-    charCursor += countVisibleChars(before)
-
-    const emphasized = match[1] ?? ''
-    plainText += emphasized
-    const len = countVisibleChars(emphasized)
-    if (emphasized.trim()) {
-      ranges.push({ start: charCursor, end: charCursor + len })
-    }
-    charCursor += len
-    sourceCursor = matchIndex + match[0].length
-  }
-
-  plainText += raw.slice(sourceCursor)
-  return { plainText, accentRanges: ranges }
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -449,7 +266,19 @@ function getSubheadingFontSize(fontSize: number, headingLevel?: number): number 
   return Math.round(fontSize * 1.08)
 }
 
-function getSubheadingLineHeight(lineHeight: number, style: SubheadingStyle): number {
+/** Heading line height as a ratio of the heading's own font size. */
+function getHeadingLineHeightRatio(headingLevel?: number): number {
+  if (headingLevel === 1) return 1.25
+  if (headingLevel === 2) return 1.35
+  if (headingLevel === 3) return 1.45
+  return 1.55
+}
+
+function getSubheadingLineHeight(fontSize: number, lineHeight: number, style: SubheadingStyle, headingLevel?: number): number {
+  if (headingLevel && headingLevel >= 1 && headingLevel <= 6) {
+    const headingFontSize = getSubheadingFontSize(fontSize, headingLevel)
+    return Math.round(headingFontSize * getHeadingLineHeightRatio(headingLevel))
+  }
   return style === 'large' ? lineHeight * 1.02 : lineHeight
 }
 
@@ -545,7 +374,7 @@ export function measureParagraphBlock(
       : fontSize
   const activeLineHeight =
     block.kind === 'subheading'
-      ? getSubheadingLineHeight(lineHeight, subheadingStyle)
+      ? getSubheadingLineHeight(fontSize, lineHeight, subheadingStyle, headingLevel)
       : lineHeight
   const quoteMetrics =
     block.kind === 'quote'
@@ -594,7 +423,7 @@ export function getParagraphMaxLines(
       : fontSize
   const activeLineHeight =
     block.kind === 'subheading'
-      ? getSubheadingLineHeight(lineHeight, subheadingStyle)
+      ? getSubheadingLineHeight(fontSize, lineHeight, subheadingStyle, headingLevel)
       : lineHeight
   const quoteMetrics =
     block.kind === 'quote'
@@ -620,8 +449,8 @@ export function getGapBetweenBlocks(
   if (!prev) return 0
   const baseGap = metrics.bodyParagraphGap
   const quoteGap = baseGap * 1.08 + 4
-  if (curr.kind === 'subheading') return baseGap * 1.62
-  if (prev.kind === 'subheading') return baseGap * 1.3
+  if (curr.kind === 'subheading') return baseGap * 1.2
+  if (prev.kind === 'subheading') return baseGap * 0.85
   if (prev.kind === 'quote' || curr.kind === 'quote') return quoteGap
   return baseGap
 }
@@ -632,12 +461,9 @@ export function getGapBetweenBlocks(
 
 /**
  * Compute the full set of layout metrics for a card page.
- *
- * This determines title sizing, line heights, body type area, and the
- * vertical positions of the title, separator, and body text region.
  */
 export function getPosterMetrics(
-  page: CardPage,
+  _page: CardPage,
   settings: TypographySettings,
   footerEnabled: boolean,
 ): PosterMetrics {
@@ -645,36 +471,17 @@ export function getPosterMetrics(
   const bodyLineHeight = bodySize * Math.max(1.58, settings.lineHeight - 0.06)
   const bodyParagraphGap = Math.max(30, bodySize * 1.25)
 
-  const parsedTitle =
-    page.kind === 'cover' && page.title.trim()
-      ? parseTitleMarkup(page.title)
-      : null
-  const titleBlock = parsedTitle
-    ? fitTitleLines(parsedTitle.plainText, settings)
-    : null
-  const titleLineHeightRatio = getTitleLineHeightRatio(settings.titleFontMode)
-
-  const bodyAnchorStartY = 196
-  const titleStartY = 218
-  const separatorY = titleBlock
-    ? bodyAnchorStartY + titleBlock.titleLines.length * titleBlock.titleLineHeight - 18
-    : 110
-  const bodyTopY = separatorY + (titleBlock ? 0 : 10)
+  const separatorY = 110
+  const bodyTopY = separatorY + 10
   const bodyBottomY = footerEnabled
     ? BODY_BOTTOM_WITH_FOOTER
     : BODY_BOTTOM_WITHOUT_FOOTER
 
   return {
-    titleSize: titleBlock?.titleSize ?? settings.titleSize,
-    titleLineHeight:
-      titleBlock?.titleLineHeight ?? settings.titleSize * titleLineHeightRatio,
     bodySize,
     bodyLineHeight,
     bodyParagraphGap,
     bodyFontFamily: getBodyFontFamily(settings.bodyFontMode),
-    titleLines: titleBlock?.titleLines ?? [],
-    titleAccentRanges: parsedTitle?.accentRanges ?? [],
-    titleStartY,
     separatorY,
     bodyTopY,
     bodyBottomY,

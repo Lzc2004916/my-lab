@@ -108,12 +108,3 @@ declare module 'prismjs' {
   export default Prism
 }
 
-declare module 'mermaid' {
-  interface MermaidAPI {
-    initialize: (config: Record<string, unknown>) => void
-    render: (id: string, code: string) => Promise<{ svg: string }>
-    run: (options?: Record<string, unknown>) => Promise<void>
-  }
-  const mermaid: MermaidAPI
-  export default mermaid
-}

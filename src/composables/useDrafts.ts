@@ -7,20 +7,13 @@ const STORAGE_KEY = 'md2card:drafts'
 
 /** All user-customisable UI settings that survive restarts. */
 export interface AppSettings {
-  manualTitle: string
   editorTheme: string
   cardTheme: string
   bodyFontMode: string
-  titleFontMode: string
-  titleFontSize: number
   bodyFontSize: number
   highlightStyle: string
   footerEnabled: boolean
-  titleColor: string
-  titleAlignment: string
-  titleWeight: number
   showThemePanel: boolean
-  showTitlePanel: boolean
   split: number
   gradientConfig?: { enabled: boolean; color1: string; color2: string; angle: number }
 }
@@ -33,20 +26,13 @@ interface DraftPayload {
 // ── Default settings ──────────────────────────────────────────────────
 
 export const DEFAULT_SETTINGS: AppSettings = {
-  manualTitle: '',
   editorTheme: 'one-dark',
   cardTheme: 'moss-paper',
   bodyFontMode: 'wenkai',
-  titleFontMode: 'kaiti',
-  titleFontSize: 75,
   bodyFontSize: 30,
   highlightStyle: 'underline',
   footerEnabled: true,
-  titleColor: '',
-  titleAlignment: 'left',
-  titleWeight: 0,
   showThemePanel: false,
-  showTitlePanel: false,
   split: 50,
   gradientConfig: { enabled: false, color1: '#6c5ce7', color2: '#a29bfe', angle: 135 },
 }
@@ -103,6 +89,9 @@ export function useDrafts(): {
   const store = useDocumentsStore()
 
   // ── Auto-save: watch documents + settings → debounce persist ──
+  // Use a combination of shallow watchers instead of deep: true on the
+  // entire documents array — avoids dependency-tracking overhead on every
+  // keystroke while still catching all meaningful changes.
 
   let timer: ReturnType<typeof setTimeout> | null = null
   let latestSettings: AppSettings | null = null
@@ -114,10 +103,16 @@ export function useDrafts(): {
     }, 1000) // 1s debounce
   }
 
+  // Watch structural changes: doc count + active doc ID
   watch(
-    () => store.documents,
+    () => [store.documents.length, store.activeId] as const,
     () => schedulePersist(),
-    { deep: true },
+  )
+
+  // Watch active document content (covers the common editing case)
+  watch(
+    () => store.activeDocument?.content,
+    () => schedulePersist(),
   )
 
   // ── Final save on tab close ────────────────────────────────────

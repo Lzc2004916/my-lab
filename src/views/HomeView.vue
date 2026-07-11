@@ -28,7 +28,7 @@
     <section class="w-full max-w-5xl mx-auto px-8 pb-24">
       <div class="grid grid-cols-1 lg:grid-cols-5 gap-5">
         <!-- Main feature card (spans 3 cols) -->
-        <div class="lg:col-span-3 border border-base-300/60 bg-base-100/60 rounded-xl p-8 card-interactive">
+        <div class="lg:col-span-3 panel rounded-xl p-8 card-interactive">
           <div class="w-11 h-11 rounded-lg bg-primary/10 flex items-center justify-center mb-5">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -42,7 +42,7 @@
 
         <!-- Secondary features (stacked, spans 2 cols) -->
         <div class="lg:col-span-2 flex flex-col gap-5">
-          <div class="border border-base-300/60 bg-base-100/60 rounded-xl p-6 card-interactive">
+          <div class="panel rounded-xl p-6 card-interactive">
             <div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -50,11 +50,11 @@
             </div>
             <h3 class="text-base font-semibold text-base-content mb-1">Live Preview & Themes</h3>
             <p class="text-sm text-base-content/60 leading-relaxed">
-              Real-time card previews with canvas rendering. KaTeX math, Mermaid diagrams, and multiple card themes for every style.
+              Real-time card previews with canvas rendering and 31 curated card themes for every style.
             </p>
           </div>
 
-          <div class="border border-base-300/60 bg-base-100/60 rounded-xl p-6 card-interactive">
+          <div class="panel rounded-xl p-6 card-interactive">
             <div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />

@@ -5,7 +5,7 @@
       <p class="text-sm text-base-content/60">Write your content in Markdown with live preview</p>
     </div>
 
-    <div class="border border-base-300/60 bg-base-100/60 rounded-xl overflow-hidden">
+    <div class="panel rounded-xl overflow-hidden">
       <div class="grid grid-cols-1 lg:grid-cols-2 divide-y lg:divide-y-0 lg:divide-x divide-base-300/60">
         <!-- Editor Panel -->
         <div class="flex flex-col h-[75dvh]">
@@ -81,7 +81,7 @@ import { useMarkdown } from '@/composables/useMarkdown'
 import { useSettings } from '@/composables/useSettings'
 import { useExport } from '@/composables/useExport'
 import { PAGE_WIDTH, PAGE_HEIGHT, getTheme } from '@/card'
-import type { TypographySettings, TitleFontMode } from '@/card'
+import type { TypographySettings } from '@/card'
 
 // ── Settings ─────────────────────────────────────────────────────────────
 
@@ -99,7 +99,6 @@ This is a **Markdown editor** with live preview.
 
 - Real-time preview
 - Syntax highlighting
-- Math support: $E = mc^2$
 
 ### Code Example
 
@@ -118,7 +117,6 @@ function greet(name) {
 | Feature | Status |
 |---------|--------|
 | Markdown | ✅ |
-| Math | ✅ |
 | Diagrams | ✅ |
 
 Enjoy writing! 😊
@@ -129,30 +127,21 @@ Enjoy writing! 😊
 const typography = computed<TypographySettings>(() => {
   const theme = getTheme(settings.cardTheme.value)
   return {
-    titleSize: settings.titleFontSize.value,
     bodySize: settings.bodyFontSize.value,
     lineHeight: 1.84,
-    titleFontMode: settings.titleFontMode.value,
     bodyFontMode: settings.bodyFontMode.value || (theme.editor.bodyFontMode ?? 'wenkai'),
     subheadingStyle: settings.subheadingStyle.value || (theme.editor.subheadingStyle ?? 'large'),
-    titleCustom: {
-      color: settings.titleColor.value,
-      alignment: settings.titleAlignment.value,
-      fontWeight: settings.titleCustomWeight.value,
-      letterSpacing: settings.titleCustomSpacing.value,
-    },
   }
 })
 
-// Sync font settings to theme defaults when the theme changes
+// Sync body font to theme defaults when the theme changes
 watch(() => settings.cardTheme.value, (newThemeId) => {
   const theme = getTheme(newThemeId)
   if (theme.editor.bodyFontMode) {
     settings.bodyFontMode.value = theme.editor.bodyFontMode
   }
-  if (theme.editor.titleFontMode) {
-    settings.titleFontMode.value = theme.editor.titleFontMode as TitleFontMode
-  }
+  // Sync highlight style to theme's native style
+  settings.highlightStyle.value = theme.editor.highlightStyle
 })
 
 // ── Markdown processing ─────────────────────────────────────────────────

@@ -1,60 +1,70 @@
 <template>
-  <div class="gradient-picker">
+  <div class="flex items-center gap-1.5 flex-wrap">
     <label class="flex items-center gap-1.5 cursor-pointer">
       <input
         :checked="modelValue?.enabled ?? false"
         type="checkbox"
-        class="checkbox checkbox-sm"
+        class="checkbox checkbox-xs"
         @change="toggleEnabled"
       />
       <span class="text-xs text-base-content/50 whitespace-nowrap">渐变背景</span>
     </label>
 
     <Transition name="fade-slide">
-      <div v-if="modelValue?.enabled" class="gradient-controls">
+      <div v-if="modelValue?.enabled" class="flex items-center gap-1 flex-wrap">
         <!-- Color 1 swatch -->
-        <div class="color-swatch" :style="{ background: color1 }">
+        <div
+          class="relative w-5 h-5 rounded-full border border-base-content/20 cursor-pointer overflow-hidden shrink-0 transition-transform duration-150 hover:scale-115 hover:shadow-[0_0_0_2px_var(--fallback-bc,oklch(0_0_0/0.1))]"
+          :style="{ background: color1 }"
+        >
           <input
             type="color"
             :value="color1"
-            class="color-input"
+            class="absolute -inset-1 w-[calc(100%+8px)] h-[calc(100%+8px)] opacity-0 cursor-pointer"
             @input="updateColor1"
           />
         </div>
 
         <!-- Gradient preview bar (live) -->
         <div
-          class="gradient-bar"
+          class="w-10 h-2.5 rounded-full border border-base-content/12 shrink-0"
           :style="{ background: gradientCSS }"
           title="渐变预览"
         ></div>
 
         <!-- Color 2 swatch -->
-        <div class="color-swatch" :style="{ background: color2 }">
+        <div
+          class="relative w-5 h-5 rounded-full border border-base-content/20 cursor-pointer overflow-hidden shrink-0 transition-transform duration-150 hover:scale-115 hover:shadow-[0_0_0_2px_var(--fallback-bc,oklch(0_0_0/0.1))]"
+          :style="{ background: color2 }"
+        >
           <input
             type="color"
             :value="color2"
-            class="color-input"
+            class="absolute -inset-1 w-[calc(100%+8px)] h-[calc(100%+8px)] opacity-0 cursor-pointer"
             @input="updateColor2"
           />
         </div>
 
         <!-- Angle control -->
-        <div class="angle-control">
+        <div class="flex items-center gap-[3px]">
           <input
             type="range"
             min="0"
             max="360"
             :value="angle"
-            class="angle-slider"
+            class="range range-xs range-primary w-12"
             title="渐变角度"
             @input="updateAngle"
           />
-          <span class="angle-value">{{ angle }}°</span>
+          <span class="text-3xs text-base-content/45 w-[22px] text-right tabular-nums">{{ angle }}°</span>
         </div>
 
-        <!-- Remove/reset button -->
-        <button class="btn btn-ghost btn-xs h-6 w-6 p-0" title="重置" @click="resetColors">
+        <!-- Reset button -->
+        <button
+          class="btn btn-ghost btn-xs h-6 w-6 p-0 min-h-0"
+          title="重置"
+          @click="resetColors"
+        >
           <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
       </div>
@@ -119,88 +129,7 @@ function resetColors(): void {
 </script>
 
 <style scoped>
-.gradient-picker {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex-wrap: wrap;
-}
-
-.gradient-controls {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  flex-wrap: wrap;
-}
-
-.color-swatch {
-  position: relative;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  border: 1.5px solid oklch(var(--bc) / 0.18);
-  cursor: pointer;
-  overflow: hidden;
-  flex-shrink: 0;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
-}
-
-.color-swatch:hover {
-  transform: scale(1.15);
-  box-shadow: 0 0 0 2px oklch(var(--bc) / 0.1);
-}
-
-.color-input {
-  position: absolute;
-  inset: -4px;
-  width: calc(100% + 8px);
-  height: calc(100% + 8px);
-  opacity: 0;
-  cursor: pointer;
-}
-
-.gradient-bar {
-  width: 40px;
-  height: 10px;
-  border-radius: 5px;
-  border: 1px solid oklch(var(--bc) / 0.12);
-  flex-shrink: 0;
-}
-
-.angle-control {
-  display: flex;
-  align-items: center;
-  gap: 3px;
-}
-
-.angle-slider {
-  width: 48px;
-  height: 4px;
-  -webkit-appearance: none;
-  appearance: none;
-  background: oklch(var(--bc) / 0.15);
-  border-radius: 2px;
-  outline: none;
-  cursor: pointer;
-}
-
-.angle-slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: oklch(var(--p));
-  cursor: pointer;
-}
-
-.angle-value {
-  font-size: 9px;
-  color: oklch(var(--bc) / 0.45);
-  width: 22px;
-  text-align: right;
-  tabular-nums: 1;
-}
+/* ── Vue transition for expand/collapse ─────────────────────────────── */
 
 .fade-slide-enter-active {
   transition: all 0.2s ease-out;

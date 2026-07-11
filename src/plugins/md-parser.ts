@@ -2,7 +2,6 @@ import MarkdownIt from 'markdown-it'
 import markdownItAttrs from 'markdown-it-attrs'
 import markdownItContainer from 'markdown-it-container'
 import { full as markdownItEmoji } from 'markdown-it-emoji'
-import markdownItKatex from '@traptitech/markdown-it-katex'
 
 // ── Minimal type interfaces ─────────────────────────────────────────
 // We define only the properties / methods we actually use, avoiding
@@ -64,29 +63,7 @@ md.use(markdownItContainer, 'center', makeColumnOpts('center'))
 // ── 3. markdown-it-emoji ────────────────────────────────────────────
 md.use(markdownItEmoji)
 
-// ── 4. KaTeX ────────────────────────────────────────────────────────
-md.use(markdownItKatex, { throwOnError: false, output: 'html' })
-
-// ── 5. Mermaid fenced code → <div class="mermaid"> ──────────────────
-
-const defaultFenceRenderer =
-  md.renderer.rules.fence ||
-  ((tokens, idx): string => {
-    const token = tokens[idx]
-    return `<pre><code>${md.utils.escapeHtml(token.content)}</code></pre>\n`
-  })
-
-md.renderer.rules.fence = (tokens, idx, options, env, self): string => {
-  const token = tokens[idx]
-  if (token.info.trim().toLowerCase() === 'mermaid') {
-    // Include a min-height so the measurement engine accounts for the
-    // diagram even before mermaid.run() renders it client-side.
-    return `<div class="mermaid" style="min-height:180px">${md.utils.escapeHtml(token.content)}</div>\n`
-  }
-  return defaultFenceRenderer(tokens, idx, options, env, self)
-}
-
-// ── 6. ==highlight== custom inline plugin ────────────────────────────
+// ── 5. ==highlight== custom inline plugin ────────────────────────────
 
 function highlightRule(state: InlineState, silent: boolean): boolean {
   const start = state.pos
@@ -130,8 +107,7 @@ function underlineRule(state: InlineState, silent: boolean): boolean {
   if (state.src.charCodeAt(start) !== 0x5e) return false
 
   // Disallow when preceded by an alphanumeric — this guards against
-  // accidental captures inside KaTeX math (e.g. x^2) where ^ is
-  // a superscript, not an underline marker.
+  // accidental captures where ^ is a superscript, not an underline marker.
   if (start > 0) {
     const prevChar = state.src.charCodeAt(start - 1)
     const isAlphanumeric =
@@ -147,7 +123,7 @@ function underlineRule(state: InlineState, silent: boolean): boolean {
   if (closePos === -1 || closePos === contentStart) return false
 
   // Disallow when closing ^ is immediately followed by an alphanumeric
-  // (another KaTeX guard: ^2^3 is not underline).
+  // (guards against superscript patterns like ^2^3 being treated as underline).
   if (closePos + 1 < state.posMax) {
     const nextChar = state.src.charCodeAt(closePos + 1)
     const isWordChar =

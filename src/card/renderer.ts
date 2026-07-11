@@ -9,17 +9,12 @@ import type {
   PosterMetrics,
   QuoteBoxMetrics,
   RenderOptions,
-  TextRange,
   ThemeDefinition,
-  TitleFontMode,
-  TitleCustomization,
-  TitleAlignment,
   CardCornerMode,
   TypographySettings,
   ColumnContainerBlock,
   Block,
 } from './types'
-import { DEFAULT_TITLE_CUSTOM } from './types'
 import {
   PAGE_WIDTH,
   PAGE_HEIGHT,
@@ -37,7 +32,6 @@ import {
   SUBHEADING_TEXT_WEIGHT,
   BODY_FONT_FAMILY,
   FOOTER_FONT_FAMILY,
-  TITLE_FONT_MODES,
   HEADING_SIZE_RATIOS,
   COLUMN_GAP,
 } from './types'
@@ -53,10 +47,122 @@ import {
 } from './measure'
 import { drawCodeBlock, measureCodeBlock } from './code-renderer'
 import { drawTableBlock, measureTableBlock } from './table-renderer'
-import { drawMathBlock, measureMathBlock } from './math-renderer'
-import { drawMermaidBlock } from './mermaid'
-import { drawDecor } from './decor-renderer'
-import { hexToRgba, hexToRgb, mixHexColors, gradientAngleToPoints } from './color-utils'
+import { hexToRgba, hexToRgb, gradientAngleToPoints } from './color-utils'
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Seeded PRNG (mulberry32) — fast, deterministic, avoids Math.random() overhead
+// ═══════════════════════════════════════════════════════════════════════════
+
+function mulberry32(seed: number): () => number {
+  return () => {
+    seed |= 0; seed = seed + 0x6D2B79F5 | 0
+    let t = Math.imul(seed ^ seed >>> 15, 1 | seed)
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t
+    return ((t ^ t >>> 14) >>> 0) / 4294967296
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Pre-generated noise texture cache
+// ═══════════════════════════════════════════════════════════════════════════
+
+interface NoiseCacheEntry {
+  canvas: HTMLCanvasElement
+  density: number
+  darkMode: boolean
+  grainAlpha: number
+  textColor: string
+}
+
+const _noiseCache = new Map<string, NoiseCacheEntry>()
+
+/**
+ * Pre-render noise grain + paper fibers onto an offscreen canvas.
+ * Regenerated only when the theme changes — reused across renders.
+ * Uses a seeded PRNG for consistent, deterministic results.
+ */
+function getOrCreateNoiseTexture(
+  theme: ThemeDefinition,
+): HTMLCanvasElement | null {
+  if (isBrutalTheme(theme) || isGlassTheme(theme)) return null
+  if (theme.surface.grainAlpha <= 0) return null
+
+  const dark = isDarkTheme(theme)
+  const density = isDigitalEditorTheme(theme)
+    ? 760
+    : dark
+      ? (theme.mode === 'cyber' ? 900 : 2200)
+      : theme.mode === 'vintage'
+        ? 1700
+        : theme.mode === 'paper'
+          ? 1900
+          : theme.mode === 'luxe' || theme.mode === 'frost'
+            ? 800
+            : 1500
+
+  const cacheKey = `${theme.id}|${density}|${dark}|${theme.surface.grainAlpha}|${theme.palette.text}|${theme.mode}`
+
+  const cached = _noiseCache.get(cacheKey)
+  if (cached && cached.density === density && cached.darkMode === dark &&
+      cached.grainAlpha === theme.surface.grainAlpha && cached.textColor === theme.palette.text) {
+    return cached.canvas
+  }
+
+  // Build a pre-rendered noise canvas
+  const canvas = document.createElement('canvas')
+  canvas.width = PAGE_WIDTH
+  canvas.height = PAGE_HEIGHT
+  const nctx = canvas.getContext('2d')
+  if (!nctx) return null
+
+  const [r, g, b] = hexToRgb(theme.palette.text)
+  const rand = mulberry32(42) // fixed seed for reproducibility
+
+  // ── Grain particles ──
+  for (let i = 0; i < density; i++) {
+    const x = rand() * PAGE_WIDTH
+    const y = rand() * PAGE_HEIGHT
+    const size = rand() > 0.92 ? 1.4 : 0.8
+    const alpha = theme.surface.grainAlpha * (rand() > 0.9 ? 1.4 : 0.8)
+    nctx.fillStyle = `rgba(${r},${g},${b},${alpha})`
+    nctx.fillRect(x, y, size, size)
+  }
+
+  // ── Paper fibers (not for digital, dark, or swiss) ──
+  if (!isDigitalEditorTheme(theme) && !dark && theme.mode !== 'swiss') {
+    const fiberCount = theme.mode === 'paper' ? 72 : 48
+    nctx.lineWidth = 0.7
+    nctx.lineCap = 'round'
+    for (let i = 0; i < fiberCount; i++) {
+      const x = rand() * PAGE_WIDTH
+      const y = rand() * PAGE_HEIGHT
+      const length = 18 + rand() * 54
+      const drift = (rand() - 0.5) * 2.2
+      const alpha = theme.surface.grainAlpha * (theme.mode === 'paper' ? 0.52 : 0.36)
+      nctx.strokeStyle = `rgba(${r},${g},${b},${alpha})`
+      nctx.beginPath()
+      nctx.moveTo(x, y)
+      nctx.lineTo(Math.min(PAGE_WIDTH, x + length), y + drift)
+      nctx.stroke()
+    }
+  }
+
+  _noiseCache.set(cacheKey, { canvas, density, darkMode: dark, grainAlpha: theme.surface.grainAlpha, textColor: theme.palette.text })
+
+  // Prune cache if it grows too large (keep last 12 entries)
+  if (_noiseCache.size > 12) {
+    const firstKey = _noiseCache.keys().next().value
+    if (firstKey !== undefined) _noiseCache.delete(firstKey)
+  }
+
+  return canvas
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Luminance cache — avoids redundant color parsing during render
+// ═══════════════════════════════════════════════════════════════════════════
+
+const _luminanceCache = new Map<string, number>()
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Theme helpers
@@ -72,23 +178,34 @@ function isDarkTheme(theme: ThemeDefinition): boolean {
 /** Perceived brightness of the page background (0–1, 0 = black). */
 function getPageLuminance(theme: ThemeDefinition): number {
   const raw = theme.palette.page
+  // Check cache first
+  const cacheKey = raw
+  const cached = _luminanceCache.get(cacheKey)
+  if (cached !== undefined) return cached
+
   // rgb/rgba strings
   const rgbaMatch = raw.match(/rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/)
+  let luminance: number
   if (rgbaMatch) {
     const r = parseInt(rgbaMatch[1]!) / 255
     const g = parseInt(rgbaMatch[2]!) / 255
     const b = parseInt(rgbaMatch[3]!) / 255
     const linearize = (c: number) => c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4)
-    return 0.2126 * linearize(r) + 0.7152 * linearize(g) + 0.0722 * linearize(b)
+    luminance = 0.2126 * linearize(r) + 0.7152 * linearize(g) + 0.0722 * linearize(b)
+  } else {
+    // hex
+    const hex = raw.replace('#', '')
+    if (hex.length < 6) luminance = 0.5
+    else {
+      const r = parseInt(hex.slice(0, 2), 16) / 255
+      const g = parseInt(hex.slice(2, 4), 16) / 255
+      const b = parseInt(hex.slice(4, 6), 16) / 255
+      const linearize = (c: number) => c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4)
+      luminance = 0.2126 * linearize(r) + 0.7152 * linearize(g) + 0.0722 * linearize(b)
+    }
   }
-  // hex
-  const hex = raw.replace('#', '')
-  if (hex.length < 6) return 0.5
-  const r = parseInt(hex.slice(0, 2), 16) / 255
-  const g = parseInt(hex.slice(2, 4), 16) / 255
-  const b = parseInt(hex.slice(4, 6), 16) / 255
-  const linearize = (c: number) => c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4)
-  return 0.2126 * linearize(r) + 0.7152 * linearize(g) + 0.0722 * linearize(b)
+  _luminanceCache.set(cacheKey, luminance)
+  return luminance
 }
 
 function isDigitalEditorTheme(theme: ThemeDefinition): boolean {
@@ -487,263 +604,15 @@ function applyNoiseTexture(
   if (isBrutalTheme(theme) || isGlassTheme(theme)) return
   if (theme.surface.grainAlpha <= 0) return
 
-  const [r, g, b] = hexToRgb(theme.palette.text)
-  const density = isDigitalEditorTheme(theme)
-    ? 760
-    : isDarkTheme(theme)
-      ? (theme.mode === 'cyber' ? 900 : 2200)
-      : theme.mode === 'vintage'
-        ? 1700
-        : theme.mode === 'paper'
-          ? 1900
-          : theme.mode === 'luxe' || theme.mode === 'frost'
-            ? 800
-            : 1500
+  const noiseCanvas = getOrCreateNoiseTexture(theme)
+  if (!noiseCanvas) return
 
   ctx.save()
   ctx.globalCompositeOperation = isDarkTheme(theme)
     ? ('screen' as GlobalCompositeOperation)
     : ('multiply' as GlobalCompositeOperation)
-
-  // Grain particles
-  for (let i = 0; i < density; i++) {
-    const x = Math.random() * PAGE_WIDTH
-    const y = Math.random() * PAGE_HEIGHT
-    const size = Math.random() > 0.92 ? 1.4 : 0.8
-    const alpha =
-      theme.surface.grainAlpha * (Math.random() > 0.9 ? 1.4 : 0.8)
-    ctx.fillStyle = `rgba(${r},${g},${b},${alpha})`
-    ctx.fillRect(x, y, size, size)
-  }
-
-  // Paper fibers (not for digital or dark or swiss)
-  if (
-    !isDigitalEditorTheme(theme) &&
-    !isDarkTheme(theme) &&
-    theme.mode !== 'swiss'
-  ) {
-    const fiberCount = theme.mode === 'paper' ? 72 : 48
-    ctx.lineWidth = 0.7
-    ctx.lineCap = 'round'
-    for (let i = 0; i < fiberCount; i++) {
-      const x = Math.random() * PAGE_WIDTH
-      const y = Math.random() * PAGE_HEIGHT
-      const length = 18 + Math.random() * 54
-      const drift = (Math.random() - 0.5) * 2.2
-      const alpha =
-        theme.surface.grainAlpha *
-        (theme.mode === 'paper' ? 0.52 : 0.36)
-      ctx.strokeStyle = `rgba(${r},${g},${b},${alpha})`
-      ctx.beginPath()
-      ctx.moveTo(x, y)
-      ctx.lineTo(Math.min(PAGE_WIDTH, x + length), y + drift)
-      ctx.stroke()
-    }
-  }
-
+  ctx.drawImage(noiseCanvas, 0, 0)
   ctx.restore()
-}
-
-// ═══════════════════════════════════════════════════════════════════════════
-// 6. Cover ornament
-// ═══════════════════════════════════════════════════════════════════════════
-
-// ── Gradient text title (cyber, glass themes) ────────────────────────────
-
-function drawGradientTitle(
-  ctx: CanvasRenderingContext2D,
-  titleLines: string[],
-  titleSize: number,
-  titleFontMode: TitleFontMode,
-  titleStartY: number,
-  titleLineHeight: number,
-  gradientColors: [string, string],
-  alignment: TitleAlignment,
-  custom?: TitleCustomization,
-): void {
-  ctx.save()
-
-  // Create gradient across full title area
-  const colors = gradientColors
-  const gradient = ctx.createLinearGradient(CONTENT_LEFT, titleStartY - titleSize * 0.3, CONTENT_RIGHT, titleStartY + titleLineHeight * titleLines.length)
-  gradient.addColorStop(0, colors[0])
-  gradient.addColorStop(0.5, colors[1])
-  gradient.addColorStop(1, colors[0])
-
-  ctx.fillStyle = gradient
-  ctx.globalCompositeOperation = 'source-over'
-
-  const weight = getTitleFontWeight(titleFontMode, custom)
-
-  for (let li = 0; li < titleLines.length; li++) {
-    const line = titleLines[li]!
-    const lineY = titleStartY + li * titleLineHeight
-
-    // Center the title for gradient themes
-    ctx.font = `${weight} ${titleSize}px ${resolveTitleFontFamily(titleFontMode, true)}`
-    let x = alignment === 'center' ? (PAGE_WIDTH - ctx.measureText(line).width) / 2 : CONTENT_LEFT
-
-    ctx.fillText(line, x, lineY)
-  }
-
-  ctx.restore()
-}
-
-function drawCoverOrnament(
-  ctx: CanvasRenderingContext2D,
-  theme: ThemeDefinition,
-  metrics: PosterMetrics,
-  titleFontMode: TitleFontMode,
-  alignment: TitleAlignment,
-): void {
-  if (theme.mode === 'swiss' || theme.mode === 'brutal' || theme.mode === 'cyber' || theme.mode === 'glass' || isDigitalEditorTheme(theme)) return
-  ctx.save()
-  ctx.fillStyle = isDarkTheme(theme)
-    ? hexToRgba(theme.palette.text, 0.08)
-    : theme.mode === 'paper'
-      ? hexToRgba(theme.palette.text, 0.06)
-      : theme.mode === 'vintage'
-        ? hexToRgba(theme.palette.accent, 0.14)
-        : 'rgba(255,255,255,0.18)'
-  const fontFamily =
-    TITLE_FONT_MODES[titleFontMode]?.family ?? TITLE_FONT_MODES.serif.family
-  ctx.font = `500 ${Math.round(metrics.titleSize * 1.46)}px ${fontFamily}`
-
-  // Position ornament according to alignment
-  const ornamentX =
-    alignment === 'center'
-      ? PAGE_WIDTH / 2 - 140
-      : alignment === 'right'
-        ? CONTENT_RIGHT - 42
-        : 58
-
-  ctx.fillText(
-    '“',
-    ornamentX,
-    metrics.titleStartY - Math.max(18, metrics.titleSize * 0.24),
-  )
-  ctx.restore()
-}
-
-// ═══════════════════════════════════════════════════════════════════════════
-// 7. Title drawing
-// ═══════════════════════════════════════════════════════════════════════════
-
-function getTitleFontWeight(mode: TitleFontMode, custom?: TitleCustomization): number {
-  if (custom && custom.fontWeight > 0) return custom.fontWeight
-  if (mode === 'display') return 800
-  if (mode === 'handwriting') return 500
-  if (mode === 'monoTitle') return 700
-  return mode === 'retroSerif' || mode === 'sans' || mode === 'puhuiti'
-    ? 700
-    : 600
-}
-
-function getTitleTracking(size: number, mode: TitleFontMode, custom?: TitleCustomization): number {
-  if (custom && custom.letterSpacing > 0) return custom.letterSpacing
-  if (mode === 'retroSerif') return Math.max(2, size * 0.03)
-  if (mode === 'display') return Math.max(-1, -size * 0.01)
-  if (mode === 'handwriting') return Math.max(1, size * 0.015)
-  if (mode === 'monoTitle') return 0
-  return 0
-}
-
-/** Measure a single title line's rendered width (for alignment calc).
- *  Uses the same measurement approach as measure.ts for consistency. */
-function measureTitleTextForLine(
-  line: string,
-  size: number,
-  mode: TitleFontMode,
-  custom?: TitleCustomization,
-): number {
-  const weight = getTitleFontWeight(mode, custom)
-  const tracking = getTitleTracking(size, mode, custom)
-  let width = 0
-  // Reuse a single canvas context per script type
-  const cjkCtx = document.createElement('canvas').getContext('2d')
-  const latinCtx = document.createElement('canvas').getContext('2d')
-  if (!cjkCtx || !latinCtx) return 0
-  cjkCtx.font = `${weight} ${size}px ${resolveTitleFontFamily(mode, false)}`
-  latinCtx.font = `${weight} ${size}px ${resolveTitleFontFamily(mode, true)}`
-
-  const chars = Array.from(line)
-  for (let i = 0; i < chars.length; i++) {
-    const char = chars[i]!
-    const isLatin = /[A-Za-z0-9]/.test(char)
-    const ctx = isLatin ? latinCtx : cjkCtx
-    width += ctx.measureText(char).width
-    const nextChar = chars[i + 1]
-    if (nextChar && !/\s/.test(char) && !/\s/.test(nextChar)) {
-      width += tracking
-    }
-  }
-  return width
-}
-
-function resolveTitleFontFamily(mode: TitleFontMode, isLatin: boolean): string {
-  const config = TITLE_FONT_MODES[mode] ?? TITLE_FONT_MODES.serif
-  return isLatin ? config.latinFamily : config.family
-}
-
-function splitLatinRuns(text: string): string[] {
-  return (
-    text.match(/[A-Za-z0-9][A-Za-z0-9\s'&/.-]*|[^A-Za-z0-9]+/g) ?? [text]
-  )
-}
-
-function drawTitleLine(
-  ctx: CanvasRenderingContext2D,
-  line: string,
-  x: number,
-  y: number,
-  size: number,
-  mode: TitleFontMode,
-  custom?: TitleCustomization,
-  options?: {
-    globalCharStart?: number
-    accentRanges?: TextRange[]
-    normalColor?: string
-    accentColor?: string
-    accentWeight?: number
-  },
-): number {
-  let cursorX = x
-  let globalCharIdx = options?.globalCharStart ?? 0
-  const tracking = getTitleTracking(size, mode, custom)
-  const titleWeight = getTitleFontWeight(mode, custom)
-
-  for (const segment of splitLatinRuns(line)) {
-    const isLatin = /^[A-Za-z0-9\s'&/.-]+$/.test(segment)
-    const chars = Array.from(segment)
-
-    for (let i = 0; i < chars.length; i++) {
-      const char = chars[i]!
-      const isAccent = Boolean(
-        options?.accentRanges?.some(
-          (range) =>
-            globalCharIdx >= range.start && globalCharIdx < range.end,
-        ) && !/\s/.test(char),
-      )
-      const activeWeight = isAccent
-        ? (options?.accentWeight ?? Math.min(titleWeight + 100, 700))
-        : titleWeight
-
-      ctx.font = `${activeWeight} ${size}px ${resolveTitleFontFamily(mode, isLatin)}`
-      ctx.fillStyle = isAccent
-        ? (options?.accentColor ?? ctx.fillStyle)
-        : (options?.normalColor ?? ctx.fillStyle)
-      ctx.fillText(char, cursorX, y)
-      cursorX += ctx.measureText(char).width
-
-      const nextChar = chars[i + 1]
-      if (nextChar && !/\s/.test(char) && !/\s/.test(nextChar)) {
-        cursorX += tracking
-      }
-      globalCharIdx += 1
-    }
-  }
-
-  return globalCharIdx - (options?.globalCharStart ?? 0)
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -758,9 +627,7 @@ function resolveHighlightTreatment(
     return theme.components.highlightTreatment
   if (highlightStyle === 'highlight') return 'boldAccent'
   if (highlightStyle === 'border') return 'swissRule'
-  if (highlightStyle === 'marker')
-    return isDarkTheme(theme) ? 'darkGlow' : 'warmSwipe'
-  return theme.mode === 'sage' ? 'botanicalStroke' : 'softUnderline'
+  return 'softUnderline'
 }
 
 function drawHighlightMark(
@@ -782,72 +649,6 @@ function drawHighlightMark(
     // by drawInlineParagraph.
     ctx.restore()
     return
-  } else if (treatment === 'editorMark') {
-    ctx.fillStyle = hexToRgba(
-      accent,
-      Math.max(theme.components.highlightMarkerAlpha, 0.28),
-    )
-    roundRectPath(
-      ctx,
-      x - 5,
-      baselineY - fontSize * 0.6,
-      tokenWidth + 10,
-      Math.max(17, fontSize * 0.52),
-      6,
-    )
-    ctx.fill()
-  } else if (treatment === 'warmSwipe') {
-    ctx.globalCompositeOperation = isDarkTheme(theme)
-      ? ('screen' as GlobalCompositeOperation)
-      : ('multiply' as GlobalCompositeOperation)
-    ctx.fillStyle = hexToRgba(
-      accent,
-      Math.max(theme.components.highlightMarkerAlpha, 0.24),
-    )
-    roundRectPath(
-      ctx,
-      x - 5,
-      baselineY - fontSize * 0.48,
-      tokenWidth + 12,
-      Math.max(15, fontSize * 0.42),
-      8,
-    )
-    ctx.fill()
-  } else if (treatment === 'darkGlow') {
-    ctx.globalCompositeOperation = 'screen' as GlobalCompositeOperation
-    ctx.shadowColor = hexToRgba(accent, 0.34)
-    ctx.shadowBlur = 10
-    ctx.fillStyle = hexToRgba(
-      accent,
-      Math.max(theme.components.highlightMarkerAlpha, 0.2),
-    )
-    roundRectPath(
-      ctx,
-      x - 4,
-      baselineY - fontSize * 0.52,
-      tokenWidth + 8,
-      Math.max(14, fontSize * 0.46),
-      7,
-    )
-    ctx.fill()
-  } else if (treatment === 'botanicalStroke') {
-    ctx.strokeStyle = hexToRgba(
-      accent,
-      Math.max(theme.components.highlightUnderlineAlpha, 0.5),
-    )
-    ctx.lineWidth = Math.max(5, fontSize * 0.16)
-    ctx.lineCap = 'round'
-    ctx.beginPath()
-    ctx.moveTo(x - 1, baselineY + fontSize * 0.11)
-    ctx.bezierCurveTo(
-      x + tokenWidth * 0.24,
-      baselineY + fontSize * 0.2,
-      x + tokenWidth * 0.72,
-      baselineY + fontSize * 0.02,
-      x + tokenWidth + 2,
-      baselineY + fontSize * 0.12,
-    )
-    ctx.stroke()
   } else if (treatment === 'swissRule') {
     ctx.strokeStyle = hexToRgba(
       accent,
@@ -858,24 +659,27 @@ function drawHighlightMark(
     if (highlightStyle === 'border' || theme.mode !== 'swiss') {
       ctx.setLineDash([10, 5])
     }
+    const ruleY = baselineY + Math.max(3, fontSize * 0.08)
     ctx.beginPath()
-    ctx.moveTo(x - 1, baselineY + Math.max(5, fontSize * 0.12))
-    ctx.lineTo(x + tokenWidth + 1, baselineY + Math.max(5, fontSize * 0.12))
+    ctx.moveTo(x - 1, ruleY)
+    ctx.lineTo(x + tokenWidth + 1, ruleY)
     ctx.stroke()
     ctx.setLineDash([])
   } else {
-    // softUnderline (default)
+    // softUnderline (default) — thick underline below the text baseline
     ctx.fillStyle = hexToRgba(
       accent,
       Math.max(theme.components.highlightUnderlineAlpha, 0.44),
     )
+    const underlineTop = baselineY + Math.max(2, fontSize * 0.06)
+    const underlineHeight = Math.max(5, fontSize * 0.14)
     roundRectPath(
       ctx,
       x - 2,
-      baselineY - fontSize * 0.25,
+      underlineTop,
       tokenWidth + 5,
-      Math.max(8, fontSize * 0.22),
-      4,
+      underlineHeight,
+      Math.min(4, underlineHeight / 2),
     )
     ctx.fill()
   }
@@ -1014,7 +818,7 @@ let _colDrawnHeight = 0
 
 /**
  * Draw a list of blocks within a constrained column width.
- * Recursively handles text, code, table, math, and mermaid blocks.
+ * Recursively handles text, code, and table blocks.
  */
 function drawColumnBlocks(
   ctx: CanvasRenderingContext2D,
@@ -1080,16 +884,6 @@ function drawColumnBlocks(
       ctx.restore()
       cursorY += totalHeight
       prevBlock = { kind: 'body', raw: '' }
-    } else if (block.kind === 'mathBlock') {
-      const m = measureMathBlock(block, metrics.bodySize)
-      drawMathBlock(ctx, block, x, cursorY, metrics.bodySize)
-      cursorY += m.height
-      prevBlock = { kind: 'body', raw: '' }
-    } else if (block.kind === 'mermaid') {
-      const estH = block.estimatedHeight || 180
-      drawMermaidBlock(ctx, block, x, cursorY, metrics.bodySize)
-      cursorY += estH + 16
-      prevBlock = { kind: 'body', raw: '' }
     }
   }
 
@@ -1123,7 +917,7 @@ function drawInlineParagraph(
     ? Math.round(fontSize * (HEADING_SIZE_RATIOS[headingLevel || 2] ?? 1.12))
     : fontSize
   const activeLineHeight = isSubheading
-    ? lineHeight * 1.02
+    ? Math.round(activeFontSize * (headingLevel && headingLevel <= 3 ? [0, 1.25, 1.35, 1.45][headingLevel]! : 1.55))
     : lineHeight
   const quoteMetrics = isQuote
     ? getQuoteBoxMetrics(theme, activeFontSize, maxWidth)
@@ -1135,6 +929,7 @@ function drawInlineParagraph(
     parseInlineMarkdown(block.raw),
     activeFontSize,
     quoteWidth,
+    fontFamily,
   )
   const textHeight = getParagraphVisualHeight(
     lines.length,
@@ -1226,7 +1021,7 @@ function drawInlineParagraph(
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// 9. Footer
+// 7. Footer
 // ═══════════════════════════════════════════════════════════════════════════
 
 function getFooterRightText(
@@ -1297,10 +1092,8 @@ function drawFooter(
  *   3. Shape clipping (rounded or square)
  *   4. Atmosphere (washes, vignettes, grids)
  *   5. Texture (grain, fibers)
- *   6. Inner frame
- *   7. Cover ornament + title (cover pages only)
- *   8. Body paragraphs (with highlights + quotes)
- *   9. Footer
+ *   6. Body paragraphs (with highlights + quotes)
+ *   7. Footer
  *
  * Returns the canvas with the rendered card.
  */
@@ -1379,126 +1172,13 @@ export function renderCard(opts: RenderOptions): HTMLCanvasElement {
 
   ctx.restore()
 
-  // ── 6.5 Decor ornaments ──
-  drawDecor(ctx, theme, metrics.titleStartY + metrics.titleLineHeight * metrics.titleLines.length)
-
-  // ── 7. Cover title ──
-  if (page.kind === 'cover' && page.title.trim()) {
-    const accentRanges = metrics.titleAccentRanges
-    const titleCustom = settings.titleCustom ?? DEFAULT_TITLE_CUSTOM
-
-    // Title normal color: custom overrides theme
-    const titleNormalColor =
-      titleCustom.color || theme.palette.text
-
-    // Title accent color: if custom color is set, use it at higher alpha;
-    // otherwise mix from theme palette
-    const titleAccentColor = titleCustom.color
-      ? titleCustom.color
-      : mixHexColors(
-          theme.palette.text,
-          theme.palette.accent,
-          theme.surface.titleAccentMix,
-        )
-
-    const titleAccentWeight =
-      settings.titleFontMode === 'serif'
-        ? 600
-        : settings.titleFontMode === 'retroSerif' ||
-            settings.titleFontMode === 'sans' ||
-            settings.titleFontMode === 'puhuiti'
-          ? 700
-          : 600
-
-    // Compute title X position from alignment
-    const alignment = titleCustom.alignment
-    drawCoverOrnament(ctx, theme, metrics, settings.titleFontMode, alignment)
-
-    // Gradient title for cyber and glass themes
-    if (theme.mode === 'cyber' || theme.mode === 'glass') {
-      drawGradientTitle(
-        ctx,
-        metrics.titleLines,
-        metrics.titleSize,
-        settings.titleFontMode,
-        metrics.titleStartY,
-        metrics.titleLineHeight,
-        theme.mode === 'cyber'
-          ? ['#00f0ff', '#b400ff']
-          : ['#6c5ce7', '#a29bfe'],
-        alignment,
-        titleCustom,
-      )
-      ctx.restore()
-      // Skip normal title rendering below
-    } else {
-
-    ctx.save()
-    ctx.globalCompositeOperation = isDarkTheme(theme)
-      ? ('screen' as GlobalCompositeOperation)
-      : ('multiply' as GlobalCompositeOperation)
-
-    if (theme.mode === 'paper') {
-      ctx.shadowColor = 'rgba(255,255,255,0.34)'
-      ctx.shadowBlur = 0
-      ctx.shadowOffsetX = 0
-      ctx.shadowOffsetY = 1
-    } else if (theme.mode === 'archive') {
-      ctx.shadowColor = 'rgba(0,0,0,0.24)'
-      ctx.shadowBlur = 0
-      ctx.shadowOffsetX = 0
-      ctx.shadowOffsetY = 1
-    }
-
-    // Pre-measure total title width for center/right alignment
-    let totalTitleWidth = 0
-    if (alignment !== 'left') {
-      for (const line of metrics.titleLines) {
-        const w = measureTitleTextForLine(line, metrics.titleSize, settings.titleFontMode, titleCustom)
-        if (w > totalTitleWidth) totalTitleWidth = w
-      }
-    }
-
-    const titleBaseX =
-      alignment === 'center'
-        ? (PAGE_WIDTH - totalTitleWidth) / 2
-        : alignment === 'right'
-          ? CONTENT_RIGHT - totalTitleWidth
-          : CONTENT_LEFT
-
-    let titleCharOffset = 0
-    for (let li = 0; li < metrics.titleLines.length; li++) {
-      const line = metrics.titleLines[li]!
-      // For left alignment: use CONTENT_LEFT; for center/right: use computed base
-      const lineX = alignment === 'left' ? CONTENT_LEFT : titleBaseX
-      titleCharOffset += drawTitleLine(
-        ctx,
-        line,
-        lineX,
-        metrics.titleStartY + li * metrics.titleLineHeight,
-        metrics.titleSize,
-        settings.titleFontMode,
-        titleCustom,
-        {
-          globalCharStart: titleCharOffset,
-          accentRanges,
-          normalColor: titleNormalColor,
-          accentColor: titleAccentColor,
-          accentWeight: titleAccentWeight,
-        },
-      )
-    }
-    ctx.restore()
-    } // end else (non-gradient title path)
-  }
-
-  // ── 8. Body blocks (dispatched by block kind) ──
+  // ── 6. Body blocks (dispatched by block kind) ──
   let paragraphY = metrics.bodyTopY
   let previousBlock: ParagraphBlock | null = null
   for (let bi = 0; bi < page.blocks.length; bi++) {
     const paragraph = page.blocks[bi]!
     const blockTopWithGap = paragraphY + (previousBlock
-      ? getGapBetweenBlocks(previousBlock, { kind: 'body', raw: '' }, metrics)
+      ? getGapBetweenBlocks(previousBlock, paragraph as ParagraphBlock, metrics)
       : 0)
 
     // ── Text blocks (body / quote / subheading / divider) ──────────
@@ -1555,30 +1235,6 @@ export function renderCard(opts: RenderOptions): HTMLCanvasElement {
       continue
     }
 
-    // ── Math blocks ───────────────────────────────────────────────
-    if (paragraph.kind === 'mathBlock') {
-      const m = measureMathBlock(paragraph, metrics.bodySize)
-      const blockBottom = blockTopWithGap + m.height
-      if (blockBottom > metrics.bodyBottomY && page.blocks.indexOf(paragraph) > 0) break
-      paragraphY = blockTopWithGap
-      const drawnH = drawMathBlock(ctx, paragraph, CONTENT_LEFT, paragraphY, metrics.bodySize)
-      paragraphY += drawnH
-      previousBlock = { kind: 'body', raw: '' }
-      continue
-    }
-
-    // ── Mermaid blocks ────────────────────────────────────────────
-    if (paragraph.kind === 'mermaid') {
-      const estH = paragraph.estimatedHeight || 180
-      const blockBottom = blockTopWithGap + estH + 16
-      if (blockBottom > metrics.bodyBottomY && page.blocks.indexOf(paragraph) > 0) break
-      paragraphY = blockTopWithGap
-      const drawnH = drawMermaidBlock(ctx, paragraph, CONTENT_LEFT, paragraphY, metrics.bodySize)
-      paragraphY += drawnH
-      previousBlock = { kind: 'body', raw: '' }
-      continue
-    }
-
     // ── Column containers ────────────────────────────────────────
     if (paragraph.kind === 'columnContainer') {
       const colBlock = paragraph
@@ -1597,7 +1253,7 @@ export function renderCard(opts: RenderOptions): HTMLCanvasElement {
     }
   }
 
-  // ── 9. Footer ──
+  // ── 7. Footer ──
   if (footerEnabled) {
     drawFooter(
       ctx,

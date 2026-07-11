@@ -315,8 +315,6 @@ renderCard(opts)
   │     ├── Text (paragraphs, quotes, subheadings, dividers)
   │     ├── Code (syntax highlighted)
   │     ├── Tables (with headers + alternating rows)
-  │     ├── Math (KaTeX rendered)
-  │     ├── Mermaid (diagrams)
-  │     └── Column containers
+      │     └── Column containers
   └── 9. Footer (rule + left/right text)
 ```

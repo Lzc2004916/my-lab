@@ -1,7 +1,8 @@
 <template>
   <div
     ref="containerRef"
-    class="preview-root"
+    class="flex flex-col items-center justify-center gap-4 w-full min-h-full p-4 sm:p-3 lg:p-6 rounded-xl"
+    :style="{ backgroundColor: 'oklch(0.95 0.008 260)' }"
   >
     <!-- ═══════════════════════════════════════════════════════════════════
          Scroll mode — multi-page, each page is a <canvas>
@@ -9,14 +10,14 @@
     <div
       v-if="useScroll"
       ref="scrollRef"
-      class="scroll-container"
+      class="w-full flex-1 min-h-0 overflow-y-auto overflow-x-hidden py-2 flex flex-col items-center gap-4 sm:gap-4 lg:gap-6"
       @scroll="onScroll"
     >
       <canvas
         v-for="(_, idx) in canvases"
         :key="idx"
         :ref="(el: unknown) => setCanvasRef(el, idx)"
-        class="card-canvas"
+        class="card-canvas block max-w-full h-auto shrink-0 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.06),0_8px_28px_rgba(0,0,0,0.05),0_0_0_1px_rgba(0,0,0,0.04)]"
         :style="canvasDisplayStyle"
       ></canvas>
     </div>
@@ -27,14 +28,14 @@
     <canvas
       v-else-if="canvases.length > 0"
       ref="singleCanvasRef"
-      class="card-canvas"
+      class="card-canvas block max-w-full h-auto shrink-0 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.06),0_8px_28px_rgba(0,0,0,0.05),0_0_0_1px_rgba(0,0,0,0.04)]"
       :style="canvasDisplayStyle"
     ></canvas>
 
     <!-- Empty / loading state -->
     <div
       v-else
-      class="empty-state"
+      class="flex items-center justify-center border-1.5 border-dashed border-base-content/12 shrink-0 text-base-content/40 text-sm rounded-lg"
       :style="canvasDisplayStyle"
     >
       <LoadingSpinner
@@ -45,7 +46,7 @@
     </div>
 
     <!-- Page indicator -->
-    <div v-if="canvases.length > 1" class="page-indicator">
+    <div v-if="canvases.length > 1" class="flex items-center gap-2 shrink-0">
       <span class="text-sm tabular-nums text-base-content/70">
         {{ currentPage + 1 }} / {{ canvases.length }}
       </span>
@@ -55,8 +56,8 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, nextTick, onMounted, onBeforeUnmount } from 'vue'
-import { renderAllPagesAsync, renderAllPages, PAGE_WIDTH, PAGE_HEIGHT, getTheme, extractTokens, applyTokensToElement } from '@/card'
-import type { HighlightStyle, FooterRightMode, CardCornerMode, TypographySettings, GradientConfig } from '@/card'
+import { renderAllPagesAsync, renderAllPages, renderCard, PAGE_WIDTH, PAGE_HEIGHT, getTheme, extractTokens, applyTokensToElement } from '@/card'
+import type { HighlightStyle, FooterRightMode, CardCornerMode, TypographySettings, GradientConfig, CardPage } from '@/card'
 import LoadingSpinner from '@/components/LoadingSpinner.vue'
 
 // ── Props ───────────────────────────────────────────────────────────────
@@ -64,8 +65,6 @@ import LoadingSpinner from '@/components/LoadingSpinner.vue'
 interface Props {
   /** Markdown source text */
   source: string
-  /** Optional override title */
-  manualTitle?: string
   /** 0-based index of the active page */
   currentPage?: number
   /** Theme ID (e.g. 'moss-paper') */
@@ -89,17 +88,13 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  manualTitle: '',
   currentPage: 0,
   themeId: 'moss-paper',
   typography: () => ({
-    titleSize: 75,
     bodySize: 30,
     lineHeight: 1.84,
-    titleFontMode: 'serif' as const,
     bodyFontMode: 'wenkai' as const,
     subheadingStyle: 'large' as const,
-    titleCustom: { color: '', alignment: 'left' as const, fontWeight: 0, letterSpacing: 0 },
   }),
   highlightStyle: 'underline' as HighlightStyle,
   footerLeft: '',
@@ -147,8 +142,6 @@ let resizeObserver: ResizeObserver | null = null
 
 function setupResizeObserver(): void {
   if (typeof ResizeObserver === 'undefined') return
-  // Observe the right panel (parent of .preview-root) so we know
-  // exactly how much space is available for the card.
   const el = containerRef.value?.parentElement
   if (!el) return
 
@@ -218,7 +211,6 @@ const useScroll = computed(() => canvases.value.length > 1)
 // ── Helper: get actual rendered card height from DOM ─────────────────────
 
 function getRenderedCardHeight(): number {
-  // Try to read actual DOM element height
   const container = scrollRef.value
   if (container) {
     const firstCanvas = container.querySelector('canvas')
@@ -227,13 +219,16 @@ function getRenderedCardHeight(): number {
   if (singleCanvasRef.value) {
     return singleCanvasRef.value.offsetHeight
   }
-  // Fallback: compute from current scale
   return Math.round(PAGE_HEIGHT * displayScale.value)
 }
 
 // ── Render ───────────────────────────────────────────────────────────────
 
 let debounceTimer: ReturnType<typeof setTimeout> | null = null
+
+/** Cached page layout — reused when only theme/style changes (not source). */
+let lastSourceKey = ''
+let cachedLayoutPages: CardPage[] = []
 
 function scheduleRender(): void {
   if (debounceTimer) clearTimeout(debounceTimer)
@@ -242,32 +237,12 @@ function scheduleRender(): void {
 
 async function doRender(): Promise<void> {
   try {
-    const result = await renderAllPagesAsync({
-      source: props.source,
-      manualTitle: props.manualTitle,
-      themeId: props.themeId,
-      typography: props.typography,
-      highlightStyle: props.highlightStyle,
-      footerLeft: props.footerLeft,
-      footerRightMode: props.footerRightMode,
-      footerEnabled: props.footerEnabled,
-      cardCornerMode: props.cardCornerMode,
-      gradientConfig: props.gradientConfig,
-    })
+    const sourceChanged = props.source !== lastSourceKey
 
-    canvases.value = result.canvases
-
-    // Clamp current page
-    if (props.currentPage >= result.canvases.length && result.canvases.length > 0) {
-      emit('update:currentPage', Math.max(0, result.canvases.length - 1))
-    }
-  } catch (e) {
-    console.warn('[CardPreview] Render failed:', e)
-    // Fallback to sync render
-    try {
-      const result = renderAllPages({
+    if (sourceChanged) {
+      // Full pipeline: layout + render
+      const result = await renderAllPagesAsync({
         source: props.source,
-        manualTitle: props.manualTitle,
         themeId: props.themeId,
         typography: props.typography,
         highlightStyle: props.highlightStyle,
@@ -278,14 +253,77 @@ async function doRender(): Promise<void> {
         gradientConfig: props.gradientConfig,
       })
       canvases.value = result.canvases
+      cachedLayoutPages = result.pages
+      lastSourceKey = props.source
+    } else {
+      // Style-only change: reuse layout, re-render only
+      if (cachedLayoutPages.length === 0) {
+        // Fallback: full render if no cache
+        const result = await renderAllPagesAsync({
+          source: props.source,
+          themeId: props.themeId,
+          typography: props.typography,
+          highlightStyle: props.highlightStyle,
+          footerLeft: props.footerLeft,
+          footerRightMode: props.footerRightMode,
+          footerEnabled: props.footerEnabled,
+          cardCornerMode: props.cardCornerMode,
+          gradientConfig: props.gradientConfig,
+        })
+        canvases.value = result.canvases
+        cachedLayoutPages = result.pages
+      } else {
+        const theme = getTheme(props.themeId ?? 'moss-paper')
+        canvases.value = cachedLayoutPages.map((page, index) =>
+          renderCard({
+            page,
+            theme,
+            settings: props.typography,
+            highlightStyle: props.highlightStyle ?? theme.editor.highlightStyle,
+            pageIndex: index,
+            totalPages: cachedLayoutPages.length,
+            footerLeft: props.footerLeft ?? '',
+            footerRightMode: props.footerRightMode ?? 'page',
+            footerEnabled: props.footerEnabled ?? true,
+            cardCornerMode: props.cardCornerMode ?? 'square',
+            gradientConfig: props.gradientConfig,
+          }),
+        )
+      }
+    }
+
+    // Clamp current page
+    if (props.currentPage >= canvases.value.length && canvases.value.length > 0) {
+      emit('update:currentPage', Math.max(0, canvases.value.length - 1))
+    }
+  } catch (e) {
+    console.warn('[CardPreview] Render failed:', e)
+    try {
+      const result = renderAllPages({
+        source: props.source,
+          themeId: props.themeId,
+        typography: props.typography,
+        highlightStyle: props.highlightStyle,
+        footerLeft: props.footerLeft,
+        footerRightMode: props.footerRightMode,
+        footerEnabled: props.footerEnabled,
+        cardCornerMode: props.cardCornerMode,
+        gradientConfig: props.gradientConfig,
+      })
+      canvases.value = result.canvases
+      cachedLayoutPages = result.pages
+      lastSourceKey = props.source
     } catch { /* both failed */ }
   }
 }
 
+// Shallow watch: each element in the array is a prop value tracked by Vue's
+// reactivity. `deep: true` is unnecessary because props are replaced (not
+// mutated) when they change from the parent. Removing deep saves significant
+// dependency-tracking overhead on complex objects like typography & gradientConfig.
 watch(
   () => [
     props.source,
-    props.manualTitle,
     props.themeId,
     props.typography,
     props.highlightStyle,
@@ -296,7 +334,7 @@ watch(
     props.gradientConfig,
   ] as const,
   scheduleRender,
-  { immediate: true, deep: true },
+  { immediate: true },
 )
 
 // Copy rendered canvases into DOM canvas elements
@@ -378,19 +416,18 @@ watch(
 
 /** Apply design tokens as CSS custom properties on the preview root element. */
 watch(
-  () => [props.themeId, props.gradientConfig, props.typography?.titleCustom] as const,
+  () => [props.themeId, props.gradientConfig] as const,
   () => {
     const theme = getTheme(props.themeId ?? 'moss-paper')
     const tokens = extractTokens(
       theme,
       props.gradientConfig,
-      props.typography?.titleCustom,
     )
     if (containerRef.value) {
       applyTokensToElement(containerRef.value, tokens)
     }
   },
-  { immediate: true, deep: true },
+  { immediate: true },
 )
 
 // ── Lifecycle ────────────────────────────────────────────────────────────
@@ -429,130 +466,17 @@ defineExpose({
 
 <style scoped>
 /* ═══════════════════════════════════════════════════════════════════════════
-   .preview-root — Flexbox container
-   Uses flexbox to fill the parent container both horizontally and vertically.
-   Cards are centered within available space.
+   Container Queries (Tailwind doesn't support these yet — must keep)
    ═══════════════════════════════════════════════════════════════════════ */
 
 .preview-root {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: safe center;
-  gap: 1rem;
-  width: 100%;
-  min-height: 100%;
-  padding: 1rem;
-  border-radius: 0.75rem;
-  background-color: oklch(0.95 0.008 260);
-
-  /* Enable container queries for progressive enhancement */
   container-type: inline-size;
   container-name: preview;
 }
 
-/* ── Card canvas — responsive display ─────────────────────────────────── */
-
-.card-canvas {
-  display: block;
-  max-width: 100%;
-  height: auto;
-  flex-shrink: 0;
-  box-shadow:
-    0 1px 3px oklch(0 0 0 / 0.04),
-    0 4px 12px oklch(0 0 0 / 0.06),
-    0 8px 28px oklch(0 0 0 / 0.05),
-    0 0 0 1px oklch(0 0 0 / 0.04);
-}
-
-/* ── Empty state placeholder ──────────────────────────────────────────── */
-
-.empty-state {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px dashed oklch(0 0 0 / 0.12);
-  flex-shrink: 0;
-  color: oklch(0 0 0 / 0.4);
-  font-size: 0.875rem;
-}
-
-/* ── Scroll container (multi-page mode) ───────────────────────────────── */
-
-.scroll-container {
-  width: 100%;
-  flex: 1 1 auto;
-  min-height: 0;
-  overflow-y: auto;
-  overflow-x: hidden;
-  padding: 0.5rem 0 1rem;
-
-  /* Flex column: stack cards vertically, center horizontally */
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1.5rem;
-}
-
-/* ── Page indicator ───────────────────────────────────────────────────── */
-
-.page-indicator {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  flex-shrink: 0;
-}
-
-/* ═══════════════════════════════════════════════════════════════════════════
-   Responsive Breakpoints
-   ═══════════════════════════════════════════════════════════════════════ */
-
-/* Small screens (phones, < 640px):
-   Minimize padding, let card fill nearly full width. */
-@media (max-width: 639px) {
-  .preview-root {
-    padding: 0.5rem;
-    gap: 0.5rem;
-  }
-
-  .scroll-container {
-    padding: 0.25rem 0 0.5rem;
-    gap: 0.75rem;
-  }
-}
-
-/* Medium screens (tablets, 640px – 1023px):
-   Moderate padding. Card may scale slightly. */
-@media (min-width: 640px) and (max-width: 1023px) {
-  .preview-root {
-    padding: 0.75rem;
-  }
-
-  .scroll-container {
-    gap: 1rem;
-  }
-}
-
-/* Large screens (desktops, ≥ 1024px):
-   Full padding, card displays at up to previewScale × PAGE_WIDTH.
-   The ResizeObserver handles fine-tuning. */
-@media (min-width: 1024px) {
-  .preview-root {
-    padding: 1.5rem;
-  }
-}
-
-/* ═══════════════════════════════════════════════════════════════════════════
-   Container Queries (progressive enhancement)
-   When the preview container itself is narrow (e.g. in a small panel),
-   reduce decorative padding so the card gets more relative space.
-   ═══════════════════════════════════════════════════════════════════════ */
-
 @container preview (max-width: 400px) {
   .card-canvas {
-    box-shadow:
-      0 1px 2px oklch(0 0 0 / 0.04),
-      0 2px 6px oklch(0 0 0 / 0.05);
+    box-shadow: 0 1px 2px oklch(0 0 0 / 0.04), 0 2px 6px oklch(0 0 0 / 0.05);
   }
 }
 
@@ -563,7 +487,7 @@ defineExpose({
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   Print styles — cards output at full resolution
+   Print styles — full resolution output
    ═══════════════════════════════════════════════════════════════════════ */
 
 @media print {
