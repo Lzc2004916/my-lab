@@ -114,6 +114,8 @@ export interface ThemeEditor {
   lineHeight: number
   /** 默认正文字体模式 — 主题的正文字体标识 */
   bodyFontMode?: BodyFontMode
+  /** 默认正文文本字重（100-900，默认 400） */
+  bodyFontWeight?: number
   /** 默认子标题视觉处理 */
   subheadingStyle?: SubheadingStyle
   /** 默认高亮样式 */

@@ -247,7 +247,12 @@ function scrollToCard(idx: number): void {
   if (!el) return
   const card = el.children[idx] as HTMLElement | undefined
   if (!card) return
-  targetScrollLeft = Math.max(0, card.offsetLeft - el.clientWidth / 2 + card.offsetWidth / 2)
+  // 使用 getBoundingClientRect 计算相对于滚动容器的位置，
+  // 避免 offsetLeft 相对于 offsetParent 导致的偏移错误。
+  const containerRect = el.getBoundingClientRect()
+  const cardRect = card.getBoundingClientRect()
+  const cardOffsetInScroll = cardRect.left - containerRect.left + el.scrollLeft
+  targetScrollLeft = Math.max(0, cardOffsetInScroll - el.clientWidth / 2 + card.offsetWidth / 2)
   animateScroll()
 }
 

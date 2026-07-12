@@ -321,6 +321,14 @@ function serializeInlineTokens(tokens: InlineToken[]): string {
 // 段落分割
 // ═══════════════════════════════════════════════════════════════════════════
 
+/**
+ * 检测文本中是否包含内联 markdown 格式化标记。
+ * 用于防止分割操作意外截断 **bold**、*italic*、==highlight== 或 ^underline^。
+ */
+function hasInlineMarkdownMarkers(text: string): boolean {
+  return /(\*\*|(?<!\*)\*(?!\*)|==|\^)/.test(text)
+}
+
 /** 将长段落分割为约 chunkSize 个字符的块。 */
 function splitLongParagraph(raw: string, chunkSize: number): string[] {
   const text = raw.trim()
@@ -329,11 +337,29 @@ function splitLongParagraph(raw: string, chunkSize: number): string[] {
   // 首先尝试按手动换行符分割
   const manualLines = text.split('\n')
   if (manualLines.length > 1) {
+    // 如果包含格式化标记，则需要更保守地进行分割：
+    // 逐行累积，但在遇到格式化标记跨行时保持完整。
+    const hasFormatting = hasInlineMarkdownMarkers(text)
     const chunks: string[] = []
     let current = ''
     for (const line of manualLines) {
       const candidate = current ? `${current}\n${line}` : line
       if (candidate.length > chunkSize && current) {
+        // 如果当前 chunk 已有格式化标记，确保分割点不在标记内部
+        if (hasFormatting && hasInlineMarkdownMarkers(current)) {
+          // 检查 candidate 中是否还有未闭合的标记（即标记跨越了换行符）
+          const openBold = (current.match(/\*\*/g) || []).length % 2 !== 0
+          const openMark = (current.match(/==/g) || []).length % 2 !== 0
+          const openUnderline = (current.match(/\^/g) || []).length % 2 !== 0
+          // 计算单 * 数量（排除 ** 中的 *）
+          const singleStars = current.match(/(?<!\*)\*(?!\*)/g) || []
+          const openItalic = singleStars.length % 2 !== 0
+          if (openBold || openItalic || openMark || openUnderline) {
+            // 标记未闭合 — 暂不分块，继续累积直到标记闭合
+            current = candidate
+            continue
+          }
+        }
         chunks.push(current.trim())
         current = line
       } else {
@@ -350,6 +376,8 @@ function splitLongParagraph(raw: string, chunkSize: number): string[] {
     .map((s) => s.trim())
     .filter(Boolean)
   if (sentences.length <= 1) {
+    // 如果包含格式化标记，禁止按字符位置切分，避免截断标记
+    if (hasInlineMarkdownMarkers(text)) return [text]
     const slices: string[] = []
     let cursor = 0
     while (cursor < text.length) {
@@ -359,11 +387,18 @@ function splitLongParagraph(raw: string, chunkSize: number): string[] {
     return slices.filter(Boolean)
   }
 
+  // 按句子累积，遇到格式化标记的句子时保持完整
   const chunks: string[] = []
   let current = ''
   for (const sentence of sentences) {
     const candidate = `${current}${sentence}`
     if (candidate.length > chunkSize && current) {
+      // 在格式化文本边界保持句子完整
+      if (hasInlineMarkdownMarkers(sentence) && current.length < chunkSize * 0.5) {
+        // 当前积累较少，将格式化句子附加到当前块以避免拆分
+        current = candidate
+        continue
+      }
       chunks.push(current.trim())
       current = sentence
     } else {
@@ -375,7 +410,9 @@ function splitLongParagraph(raw: string, chunkSize: number): string[] {
 }
 
 function splitParagraphBySentence(text: string): string[] {
-  if (/\*\*|==/.test(text)) return [text]
+  // 如果文本中包含任何内联格式化标记，拒绝按句子拆分，
+  // 以避免截断 **bold**、*italic*、==highlight== 或 ^underline^ 范围。
+  if (hasInlineMarkdownMarkers(text)) return [text]
   if (text.includes('\n')) {
     return text
       .split('\n')

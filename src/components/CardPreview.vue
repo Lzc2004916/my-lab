@@ -16,7 +16,7 @@
         v-for="(_, idx) in canvases"
         :key="idx"
         :ref="(el: unknown) => setCanvasRef(el, idx)"
-        class="card-canvas block max-w-full h-auto shrink-0 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.06),0_8px_28px_rgba(0,0,0,0.05),0_0_0_1px_rgba(0,0,0,0.04)]"
+        class="card-canvas block h-auto shrink-0 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.06),0_8px_28px_rgba(0,0,0,0.05),0_0_0_1px_rgba(0,0,0,0.04)]"
         :style="canvasDisplayStyle"
       ></canvas>
     </div>
@@ -27,7 +27,7 @@
     <canvas
       v-else-if="canvases.length > 0"
       ref="singleCanvasRef"
-      class="card-canvas block max-w-full h-auto shrink-0 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.06),0_8px_28px_rgba(0,0,0,0.05),0_0_0_1px_rgba(0,0,0,0.04)]"
+      class="card-canvas block h-auto shrink-0 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.06),0_8px_28px_rgba(0,0,0,0.05),0_0_0_1px_rgba(0,0,0,0.04)]"
       :style="canvasDisplayStyle"
     ></canvas>
 
@@ -113,11 +113,7 @@ const emit = defineEmits<{
 // ── Layout constants ─────────────────────────────────────────────────────
 
 /** 停止缩放的最小卡片宽度（px，可读性底线）。 */
-const MIN_CARD_WIDTH = 260
-/** .preview-root 内的水平内边距（1.5rem × 2 边，16px 基准）。 */
-const ROOT_PADDING_X = 48
-/** .preview-root 内的垂直内边距（1rem × 2 边，16px 基准）。 */
-const ROOT_PADDING_Y = 32
+const MIN_CARD_WIDTH = 180
 /** 滚动模式下卡片之间的间距（px）。 */
 const CARD_GAP = 24
 
@@ -131,76 +127,26 @@ const singleCanvasRef = ref<HTMLCanvasElement | null>(null)
 const canvasRefs = ref<Record<number, HTMLCanvasElement | null>>({})
 const activeIdx = ref(props.currentPage)
 
-/** 右侧面板的当前像素尺寸（来自父元素的 ResizeObserver）。 */
-const containerWidth = ref(0)
-const containerHeight = ref(0)
-
-// ── ResizeObserver — track parent (right panel) size for responsive fit ──
-
-let resizeObserver: ResizeObserver | null = null
-
-function setupResizeObserver(): void {
-  if (typeof ResizeObserver === 'undefined') return
-  const el = containerRef.value?.parentElement
-  if (!el) return
-
-  resizeObserver = new ResizeObserver((entries) => {
-    for (const entry of entries) {
-      const { width, height } = entry.contentRect
-      if (width > 0 && width !== containerWidth.value) {
-        containerWidth.value = width
-      }
-      if (height > 0 && height !== containerHeight.value) {
-        containerHeight.value = height
-      }
-    }
-  })
-  resizeObserver.observe(el)
-}
-
-function teardownResizeObserver(): void {
-  resizeObserver?.disconnect()
-  resizeObserver = null
-}
-
 // ── Dynamic scale computation ────────────────────────────────────────────
 
 /**
- * 计算卡片画布的最佳显示缩放比例。
- *
- * 在两个维度上填充可用空间（适应容器）：
- *  1. 计算使卡片适配可用宽度和高度的缩放比例
- *  2. 上限为 previewScale（最大质量），下限为 MIN_CARD_WIDTH
- *  3. 当 ResizeObserver 尚未触发时回退到 previewScale
+ * 卡片画布的显示缩放比例。
+ * 完全由用户控制的 previewScale 决定，下限为 MIN_CARD_WIDTH 保证可读性。
+ * 放大到超出容器时，外层 overflow-auto 自动滚动。
  */
 const displayScale = computed(() => {
-  const maxScale = props.previewScale
-  const availableWidth = containerWidth.value - ROOT_PADDING_X
-  const availableHeight = containerHeight.value - ROOT_PADDING_Y
-
-  // ResizeObserver 尚未触发 — 使用 prop 作为回退
-  if (availableWidth <= 0 || availableHeight <= 0) return maxScale
-
-  // 适配两个维度（保持宽高比）
-  const fitScaleW = availableWidth / PAGE_WIDTH
-  const fitScaleH = availableHeight / PAGE_HEIGHT
-  const fitScale = Math.min(fitScaleW, fitScaleH)
-
-  // 上限为 maxScale（防止在超大屏幕上过度缩放）
-// 下限为 MIN_CARD_WIDTH（保证可读性）
   const floor = MIN_CARD_WIDTH / PAGE_WIDTH
-  return Math.max(floor, Math.min(maxScale, fitScale))
+  return Math.max(floor, props.previewScale)
 })
 
-/** CSS width/height for the canvas display element. */
+/**
+ * 仅设置 CSS width；height 由 canvas 内联宽高比 + h-auto 自动计算，
+ * 确保 max-w-full 限制宽度时高度按比例缩放，不产生拉伸变形。
+ */
 const canvasDisplayStyle = computed(() => {
   const scale = displayScale.value
   const w = Math.round(PAGE_WIDTH * scale)
-  const h = Math.round(PAGE_HEIGHT * scale)
-  return {
-    width: `${w}px`,
-    height: `${h}px`,
-  }
+  return { width: `${w}px` }
 })
 
 // ── Computed ─────────────────────────────────────────────────────────────
@@ -432,11 +378,11 @@ watch(
 // ── Lifecycle ────────────────────────────────────────────────────────────
 
 onMounted(() => {
-  setupResizeObserver()
+  // ResizeObserver 已移除 — 缩放完全由用户控制
 })
 
 onBeforeUnmount(() => {
-  teardownResizeObserver()
+  // ResizeObserver 移除
   if (debounceTimer) clearTimeout(debounceTimer)
   if (scrollTimer) clearTimeout(scrollTimer)
 })

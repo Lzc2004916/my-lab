@@ -96,7 +96,7 @@
 
   /* ── 高亮样式 ─────────────────────────────────────────────────────── */
   --card-highlight-underline-color: rgba(63, 143, 88, 0.72);
-  --card-highlight-marker-bg: rgba(63, 143, 88, 0.32);
+  --card-highlight-marker-bg: rgba(63, 143, 88, 0.48);
   --card-highlight-border-color: rgba(63, 143, 88, 0.84);
   --card-highlight-bold-accent-color: #3f8f58;
 

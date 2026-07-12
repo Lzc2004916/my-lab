@@ -456,10 +456,20 @@ defineExpose({
   outline: none;
 }
 
+/* Syntax highlighting: bold & italic (ensure visibility regardless of CSS conflicts) */
+
+.markdown-editor :deep(.tok-strong) {
+  font-weight: 700;
+}
+
+.markdown-editor :deep(.tok-emphasis) {
+  font-style: italic;
+}
+
 /* Custom inline marks (==highlight== and ^underline^) */
 
 .markdown-editor :deep(.cm-mark) {
-  background: var(--card-highlight-marker-bg, rgba(255, 200, 0, 0.22));
+  background: var(--card-highlight-marker-bg, rgba(255, 210, 0, 0.38));
   border-radius: 3px;
   padding: 1px 2px;
   margin: 0 -1px;

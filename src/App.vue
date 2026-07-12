@@ -88,7 +88,15 @@
         class="flex flex-col min-w-[200px] min-h-0 overflow-hidden"
         :style="{ flexBasis: (100 - split - rightSplit) + '%' }"
       >
-        <div class="flex-1 min-h-0 overflow-auto bg-base-200/60 bg-dot-pattern">
+        <div class="bg-base-200/70 px-4 py-2 border-b border-base-300/60 text-xs font-medium shrink-0 flex items-center justify-between">
+          <span class="opacity-50">Ctrl + 滚轮缩放预览</span>
+          <span class="opacity-40 tabular-nums">{{ Math.round(previewScale * 100) }}%</span>
+        </div>
+        <div
+          ref="previewContainerRef"
+          class="flex-1 min-h-0 overflow-auto bg-base-200/60 bg-dot-pattern"
+          @wheel="onPreviewWheel"
+        >
           <CardPreview
             ref="cardPreviewRef"
             v-model:current-page="currentPage"
@@ -292,6 +300,18 @@ const gradientConfig = ref<GradientConfig>({
   angle: 135,
 })
 const previewScale = ref<number>(1.0)
+const previewContainerRef = ref<HTMLDivElement | null>(null)
+
+// ── Ctrl + mouse wheel → preview zoom ──────────────────────────────────
+
+function onPreviewWheel(e: WheelEvent): void {
+  if (!e.ctrlKey && !e.metaKey) return  // 无 Ctrl 时正常滚动
+  e.preventDefault()
+  const step = 0.05
+  const delta = e.deltaY < 0 ? step : -step
+  const newScale = Math.max(0.25, Math.min(2.5, previewScale.value + delta))
+  previewScale.value = Math.round(newScale * 100) / 100
+}
 
 // ── Layout state ─────────────────────────────────────────────────────────
 

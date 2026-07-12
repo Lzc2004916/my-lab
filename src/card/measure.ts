@@ -84,9 +84,10 @@ function explodeInlineTokens(tokens: InlineToken[]): InlineToken[] {
 }
 
 /** 测量单个正文 token 的 canvas 宽度。 */
-export function getBodyTokenWidth(token: InlineToken, fontSize: number, fontFamily?: string): number {
+export function getBodyTokenWidth(token: InlineToken, fontSize: number, fontFamily?: string, bodyFontWeight?: number): number {
   if (token.text === '\n') return 0
-  const weight = token.bold ? BODY_BOLD_WEIGHT : BODY_TEXT_WEIGHT
+  const baseWeight = bodyFontWeight ?? BODY_TEXT_WEIGHT
+  const weight = token.bold ? BODY_BOLD_WEIGHT : baseWeight
   const family = fontFamily ?? BODY_FONT_FAMILY
   const font = `${weight} ${fontSize}px ${family}`
   return getMeasureCtx(font).measureText(token.text).width
@@ -106,8 +107,9 @@ function splitOversizedUnit(
   fontSize: number,
   maxWidth: number,
   fontFamily?: string,
+  bodyFontWeight?: number,
 ): InlineToken[] {
-  if (token.text.length <= 1 || getBodyTokenWidth(token, fontSize, fontFamily) <= maxWidth)
+  if (token.text.length <= 1 || getBodyTokenWidth(token, fontSize, fontFamily, bodyFontWeight) <= maxWidth)
     return [token]
   return Array.from(token.text).map((char) => ({ ...token, text: char }))
 }
@@ -117,11 +119,11 @@ function splitOversizedUnit(
  * Token 标识对于 Map 直接键控过于复杂，因此从序列化的
  * token 文本 + 布局参数中派生一个紧凑的键。
  */
-function wrapCacheKey(tokens: InlineToken[], fontSize: number, maxWidth: number, fontFamily?: string): string {
+function wrapCacheKey(tokens: InlineToken[], fontSize: number, maxWidth: number, fontFamily?: string, bodyFontWeight?: number): string {
   // 使用首尾 token 文本 + 总数作为轻量指纹
   const first = tokens.length > 0 ? tokens[0]!.text : ''
   const last = tokens.length > 0 ? tokens[tokens.length - 1]!.text : ''
-  return `${tokens.length}:${first}:${last}:${fontSize}:${Math.round(maxWidth)}:${fontFamily ?? ''}`
+  return `${tokens.length}:${first}:${last}:${fontSize}:${Math.round(maxWidth)}:${fontFamily ?? ''}:${bodyFontWeight ?? BODY_TEXT_WEIGHT}`
 }
 
 /** 将内联 token 按 `maxWidth` 换行，返回行。 */
@@ -129,9 +131,10 @@ export function wrapInlineTokensByWidth(
   tokens: InlineToken[],
   fontSize: number,
   maxWidth: number,
-  fontFamily?: string,
-): InlineLine[] {
-  const key = wrapCacheKey(tokens, fontSize, maxWidth, fontFamily)
+	  fontFamily?: string,
+	  bodyFontWeight?: number,
+	): InlineLine[] {
+  const key = wrapCacheKey(tokens, fontSize, maxWidth, fontFamily, bodyFontWeight)
   const cached = _wrapCache.get(key)
   if (cached) return cached
 
@@ -149,7 +152,7 @@ export function wrapInlineTokensByWidth(
   }
 
   for (const sourceToken of charTokens) {
-    const splitTokens = splitOversizedUnit(sourceToken, fontSize, maxWidth, fontFamily)
+    const splitTokens = splitOversizedUnit(sourceToken, fontSize, maxWidth, fontFamily, bodyFontWeight)
     for (const token of splitTokens) {
       if (token.text === '\n') {
         pushLine()
@@ -158,7 +161,7 @@ export function wrapInlineTokensByWidth(
       // 跳过新行开头的空白
       if (currentLine.length === 0 && isWhitespaceToken(token.text)) continue
 
-      const tokenWidth = getBodyTokenWidth(token, fontSize, fontFamily)
+      const tokenWidth = getBodyTokenWidth(token, fontSize, fontFamily, bodyFontWeight)
 
       if (currentLine.length > 0 && currentWidth + tokenWidth > maxWidth) {
         if (!isLeadingPunctuation(token.text)) {
@@ -381,11 +384,13 @@ export function measureParagraphBlock(
       ? getQuoteBoxMetrics(theme, activeFontSize, maxWidth)
       : null
   const quoteWidth = quoteMetrics?.textWidth ?? maxWidth
+	  const bodyWeight = theme.editor.bodyFontWeight
   const lines = wrapInlineTokensByWidth(
     parseInlineMarkdown(block.raw),
     activeFontSize,
     quoteWidth,
     fontFamily,
+	    bodyWeight,
   )
   const textHeight = getParagraphVisualHeight(
     lines.length,

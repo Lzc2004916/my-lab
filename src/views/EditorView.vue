@@ -29,8 +29,9 @@
 
         <!-- Preview Panel -->
         <div class="flex flex-col h-[75dvh]">
-          <div class="bg-base-200/70 px-4 py-2.5 border-b border-base-300/60 text-sm font-medium shrink-0">
-            Preview
+          <div class="bg-base-200/70 px-4 py-2.5 border-b border-base-300/60 text-sm font-medium shrink-0 flex items-center justify-between">
+            <span>Preview</span>
+            <span class="text-xs opacity-50 font-normal">Ctrl + 滚轮缩放</span>
           </div>
           <div
             ref="previewRef"

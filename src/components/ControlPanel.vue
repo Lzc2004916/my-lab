@@ -111,7 +111,7 @@
           <span class="ctrl-label">预览缩放</span>
           <input
             :value="previewScale"
-            type="range" min="0.5" max="2.0" step="0.1"
+            type="range" min="0.25" max="2.5" step="0.05"
             class="range range-xs range-primary flex-1 min-w-0"
             @input="emit('update:previewScale', Number(($event.target as HTMLInputElement).value))"
           />

@@ -597,8 +597,8 @@ export function drawDesertSun(
 
   // 太阳光晕
   const glowGrad = ctx.createRadialGradient(sunCx, sunCy, sunR * 0.5, sunCx, sunCy, sunR * 2.2)
-  glowGrad.addColorStop(0, hexToRgba(color, 0.55))
-  glowGrad.addColorStop(0.5, hexToRgba(color, 0.18))
+  glowGrad.addColorStop(0, hexToRgba(color, 0.75))
+  glowGrad.addColorStop(0.5, hexToRgba(color, 0.32))
   glowGrad.addColorStop(1, hexToRgba(color, 0))
   ctx.fillStyle = glowGrad
   ctx.beginPath()
@@ -606,15 +606,15 @@ export function drawDesertSun(
   ctx.fill()
 
   // 太阳本体
-  ctx.fillStyle = hexToRgba(color, 0.72)
+  ctx.fillStyle = hexToRgba(color, 0.88)
   ctx.beginPath()
   ctx.arc(sunCx, sunCy, sunR, 0, Math.PI * 2)
   ctx.fill()
 
   // ── 地平线（柔和起伏的 mesa 轮廓）───────────────────────────────────
   const horizonY = sunCy + 4 * scale
-  ctx.strokeStyle = hexToRgba(color, 0.5)
-  ctx.lineWidth = 1.6 * scale
+  ctx.strokeStyle = hexToRgba(color, 0.70)
+  ctx.lineWidth = 2.0 * scale
   ctx.lineCap = 'round'
   ctx.lineJoin = 'round'
 
@@ -630,8 +630,8 @@ export function drawDesertSun(
   ctx.stroke()
 
   // 第二条更远的地平线（更淡）
-  ctx.strokeStyle = hexToRgba(color, 0.22)
-  ctx.lineWidth = 0.9 * scale
+  ctx.strokeStyle = hexToRgba(color, 0.40)
+  ctx.lineWidth = 1.1 * scale
   ctx.beginPath()
   ctx.moveTo(CONTENT_LEFT - 10, horizonY + 32 * scale)
   ctx.lineTo(CONTENT_LEFT + 100 * scale, horizonY + 22 * scale)
@@ -642,8 +642,8 @@ export function drawDesertSun(
   ctx.stroke()
 
   // ── 飞鸟剪影（V 形标记）─────────────────────────────────────────────
-  ctx.strokeStyle = hexToRgba(color, 0.38)
-  ctx.lineWidth = 1.2 * scale
+  ctx.strokeStyle = hexToRgba(color, 0.60)
+  ctx.lineWidth = 1.5 * scale
   const birds = [
     { x: sunCx - 80 * scale, y: sunCy - 28 * scale, s: 1.0 },
     { x: sunCx - 55 * scale, y: sunCy - 36 * scale, s: 0.7 },
@@ -689,16 +689,16 @@ export function drawSakuraPetal(
     const py = ((seed * (i + 1) * 53 + i * 31) % (PAGE_HEIGHT - 160)) + 40
     const petalSize = (3.5 + (i % 4) * 2.2) * scale
     const rotation = ((i * 47 + 13) % 360) * (Math.PI / 180)
-    const petalAlpha = 0.45 + (i % 3) * 0.2
+    const petalAlpha = 0.60 + (i % 3) * 0.22
 
     ctx.save()
     ctx.translate(px, py)
     ctx.rotate(rotation)
 
     // 五瓣樱花
-    ctx.fillStyle = hexToRgba(color, petalAlpha * 0.55)
-    ctx.strokeStyle = hexToRgba(color, petalAlpha * 0.7)
-    ctx.lineWidth = 0.5 * scale
+    ctx.fillStyle = hexToRgba(color, petalAlpha * 0.80)
+    ctx.strokeStyle = hexToRgba(color, petalAlpha * 0.92)
+    ctx.lineWidth = 0.7 * scale
     ctx.beginPath()
 
     for (let p = 0; p < 5; p++) {
@@ -724,7 +724,7 @@ export function drawSakuraPetal(
     ctx.stroke()
 
     // 花蕊小点
-    ctx.fillStyle = hexToRgba(color, petalAlpha * 0.8)
+    ctx.fillStyle = hexToRgba(color, petalAlpha * 0.95)
     ctx.beginPath()
     ctx.arc(0, 0, petalSize * 0.14, 0, Math.PI * 2)
     ctx.fill()
@@ -808,8 +808,8 @@ export function drawCoralBranch(
     const endX = b.x + Math.cos(b.angle) * b.length
     const endY = b.y + Math.sin(b.angle) * b.length
 
-    ctx.strokeStyle = hexToRgba(color, 0.35 + b.depth * 0.08)
-    ctx.lineWidth = (1.8 - b.depth * 0.35) * scale
+    ctx.strokeStyle = hexToRgba(color, 0.60 + b.depth * 0.10)
+    ctx.lineWidth = (2.4 - b.depth * 0.35) * scale
     ctx.lineCap = 'round'
     ctx.beginPath()
     ctx.moveTo(b.x, b.y)
@@ -821,9 +821,9 @@ export function drawCoralBranch(
     ctx.stroke()
 
     // 末端水螅体小点
-    ctx.fillStyle = hexToRgba(color, 0.55 + b.depth * 0.1)
+    ctx.fillStyle = hexToRgba(color, 0.78 + b.depth * 0.10)
     ctx.beginPath()
-    ctx.arc(endX, endY, (2 - b.depth * 0.3) * scale, 0, Math.PI * 2)
+    ctx.arc(endX, endY, (2.5 - b.depth * 0.3) * scale, 0, Math.PI * 2)
     ctx.fill()
   }
 
@@ -869,12 +869,12 @@ function drawCrystalCluster(
   scale: number,
 ): void {
   const facets: { angle: number; length: number; width: number; a: number }[] = [
-    { angle: baseAngle,           length: 64 * scale, width: 14 * scale, a: 0.38 },
-    { angle: baseAngle + 0.22,    length: 48 * scale, width: 10 * scale, a: 0.28 },
-    { angle: baseAngle - 0.18,    length: 55 * scale, width: 12 * scale, a: 0.32 },
-    { angle: baseAngle + 0.5,     length: 38 * scale, width: 8 * scale,  a: 0.22 },
-    { angle: baseAngle - 0.45,    length: 42 * scale, width: 9 * scale,  a: 0.25 },
-    { angle: baseAngle + 0.15,    length: 72 * scale, width: 4 * scale,  a: 0.18 },
+    { angle: baseAngle,           length: 64 * scale, width: 14 * scale, a: 0.55 },
+    { angle: baseAngle + 0.22,    length: 48 * scale, width: 10 * scale, a: 0.42 },
+    { angle: baseAngle - 0.18,    length: 55 * scale, width: 12 * scale, a: 0.48 },
+    { angle: baseAngle + 0.5,     length: 38 * scale, width: 8 * scale,  a: 0.35 },
+    { angle: baseAngle - 0.45,    length: 42 * scale, width: 9 * scale,  a: 0.38 },
+    { angle: baseAngle + 0.15,    length: 72 * scale, width: 4 * scale,  a: 0.30 },
   ]
 
   for (const f of facets) {
@@ -898,16 +898,16 @@ function drawCrystalCluster(
     ctx.fill()
 
     // 描边（晶体棱线）
-    ctx.strokeStyle = hexToRgba(color, (f.a + 0.2) * clusterAlpha)
-    ctx.lineWidth = 0.7 * scale
+    ctx.strokeStyle = hexToRgba(color, (f.a + 0.30) * clusterAlpha)
+    ctx.lineWidth = 0.9 * scale
     ctx.stroke()
 
     // 内部高光线
     const hlX = ox + Math.cos(f.angle) * f.length * 0.55
     const hlY = oy + Math.sin(f.angle) * f.length * 0.55
     const hlPerp = Math.cos(perpAngle) * f.width * 0.3
-    ctx.strokeStyle = hexToRgba('#ffffff', f.a * clusterAlpha * 0.18)
-    ctx.lineWidth = 0.5 * scale
+    ctx.strokeStyle = hexToRgba('#ffffff', f.a * clusterAlpha * 0.32)
+    ctx.lineWidth = 0.7 * scale
     ctx.beginPath()
     ctx.moveTo(hlX - hlPerp, hlY - Math.sin(perpAngle) * f.width * 0.3)
     ctx.lineTo(hlX + hlPerp, hlY + Math.sin(perpAngle) * f.width * 0.3)
@@ -934,14 +934,14 @@ export function drawSketchHatch(
 
   ctx.save()
   ctx.globalAlpha = alpha
-  ctx.strokeStyle = hexToRgba(color, 0.55)
+  ctx.strokeStyle = hexToRgba(color, 0.78)
   ctx.lineCap = 'round'
 
   // 右上角排线区域
-  drawHatchGroup(ctx, PAGE_WIDTH - 120 * scale, 18 * scale, -0.7, 18, 45 * scale, 55 * scale, color, scale)
+  drawHatchGroup(ctx, PAGE_WIDTH - 120 * scale, 18 * scale, -0.7, 20, 48 * scale, 58 * scale, color, scale)
 
   // 左下角排线区域
-  drawHatchGroup(ctx, CONTENT_LEFT + 10 * scale, PAGE_HEIGHT - 80 * scale, 0.55, 14, 38 * scale, 50 * scale, color, scale)
+  drawHatchGroup(ctx, CONTENT_LEFT + 10 * scale, PAGE_HEIGHT - 80 * scale, 0.55, 16, 42 * scale, 54 * scale, color, scale)
 
   ctx.restore()
 }
@@ -965,8 +965,8 @@ function drawHatchGroup(
     const sy = oy + Math.sin(angle + Math.PI / 2) * areaH * t
     const len = maxLen * (0.5 + 0.5 * (1 - Math.abs(t - 0.5) * 2)) // 中间长，两端短
 
-    ctx.lineWidth = (0.6 + (i % 3 === 0 ? 0.4 : 0)) * scale
-    ctx.strokeStyle = hexToRgba(color, 0.35 + (i % 4) * 0.06)
+    ctx.lineWidth = (0.85 + (i % 3 === 0 ? 0.5 : 0)) * scale
+    ctx.strokeStyle = hexToRgba(color, 0.55 + (i % 4) * 0.07)
     ctx.beginPath()
     ctx.moveTo(sx, sy)
     ctx.lineTo(sx + Math.cos(angle) * len, sy + Math.sin(angle) * len)
@@ -981,8 +981,8 @@ function drawHatchGroup(
     const sy = oy + Math.sin(angle + Math.PI / 2) * areaH * (t + 0.1)
     const len = maxLen * 0.55 * (0.6 + 0.4 * (1 - Math.abs(t - 0.5) * 2))
 
-    ctx.lineWidth = 0.4 * scale
-    ctx.strokeStyle = hexToRgba(color, 0.18 + (i % 5) * 0.04)
+    ctx.lineWidth = 0.55 * scale
+    ctx.strokeStyle = hexToRgba(color, 0.35 + (i % 5) * 0.05)
     ctx.beginPath()
     ctx.moveTo(sx, sy)
     ctx.lineTo(sx + Math.cos(angle2) * len, sy + Math.sin(angle2) * len)
@@ -1017,11 +1017,11 @@ export function drawMatchaRing(
 
   for (let i = 0; i < ringCount; i++) {
     const radius = (18 + i * 12) * scale
-    const ringAlpha = 0.42 - i * 0.05
+    const ringAlpha = 0.64 - i * 0.05
 
     // 不完全闭合的椭圆弧
     ctx.strokeStyle = hexToRgba(color, ringAlpha)
-    ctx.lineWidth = (0.7 + (i === 0 ? 0.4 : 0)) * scale
+    ctx.lineWidth = (1.0 + (i === 0 ? 0.5 : 0)) * scale
     ctx.beginPath()
     // 椭圆 — 稍微压扁
     ctx.ellipse(cx, cy, radius, radius * 0.85, 0.15, 0.2, Math.PI * 1.75)
@@ -1029,8 +1029,8 @@ export function drawMatchaRing(
 
     // 每隔一圈画得更完整
     if (i % 2 === 0) {
-      ctx.strokeStyle = hexToRgba(color, ringAlpha * 0.55)
-      ctx.lineWidth = 0.45 * scale
+      ctx.strokeStyle = hexToRgba(color, ringAlpha * 0.72)
+      ctx.lineWidth = 0.60 * scale
       ctx.beginPath()
       ctx.ellipse(cx, cy, radius * 0.92, radius * 0.78, -0.1, Math.PI * 0.5, Math.PI * 2.1)
       ctx.stroke()
@@ -1043,9 +1043,9 @@ export function drawMatchaRing(
   for (let i = 0; i < dotCount; i++) {
     const dx = ((seed * (i + 1) * 31 + i * 17) % 160 - 40) * scale
     const dy = ((seed * (i + 1) * 43 + i * 23) % 140 - 30) * scale
-    const dotSize = 0.5 + (i % 4) * 0.35 * scale
+    const dotSize = 0.7 + (i % 4) * 0.42 * scale
 
-    const dotAlpha = 0.2 + (i % 6) * 0.07
+    const dotAlpha = 0.36 + (i % 6) * 0.08
     ctx.fillStyle = hexToRgba(color, dotAlpha)
     ctx.beginPath()
     ctx.arc(cx + dx, cy + dy, dotSize, 0, Math.PI * 2)
@@ -1057,8 +1057,8 @@ export function drawMatchaRing(
   const cy2 = 48 * scale
   for (let i = 0; i < 3; i++) {
     const radius = (12 + i * 10) * scale
-    ctx.strokeStyle = hexToRgba(color, 0.18 - i * 0.04)
-    ctx.lineWidth = 0.5 * scale
+    ctx.strokeStyle = hexToRgba(color, 0.32 - i * 0.04)
+    ctx.lineWidth = 0.7 * scale
     ctx.beginPath()
     ctx.ellipse(cx2, cy2, radius, radius * 0.82, -0.25, 0.3, Math.PI * 1.6)
     ctx.stroke()
