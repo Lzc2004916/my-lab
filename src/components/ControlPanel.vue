@@ -121,7 +121,15 @@
     </div>
 
     <!-- ═══════════════════════════════════════════════════════════════════
-         Section 3: 卡片主题
+         Section 3: 标题样式
+         ═══════════════════════════════════════════════════════════════ -->
+    <div class="px-4 pt-4 pb-3 border-b border-base-200">
+      <h3 class="section-heading mb-3">标题样式</h3>
+      <HeadingStylePanel />
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════════════
+         Section 4: 卡片主题
          ═══════════════════════════════════════════════════════════════ -->
     <div class="px-4 pt-4 pb-4 flex-1 flex flex-col min-h-0">
       <h3 class="section-heading mb-3">卡片主题</h3>
@@ -144,6 +152,7 @@ import ThemeSelector from '@/components/ThemeSelector.vue'
 import FontPicker from '@/components/FontPicker.vue'
 import GradientPicker from '@/components/GradientPicker.vue'
 import LoadingSpinner from '@/components/LoadingSpinner.vue'
+import HeadingStylePanel from '@/components/editor/HeadingStylePanel.vue'
 import { THEMES } from '@/card'
 import type { GradientConfig } from '@/card'
 

@@ -56,7 +56,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, nextTick, onMounted, onBeforeUnmount } from 'vue'
 import { renderAllPagesAsync, renderAllPages, renderCard, PAGE_WIDTH, PAGE_HEIGHT, getTheme, extractTokens, applyTokensToElement } from '@/card'
-import type { HighlightStyle, FooterRightMode, CardCornerMode, TypographySettings, GradientConfig, CardPage } from '@/card'
+import type { HighlightStyle, FooterRightMode, CardCornerMode, TypographySettings, GradientConfig, CardPage, HeadingStyleOverrides } from '@/card'
 import LoadingSpinner from '@/components/LoadingSpinner.vue'
 
 // ── Props ───────────────────────────────────────────────────────────────
@@ -84,6 +84,8 @@ interface Props {
   cardCornerMode?: CardCornerMode
   /** 预览缩放因子（0-1，默认 1.0）。作为最大缩放上限。 */
   previewScale?: number
+  /** 用户自定义标题样式覆盖 */
+  headingOverrides?: HeadingStyleOverrides | null
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -102,6 +104,7 @@ const props = withDefaults(defineProps<Props>(), {
   cardCornerMode: 'square' as CardCornerMode,
   previewScale: 1.0,
   gradientConfig: () => ({ enabled: false, color1: '#6c5ce7', color2: '#a29bfe', angle: 135 }),
+  headingOverrides: null,
 })
 
 // ── Emits ────────────────────────────────────────────────────────────────
@@ -196,6 +199,7 @@ async function doRender(): Promise<void> {
         footerEnabled: props.footerEnabled,
         cardCornerMode: props.cardCornerMode,
         gradientConfig: props.gradientConfig,
+        headingOverrides: props.headingOverrides,
       })
       canvases.value = result.canvases
       cachedLayoutPages = result.pages
@@ -214,6 +218,7 @@ async function doRender(): Promise<void> {
           footerEnabled: props.footerEnabled,
           cardCornerMode: props.cardCornerMode,
           gradientConfig: props.gradientConfig,
+          headingOverrides: props.headingOverrides,
         })
         canvases.value = result.canvases
         cachedLayoutPages = result.pages
@@ -232,6 +237,7 @@ async function doRender(): Promise<void> {
             footerEnabled: props.footerEnabled ?? true,
             cardCornerMode: props.cardCornerMode ?? 'square',
             gradientConfig: props.gradientConfig,
+            headingOverrides: props.headingOverrides,
           }),
         )
       }
@@ -254,6 +260,7 @@ async function doRender(): Promise<void> {
         footerEnabled: props.footerEnabled,
         cardCornerMode: props.cardCornerMode,
         gradientConfig: props.gradientConfig,
+        headingOverrides: props.headingOverrides,
       })
       canvases.value = result.canvases
       cachedLayoutPages = result.pages
@@ -277,6 +284,7 @@ watch(
     props.footerEnabled,
     props.cardCornerMode,
     props.gradientConfig,
+    props.headingOverrides,
   ] as const,
   scheduleRender,
   { immediate: true },

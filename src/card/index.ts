@@ -36,6 +36,9 @@ export type {
   QuoteTreatment,
   CardCornerMode,
   FooterRightMode,
+  HeadingTypography,
+  CoverHeadingConfig,
+  HeadingStyleOverrides,
 } from './types'
 
 export { BODY_FONT_MODES, DEFAULT_BODY_FONT_MODE, getBodyFontFamily } from './types'
@@ -52,6 +55,19 @@ export {
   CODE_BG_ALPHA,
   HEADING_SIZE_RATIOS,
   COLUMN_GAP,
+  DEFAULT_HEADING_LINE_HEIGHTS,
+  DEFAULT_HEADING_MARGIN_TOP,
+  DEFAULT_HEADING_MARGIN_BOTTOM,
+  DEFAULT_COVER_H1_SCALE,
+  HEADING_SIZE_RANGES,
+  DEFAULT_HEADING_OVERRIDES,
+  resolveHeadingScale,
+  resolveHeadingLineHeight,
+  resolveHeadingMarginTop,
+  resolveHeadingMarginBottom,
+  resolveHeadingFontWeight,
+  resolveHeadingColor,
+  resolveHeadingSize,
 } from './types'
 
 // 颜色工具

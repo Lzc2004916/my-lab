@@ -70,16 +70,8 @@
         @mousedown.prevent
         @click="emit('insert', item)"
       >
-        <!-- Bold -->
-        <svg v-if="item.id === 'bold'" class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M6 4h8a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"/><path d="M6 12h9a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"/>
-        </svg>
-        <!-- Italic -->
-        <svg v-else-if="item.id === 'italic'" class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <line x1="19" y1="4" x2="10" y2="4"/><line x1="14" y1="20" x2="5" y2="20"/><line x1="15" y1="4" x2="9" y2="20"/>
-        </svg>
         <!-- Highlight -->
-        <svg v-else-if="item.id === 'highlight'" class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <svg v-if="item.id === 'highlight'" class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="m9 11 3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
         </svg>
         <!-- Link -->
@@ -209,10 +201,6 @@ function onHeadingSelect(hl: HeadingLevelOption): void {
  */
 const toolbarItems: readonly ToolbarItem[] = [
   // ── Text formatting ──
-  { id: 'bold',        icon: '<strong>B</strong>', label: '加粗', template: '**粗体文本**',
-    wrap: { prefix: '**', suffix: '**', placeholder: '粗体文本' } },
-  { id: 'italic',      icon: '<em>I</em>',          label: '斜体', template: '*斜体文本*',
-    wrap: { prefix: '*',  suffix: '*',  placeholder: '斜体文本' } },
   { id: 'highlight',   icon: '🖍',                   label: '高亮', template: '==高亮文本==',
     wrap: { prefix: '==', suffix: '==', placeholder: '高亮文本' } },
   { id: 'heading',     icon: '<strong>H</strong>',  label: '标题 (H2)', template: '## ',

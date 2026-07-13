@@ -21,9 +21,11 @@ import {
   CONTENT_WIDTH,
   BODY_BOTTOM_WITH_FOOTER,
   BODY_BOTTOM_WITHOUT_FOOTER,
-  HEADING_SIZE_RATIOS,
   getBodyFontFamily,
+  resolveHeadingLineHeight,
+  resolveHeadingSize,
 } from './types'
+import type { HeadingStyleOverrides } from './types'
 
 // ═══════════════════════════════════════════════════════════════════════════
 // 底层文本测量
@@ -259,28 +261,27 @@ export function parseInlineMarkdown(text: string): InlineToken[] {
 // 段落测量
 // ═══════════════════════════════════════════════════════════════════════════
 
-function getSubheadingFontSize(fontSize: number, headingLevel?: number): number {
-  // 使用基于标题级别的尺寸（匹配 drawInlineParagraph）
+function getSubheadingFontSize(fontSize: number, headingLevel?: number, theme?: ThemeDefinition, isCover = false, headingOverrides?: HeadingStyleOverrides | null): number {
+  // 使用 per-theme 标题缩放配置 — 用户覆盖优先
   if (headingLevel && headingLevel >= 1 && headingLevel <= 6) {
-    const ratio = HEADING_SIZE_RATIOS[headingLevel] ?? 1.12
-    return Math.round(fontSize * ratio)
+    return resolveHeadingSize(headingLevel, fontSize, theme, headingOverrides, isCover && headingLevel === 1)
   }
   // 回退：通用副标题尺寸（向后兼容）
   return Math.round(fontSize * 1.08)
 }
 
-/** 标题行高，以标题自身字体大小的比例表示。 */
-function getHeadingLineHeightRatio(headingLevel?: number): number {
-  if (headingLevel === 1) return 1.25
-  if (headingLevel === 2) return 1.35
-  if (headingLevel === 3) return 1.45
+/** 标题行高，以标题自身字体大小的比例表示。*/
+function getHeadingLineHeightRatio(headingLevel?: number, theme?: ThemeDefinition, isCover = false): number {
+  if (headingLevel && headingLevel >= 1 && headingLevel <= 6) {
+    return resolveHeadingLineHeight(headingLevel, theme, isCover && headingLevel === 1)
+  }
   return 1.55
 }
 
-function getSubheadingLineHeight(fontSize: number, lineHeight: number, style: SubheadingStyle, headingLevel?: number): number {
+function getSubheadingLineHeight(fontSize: number, lineHeight: number, style: SubheadingStyle, headingLevel?: number, theme?: ThemeDefinition, isCover = false): number {
   if (headingLevel && headingLevel >= 1 && headingLevel <= 6) {
-    const headingFontSize = getSubheadingFontSize(fontSize, headingLevel)
-    return Math.round(headingFontSize * getHeadingLineHeightRatio(headingLevel))
+    const headingFontSize = getSubheadingFontSize(fontSize, headingLevel, theme, isCover)
+    return Math.round(headingFontSize * getHeadingLineHeightRatio(headingLevel, theme, isCover))
   }
   return style === 'large' ? lineHeight * 1.02 : lineHeight
 }
@@ -365,6 +366,8 @@ export function measureParagraphBlock(
   theme: ThemeDefinition,
   subheadingStyle: SubheadingStyle,
   fontFamily?: string,
+  isCover = false,
+  headingOverrides?: HeadingStyleOverrides | null,
 ): { lines: InlineLine[]; height: number } {
   if (block.kind === 'divider') {
     return { lines: [], height: getDividerBlockHeight(fontSize) }
@@ -373,11 +376,11 @@ export function measureParagraphBlock(
   const headingLevel = (block as any).headingLevel as number | undefined
   const activeFontSize =
     block.kind === 'subheading'
-      ? getSubheadingFontSize(fontSize, headingLevel)
+      ? getSubheadingFontSize(fontSize, headingLevel, theme, isCover, headingOverrides)
       : fontSize
   const activeLineHeight =
     block.kind === 'subheading'
-      ? getSubheadingLineHeight(fontSize, lineHeight, subheadingStyle, headingLevel)
+      ? getSubheadingLineHeight(fontSize, lineHeight, subheadingStyle, headingLevel, theme, isCover)
       : lineHeight
   const quoteMetrics =
     block.kind === 'quote'
@@ -392,11 +395,13 @@ export function measureParagraphBlock(
     fontFamily,
 	    bodyWeight,
   )
-  const textHeight = getParagraphVisualHeight(
-    lines.length,
-    activeFontSize,
-    activeLineHeight,
-  )
+  // 标题高度使用 lineHeight × 行数，而非 fontSize + (n-1)×lineHeight。
+  // 后者在超大字号（>100px）下严重低估视觉高度：120px 标题丢失 30px leading，
+  // 叠加仅 27px 的固定间距，导致标题与下文排版重叠。
+  const textHeight =
+    block.kind === 'subheading'
+      ? lines.length * activeLineHeight
+      : getParagraphVisualHeight(lines.length, activeFontSize, activeLineHeight)
   const quotePadTop = quoteMetrics?.paddingTop ?? 0
   const quotePadBottom = quoteMetrics?.paddingBottom ?? 0
   return {
@@ -416,6 +421,8 @@ export function getParagraphMaxLines(
   lineHeight: number,
   theme: ThemeDefinition,
   subheadingStyle: SubheadingStyle,
+  isCover = false,
+  headingOverrides?: HeadingStyleOverrides | null,
 ): number {
   if (block.kind === 'divider') {
     return availableHeight >= getDividerBlockHeight(fontSize) ? 1 : 0
@@ -424,11 +431,11 @@ export function getParagraphMaxLines(
   const headingLevel = (block as any).headingLevel as number | undefined
   const activeFontSize =
     block.kind === 'subheading'
-      ? getSubheadingFontSize(fontSize, headingLevel)
+      ? getSubheadingFontSize(fontSize, headingLevel, theme, isCover, headingOverrides)
       : fontSize
   const activeLineHeight =
     block.kind === 'subheading'
-      ? getSubheadingLineHeight(fontSize, lineHeight, subheadingStyle, headingLevel)
+      ? getSubheadingLineHeight(fontSize, lineHeight, subheadingStyle, headingLevel, theme, isCover)
       : lineHeight
   const quoteMetrics =
     block.kind === 'quote'
@@ -437,6 +444,14 @@ export function getParagraphMaxLines(
   const padTop = quoteMetrics?.paddingTop ?? 0
   const padBottom = quoteMetrics?.paddingBottom ?? 0
   const textRoom = availableHeight - padTop - padBottom
+
+  // 标题行高计算须与 measureParagraphBlock（lines × activeLineHeight）一致，
+  // 否则布局引擎在分页切割时会误判标题能放入当前页。
+  if (block.kind === 'subheading') {
+    if (textRoom < activeLineHeight) return 0
+    return Math.floor(textRoom / activeLineHeight)
+  }
+
   if (textRoom < activeFontSize) return 0
   return 1 + Math.floor((textRoom - activeFontSize) / activeLineHeight)
 }

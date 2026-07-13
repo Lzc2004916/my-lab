@@ -107,6 +107,62 @@ export interface ThemeComponents {
   highlightDashAlpha: number
 }
 
+// ── Heading typography (per-theme, per-level) ─────────────────────────────
+
+/**
+ * 每个标题级别的独立排版配置。
+ * 所有字段均为可选 — 未指定时回退到全局默认值。
+ */
+export interface HeadingTypography {
+  /** 标题级别缩放因子（相对于 bodySize）。默认回退到 HEADING_SIZE_RATIOS。 */
+  h1Scale?: number
+  h2Scale?: number
+  h3Scale?: number
+  h4Scale?: number
+  h5Scale?: number
+  h6Scale?: number
+
+  /** 行高倍率。默认回退到级别相关的默认值（H1:1.25, H2:1.35, H3:1.45, 其他:1.55）。 */
+  h1LineHeight?: number
+  h2LineHeight?: number
+  h3LineHeight?: number
+  h4LineHeight?: number
+  h5LineHeight?: number
+  h6LineHeight?: number
+
+  /** 段前间距（px）。 */
+  h1MarginTop?: number
+  h2MarginTop?: number
+  h3MarginTop?: number
+
+  /** 段后间距（px）。 */
+  h1MarginBottom?: number
+  h2MarginBottom?: number
+  h3MarginBottom?: number
+
+  /** 字体字重。默认回退到 SUBHEADING_TEXT_WEIGHT（600）。 */
+  h1FontWeight?: number
+  h2FontWeight?: number
+  h3FontWeight?: number
+
+  /** 颜色覆盖（使用主题调色板颜色）。 */
+  h1Color?: string
+  h2Color?: string
+  h3Color?: string
+}
+
+/** 封面页（首张拆分卡片）特殊标题配置 — "大字报"效果。 */
+export interface CoverHeadingConfig {
+  /** 封面页 H1 缩放因子覆盖。默认：4.0× bodySize（非封面为 3.2×）。 */
+  h1Scale?: number
+  /** 封面页 H1 行高覆盖。 */
+  h1LineHeight?: number
+  /** 封面页标题是否居中。默认：false。 */
+  centered?: boolean
+  /** 封面页标题距内容区域顶部的额外偏移（px）。 */
+  topOffset?: number
+}
+
 export interface ThemeEditor {
   /** 默认正文字体大小（px） */
   bodySize: number
@@ -120,6 +176,8 @@ export interface ThemeEditor {
   subheadingStyle?: SubheadingStyle
   /** 默认高亮样式 */
   highlightStyle: HighlightStyle
+  /** 每个主题独立的标题排版配置 */
+  heading?: HeadingTypography
 }
 
 // ── Decor ornament system ──────────────────────────────────────────────────
@@ -153,6 +211,8 @@ export interface ThemeDefinition {
   category?: 'light' | 'dark' | 'artistic' | 'professional'
   /** 装饰配置 */
   decor?: ThemeDecor
+  /** 封面页（首张拆分卡片）H1 大字报效果配置。 */
+  coverHeading?: CoverHeadingConfig
   /** 内置渐变颜色 — 同步到渐变选择器 */
   gradient?: {
     enabled: boolean
@@ -297,6 +357,8 @@ export interface RenderOptions {
   cardCornerMode: CardCornerMode
   /** 可选背景渐变覆盖 */
   gradientConfig?: GradientConfig
+  /** 用户自定义标题样式覆盖 */
+  headingOverrides?: HeadingStyleOverrides | null
 }
 
 // ── Layout options (passed to layoutPages) ────────────────────────────────
@@ -306,6 +368,8 @@ export interface LayoutOptions {
   settings: TypographySettings
   theme: ThemeDefinition
   footerEnabled: boolean
+  /** 用户自定义标题样式覆盖 */
+  headingOverrides?: HeadingStyleOverrides | null
 }
 
 // ── Render constants ──────────────────────────────────────────────────────
@@ -424,6 +488,178 @@ export const HEADING_SIZE_RATIOS: Record<number, number> = {
   4: 1.15,
   5: 1.04,
   6: 0.98,
+}
+
+/** 默认标题行高倍率（按级别）。 */
+export const DEFAULT_HEADING_LINE_HEIGHTS: Record<number, number> = {
+  1: 1.25,
+  2: 1.35,
+  3: 1.45,
+  4: 1.55,
+  5: 1.55,
+  6: 1.55,
+}
+
+/** 默认标题段前间距（px）。 */
+export const DEFAULT_HEADING_MARGIN_TOP: Record<number, number> = {
+  1: 16,
+  2: 12,
+  3: 8,
+  4: 6,
+  5: 4,
+  6: 4,
+}
+
+/** 默认标题段后间距（px）。 */
+export const DEFAULT_HEADING_MARGIN_BOTTOM: Record<number, number> = {
+  1: 8,
+  2: 6,
+  3: 4,
+  4: 3,
+  5: 2,
+  6: 2,
+}
+
+/** 封面页 H1 默认放大因子（相对于 bodySize）。 */
+export const DEFAULT_COVER_H1_SCALE = 4.0
+
+// ── User heading style overrides ────────────────────────────────────────────
+
+/**
+ * 用户自定义的标题样式覆盖。
+ * 所有字段均为可选 — null 表示使用主题默认值。
+ */
+export interface HeadingStyleOverrides {
+  /** H1-H6 字体大小覆盖（px）。null = 使用主题默认值。 */
+  h1Size: number | null
+  h2Size: number | null
+  h3Size: number | null
+  h4Size: number | null
+  h5Size: number | null
+  h6Size: number | null
+  /** H1 文本对齐方式。 */
+  h1Align: 'left' | 'center' | 'right'
+}
+
+/** 默认标题覆盖值 — 全部使用主题默认。 */
+export const DEFAULT_HEADING_OVERRIDES: HeadingStyleOverrides = {
+  h1Size: null,
+  h2Size: null,
+  h3Size: null,
+  h4Size: null,
+  h5Size: null,
+  h6Size: null,
+  h1Align: 'left',
+}
+
+/** 预定义的 H1-H6 字体大小范围（px）。 */
+export const HEADING_SIZE_RANGES: Record<number, { min: number; max: number; default: number }> = {
+  1: { min: 16, max: 64, default: 32 },
+  2: { min: 14, max: 48, default: 24 },
+  3: { min: 12, max: 40, default: 20 },
+  4: { min: 11, max: 32, default: 18 },
+  5: { min: 10, max: 28, default: 16 },
+  6: { min: 9,  max: 24, default: 15 },
+}
+
+/**
+ * 解析指定级别的标题字体大小（px）。
+ * 优先级：用户覆盖 → 主题 heading 配置 → HEADING_SIZE_RATIOS × bodySize。
+ */
+export function resolveHeadingSize(
+  level: number,
+  bodySize: number,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  theme?: any,
+  overrides?: HeadingStyleOverrides | null,
+  isCover?: boolean,
+): number {
+  // 1. 用户覆盖优先
+  if (overrides) {
+    const key = `h${level}Size` as keyof HeadingStyleOverrides
+    const val = overrides[key]
+    if (typeof val === 'number' && val > 0) return val
+  }
+  // 2. 回退到主题默认比例计算
+  const scale = resolveHeadingScale(level, theme, isCover && level === 1)
+  return Math.round(bodySize * scale)
+}
+
+/**
+ * 从主题配置中解析指定级别的标题缩放因子。
+ * 优先级：主题 heading 覆盖 → HEADING_SIZE_RATIOS。
+ */
+export function resolveHeadingScale(level: number, theme?: { editor?: { heading?: { h1Scale?: number; h2Scale?: number; h3Scale?: number; h4Scale?: number; h5Scale?: number; h6Scale?: number } } }, isCover = false): number {
+  const headingCfg = theme?.editor?.heading
+  const key = `h${level}Scale` as keyof typeof headingCfg
+  if (headingCfg && headingCfg[key] !== undefined) {
+    return headingCfg[key] as number
+  }
+  if (level === 1 && isCover) return DEFAULT_COVER_H1_SCALE
+  return HEADING_SIZE_RATIOS[level] ?? 1
+}
+
+/**
+ * 从主题配置中解析指定级别的标题行高。
+ * 优先级：主题 heading 覆盖 → DEFAULT_HEADING_LINE_HEIGHTS。
+ */
+export function resolveHeadingLineHeight(level: number, theme?: { editor?: { heading?: { h1LineHeight?: number; h2LineHeight?: number; h3LineHeight?: number; h4LineHeight?: number; h5LineHeight?: number; h6LineHeight?: number } } }, isCover = false): number {
+  const headingCfg = theme?.editor?.heading
+  const key = `h${level}LineHeight` as keyof typeof headingCfg
+  if (headingCfg && headingCfg[key] !== undefined) {
+    return headingCfg[key] as number
+  }
+  if (level === 1 && isCover) return 1.15 // 大字报用更紧凑的行高
+  return DEFAULT_HEADING_LINE_HEIGHTS[level] ?? 1.55
+}
+
+/**
+ * 从主题配置中解析指定级别的标题段前间距（px）。
+ */
+export function resolveHeadingMarginTop(level: number, theme?: { editor?: { heading?: { h1MarginTop?: number; h2MarginTop?: number; h3MarginTop?: number } } }): number {
+  const headingCfg = theme?.editor?.heading
+  const key = `h${level}MarginTop` as keyof typeof headingCfg
+  if (headingCfg && headingCfg[key] !== undefined) {
+    return headingCfg[key] as number
+  }
+  return DEFAULT_HEADING_MARGIN_TOP[level] ?? 4
+}
+
+/**
+ * 从主题配置中解析指定级别的标题段后间距（px）。
+ */
+export function resolveHeadingMarginBottom(level: number, theme?: { editor?: { heading?: { h1MarginBottom?: number; h2MarginBottom?: number; h3MarginBottom?: number } } }): number {
+  const headingCfg = theme?.editor?.heading
+  const key = `h${level}MarginBottom` as keyof typeof headingCfg
+  if (headingCfg && headingCfg[key] !== undefined) {
+    return headingCfg[key] as number
+  }
+  return DEFAULT_HEADING_MARGIN_BOTTOM[level] ?? 2
+}
+
+/**
+ * 从主题配置中解析指定级别的标题字重。
+ */
+export function resolveHeadingFontWeight(level: number, theme?: { editor?: { heading?: { h1FontWeight?: number; h2FontWeight?: number; h3FontWeight?: number } } }): number {
+  const headingCfg = theme?.editor?.heading
+  const key = `h${level}FontWeight` as keyof typeof headingCfg
+  if (headingCfg && headingCfg[key] !== undefined) {
+    return headingCfg[key] as number
+  }
+  return SUBHEADING_TEXT_WEIGHT
+}
+
+/**
+ * 从主题配置中解析指定级别的标题颜色。
+ * 优先级：主题 heading 颜色覆盖 → undefined（让调用方使用调色板颜色）。
+ */
+export function resolveHeadingColor(level: number, theme?: { editor?: { heading?: { h1Color?: string; h2Color?: string; h3Color?: string } } }): string | undefined {
+  const headingCfg = theme?.editor?.heading
+  const key = `h${level}Color` as keyof typeof headingCfg
+  if (headingCfg && headingCfg[key] !== undefined) {
+    return headingCfg[key] as string
+  }
+  return undefined
 }
 
 // ── Column layout ─────────────────────────────────────────────────────

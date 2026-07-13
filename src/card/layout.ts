@@ -513,7 +513,7 @@ function estimateBlockHeight(block: Block, bodySize: number): number {
  * 4. 溢出时：尝试句子分割 → 尝试行分割 → 续到下一页
  */
 export function layoutPages(opts: LayoutOptions): CardPage[] {
-  const { source, settings, theme, footerEnabled } = opts
+  const { source, settings, theme, footerEnabled, headingOverrides } = opts
   const bodyFontFamily = getBodyFontFamily(settings.bodyFontMode)
 
   const allBlocks = parseInputBlocks(source)
@@ -657,6 +657,8 @@ export function layoutPages(opts: LayoutOptions): CardPage[] {
         theme,
         settings.subheadingStyle,
         bodyFontFamily,
+        false,
+        headingOverrides,
       )
       const blockTop = cursorY + leadingGap
       const blockBottom = blockTop + height
@@ -699,6 +701,9 @@ export function layoutPages(opts: LayoutOptions): CardPage[] {
             metrics.bodyWidth,
             theme,
             settings.subheadingStyle,
+            undefined,
+            false,
+            headingOverrides,
           )
           if (blockTop + candidateHeight <= metrics.bodyBottomY) {
             fittedRaw = candidateRaw
@@ -715,11 +720,13 @@ export function layoutPages(opts: LayoutOptions): CardPage[] {
             const maxGapLines = getParagraphMaxLines(
               sentenceBlock, gapHeight, metrics.bodySize, metrics.bodyLineHeight,
               theme, settings.subheadingStyle,
+              false, headingOverrides,
             )
             if (maxGapLines > 0) {
               const { lines: sLines } = measureParagraphBlock(
                 sentenceBlock, metrics.bodySize, metrics.bodyLineHeight,
                 metrics.bodyWidth, theme, settings.subheadingStyle,
+                undefined, false, headingOverrides,
               )
               const gapFill = splitInlineLines(sLines, maxGapLines)
               const gapTaken = gapFill.takenRaw(sentenceBlock.kind, (sentenceBlock as any).headingLevel)
@@ -731,6 +738,7 @@ export function layoutPages(opts: LayoutOptions): CardPage[] {
                 fittedHeight = (measureParagraphBlock(
                   getParagraphBlock(combined), metrics.bodySize, metrics.bodyLineHeight,
                   metrics.bodyWidth, theme, settings.subheadingStyle,
+                  undefined, false, headingOverrides,
                 )).height
                 gapRestRaw = serializeInlineTokens(
                   sLines.slice(maxGapLines).flatMap((l) => l.tokens),
@@ -773,6 +781,7 @@ export function layoutPages(opts: LayoutOptions): CardPage[] {
           const fillMaxLines = getParagraphMaxLines(
             paraBlock, fillHeight, metrics.bodySize, metrics.bodyLineHeight,
             theme, settings.subheadingStyle,
+            false, headingOverrides,
           )
           if (fillMaxLines > 0) {
             const { takenRaw, restRaw } = splitInlineLines(lines, fillMaxLines)
@@ -782,6 +791,7 @@ export function layoutPages(opts: LayoutOptions): CardPage[] {
               cursorY = blockTop + (measureParagraphBlock(
                 getParagraphBlock(fillTaken), metrics.bodySize, metrics.bodyLineHeight,
                 metrics.bodyWidth, theme, settings.subheadingStyle, bodyFontFamily,
+                false, headingOverrides,
               )).height
               previousBlock = getParagraphBlock(fillTaken)
               const fillRest = restRaw(paraBlock.kind, (paraBlock as any).headingLevel)
@@ -807,6 +817,7 @@ export function layoutPages(opts: LayoutOptions): CardPage[] {
       const maxLines = getParagraphMaxLines(
         paraBlock, remainingHeight, metrics.bodySize, metrics.bodyLineHeight,
         theme, settings.subheadingStyle,
+        false, headingOverrides,
       )
       if (maxLines <= 0) break
       const { takenRaw, restRaw } = splitInlineLines(lines, maxLines)
@@ -818,6 +829,7 @@ export function layoutPages(opts: LayoutOptions): CardPage[] {
         cursorY = blockTop + (measureParagraphBlock(
           takenBlock, metrics.bodySize, metrics.bodyLineHeight,
           metrics.bodyWidth, theme, settings.subheadingStyle, bodyFontFamily,
+          false, headingOverrides,
         )).height
         previousBlock = takenBlock
       }

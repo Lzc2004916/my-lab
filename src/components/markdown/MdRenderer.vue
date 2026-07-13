@@ -147,6 +147,23 @@ const emptyStyle = computed(() => ({
   color: var(--card-text);
   border-radius: var(--card-radius, 12px);
   box-shadow: var(--card-preview-shadow, none);
+
+  /* 响应式标题缩放因子 — 子标题组件通过 var() 引用 */
+  --heading-responsive-scale: 1.0;
+}
+
+/* 移动端（< 640px）：标题缩小 22% */
+@media (max-width: 639px) {
+  .md-renderer {
+    --heading-responsive-scale: 0.78;
+  }
+}
+
+/* 平板端（640px - 1024px）：标题缩小 10% */
+@media (min-width: 640px) and (max-width: 1024px) {
+  .md-renderer {
+    --heading-responsive-scale: 0.90;
+  }
 }
 
 .md-renderer.compact {

@@ -10,6 +10,7 @@ import type {
   CardCornerMode,
   ThemeDefinition,
   TypographySettings,
+  HeadingStyleOverrides,
 } from './types'
 import { layoutPages } from './layout'
 import { renderCard } from './renderer'
@@ -38,6 +39,8 @@ export interface EngineOptions {
   cardCornerMode?: CardCornerMode
   /** 背景渐变覆盖 */
   gradientConfig?: GradientConfig
+  /** 用户自定义标题样式覆盖 */
+  headingOverrides?: HeadingStyleOverrides | null
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -54,6 +57,7 @@ export function renderAllPages(
     settings,
     theme,
     footerEnabled: opts.footerEnabled ?? true,
+    headingOverrides: opts.headingOverrides,
   })
 
   const canvases = pages.map((page, index) =>
@@ -69,6 +73,7 @@ export function renderAllPages(
       footerEnabled: opts.footerEnabled ?? true,
       cardCornerMode: opts.cardCornerMode ?? 'square',
       gradientConfig: opts.gradientConfig,
+      headingOverrides: opts.headingOverrides,
     }),
   )
 

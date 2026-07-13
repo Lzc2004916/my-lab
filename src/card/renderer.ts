@@ -14,6 +14,7 @@ import type {
   TypographySettings,
   ColumnContainerBlock,
   Block,
+  HeadingStyleOverrides,
 } from './types'
 import {
   PAGE_WIDTH,
@@ -32,8 +33,11 @@ import {
   SUBHEADING_TEXT_WEIGHT,
   BODY_FONT_FAMILY,
   FOOTER_FONT_FAMILY,
-  HEADING_SIZE_RATIOS,
   COLUMN_GAP,
+  resolveHeadingSize,
+  resolveHeadingLineHeight,
+  resolveHeadingColor,
+  resolveHeadingFontWeight,
 } from './types'
 import {
   getPosterMetrics,
@@ -793,6 +797,7 @@ function drawColumnContainer(
   theme: ThemeDefinition,
   settings: TypographySettings,
   highlightStyle: HighlightStyle,
+  headingOverrides?: HeadingStyleOverrides | null,
 ): number {
   const halfWidth = (CONTENT_WIDTH - COLUMN_GAP) / 2
   const leftX = x
@@ -800,12 +805,12 @@ function drawColumnContainer(
 
   // 保存/恢复裁剪区域，防止列之间相互渗透
   ctx.save()
-  drawColumnBlocks(ctx, colBlock.leftBlocks, leftX, y, halfWidth, metrics, theme, settings, highlightStyle)
+  drawColumnBlocks(ctx, colBlock.leftBlocks, leftX, y, halfWidth, metrics, theme, settings, highlightStyle, headingOverrides)
   const leftHeight = _colDrawnHeight
   ctx.restore()
 
   ctx.save()
-  drawColumnBlocks(ctx, colBlock.rightBlocks, rightX, y, halfWidth, metrics, theme, settings, highlightStyle)
+  drawColumnBlocks(ctx, colBlock.rightBlocks, rightX, y, halfWidth, metrics, theme, settings, highlightStyle, headingOverrides)
   const rightHeight = _colDrawnHeight
   ctx.restore()
 
@@ -830,6 +835,7 @@ function drawColumnBlocks(
   theme: ThemeDefinition,
   settings: TypographySettings,
   highlightStyle: HighlightStyle,
+  headingOverrides?: HeadingStyleOverrides | null,
 ): void {
   let cursorY = y
   let prevBlock: ParagraphBlock | null = null
@@ -847,11 +853,15 @@ function drawColumnBlocks(
         paraBlock, metrics.bodySize, metrics.bodyLineHeight,
         maxWidth, theme, settings.subheadingStyle,
         metrics.bodyFontFamily,
+        false, // columns are never cover pages
+        headingOverrides,
       )
       drawInlineParagraph(
         ctx, paraBlock, x, cursorY,
         metrics.bodySize, metrics.bodyLineHeight, maxWidth,
         theme, highlightStyle, settings.subheadingStyle, metrics.bodyFontFamily,
+        false, // columns are never cover pages
+        headingOverrides,
       )
       cursorY += height
       prevBlock = paraBlock
@@ -902,6 +912,9 @@ function drawInlineParagraph(
   highlightStyle: HighlightStyle,
   subheadingStyle: import('./types').SubheadingStyle,
   fontFamily?: string,
+  /** 封面页（首张拆分卡片）— H1 使用大字报效果。 */
+  isCover = false,
+  headingOverrides?: HeadingStyleOverrides | null,
 ): number {
   if (block.kind === 'divider') {
     const h = getDividerBlockHeight(fontSize)
@@ -911,13 +924,13 @@ function drawInlineParagraph(
 
   const isQuote = block.kind === 'quote'
   const isSubheading = block.kind === 'subheading'
-  // 使用标题级别进行尺寸区分（H1-H6）
+  // 使用标题级别进行尺寸区分（H1-H6）— 优先级：用户覆盖 > per-theme heading config
   const headingLevel = (block as any).headingLevel as number | undefined
   const activeFontSize = isSubheading
-    ? Math.round(fontSize * (HEADING_SIZE_RATIOS[headingLevel || 2] ?? 1.12))
+    ? resolveHeadingSize(headingLevel || 2, fontSize, theme, headingOverrides, isCover && headingLevel === 1)
     : fontSize
   const activeLineHeight = isSubheading
-    ? Math.round(activeFontSize * (headingLevel && headingLevel <= 3 ? [0, 1.25, 1.35, 1.45][headingLevel]! : 1.55))
+    ? Math.round(activeFontSize * resolveHeadingLineHeight(headingLevel || 2, theme, isCover && headingLevel === 1))
     : lineHeight
   const quoteMetrics = isQuote
     ? getQuoteBoxMetrics(theme, activeFontSize, maxWidth)
@@ -930,6 +943,7 @@ function drawInlineParagraph(
     activeFontSize,
     quoteWidth,
     fontFamily,
+    theme.editor.bodyFontWeight,
   )
   const textHeight = getParagraphVisualHeight(
     lines.length,
@@ -950,6 +964,11 @@ function drawInlineParagraph(
   // 为该段落一次性解析高亮处理方式
   const treatment = resolveHighlightTreatment(theme, highlightStyle)
 
+  // H1 文本对齐：计算行级偏移量
+  const h1Align = isSubheading && headingLevel === 1
+    ? (headingOverrides?.h1Align ?? 'left')
+    : 'left'
+
   // 绘制每一行
   for (let li = 0; li < lines.length; li++) {
     const line = lines[li]!
@@ -957,6 +976,19 @@ function drawInlineParagraph(
     const textStartY = isQuote ? y + quotePadTop : y
     const baselineY =
       textStartY + activeFontSize * 0.84 + li * activeLineHeight
+
+    // H1 居中对齐 / 右对齐：计算整行宽度后调整起始 X
+    if (h1Align !== 'left') {
+      let totalLineWidth = 0
+      for (const token of line.tokens) {
+        totalLineWidth += getBodyTokenWidth(token, activeFontSize)
+      }
+      if (h1Align === 'center') {
+        cursorX = x + (maxWidth - totalLineWidth) / 2
+      } else if (h1Align === 'right') {
+        cursorX = x + maxWidth - totalLineWidth
+      }
+    }
 
     for (const token of line.tokens) {
       const tokenWidth = getBodyTokenWidth(token, activeFontSize)
@@ -977,8 +1009,11 @@ function drawInlineParagraph(
       ctx.save()
       // 'boldAccent' treatment: marked text is rendered bold + accent color
       const markBoldAccent = token.mark && treatment === 'boldAccent'
+      const headingFontWeight = isSubheading && headingLevel
+        ? resolveHeadingFontWeight(headingLevel, theme)
+        : SUBHEADING_TEXT_WEIGHT
       const weight = isSubheading
-        ? SUBHEADING_TEXT_WEIGHT
+        ? headingFontWeight
         : (token.bold || markBoldAccent)
           ? BODY_BOLD_WEIGHT
           : isQuote
@@ -991,12 +1026,19 @@ function drawInlineParagraph(
         ? ('screen' as GlobalCompositeOperation)
         : ('multiply' as GlobalCompositeOperation)
       ctx.font = `${fontStyle}${weight} ${activeFontSize}px ${fontFamily ?? BODY_FONT_FAMILY}`
+
+      // 标题颜色：per-theme heading color → subheading accent → 默认文本
+      const headingColor = isSubheading && headingLevel
+        ? resolveHeadingColor(headingLevel, theme)
+        : undefined
       ctx.fillStyle =
-        isSubheading && subheadingStyle === 'accent'
-          ? theme.palette.accent
-          : markBoldAccent
+        headingColor
+          ? headingColor
+          : isSubheading && subheadingStyle === 'accent'
             ? theme.palette.accent
-            : theme.palette.text
+            : markBoldAccent
+              ? theme.palette.accent
+              : theme.palette.text
       ctx.fillText(token.text, cursorX, baselineY)
 
       // 为 ^underline^ token 绘制下划线
@@ -1189,6 +1231,7 @@ export function renderCard(opts: RenderOptions): HTMLCanvasElement {
         paragraph.kind === 'subheading' || paragraph.kind === 'divider') {
       const block: ParagraphBlock = paragraph
       paragraphY = blockTopWithGap
+      const isCover = page.kind === 'cover'
       const { height } = measureParagraphBlock(
         block,
         metrics.bodySize,
@@ -1197,6 +1240,8 @@ export function renderCard(opts: RenderOptions): HTMLCanvasElement {
         theme,
         settings.subheadingStyle,
         metrics.bodyFontFamily,
+        isCover,
+        opts.headingOverrides,
       )
       const blockBottom = paragraphY + height
       if (blockBottom > metrics.bodyBottomY) return canvas
@@ -1205,6 +1250,8 @@ export function renderCard(opts: RenderOptions): HTMLCanvasElement {
         ctx, block, CONTENT_LEFT, paragraphY,
         metrics.bodySize, metrics.bodyLineHeight, metrics.bodyWidth,
         theme, highlightStyle, settings.subheadingStyle, metrics.bodyFontFamily,
+        isCover,
+        opts.headingOverrides,
       )
 
 
@@ -1249,6 +1296,7 @@ export function renderCard(opts: RenderOptions): HTMLCanvasElement {
         ctx, colBlock,
         CONTENT_LEFT, paragraphY,
         metrics, theme, settings, highlightStyle,
+        opts.headingOverrides,
       )
       paragraphY += drawnH
       previousBlock = { kind: 'body', raw: '' }

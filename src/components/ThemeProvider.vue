@@ -10,7 +10,7 @@
 <script setup lang="ts">
 import { ref, watch, provide, onMounted } from 'vue'
 import type { ThemeDefinition } from '@/card'
-import { getTheme, getAllThemes, onRegistryChange } from '@/card/theme-registry'
+import { getTheme, getAllThemes, onRegistryChange, resolveHeadingScale, resolveHeadingLineHeight, resolveHeadingMarginTop, resolveHeadingMarginBottom, resolveHeadingFontWeight, resolveHeadingColor, DEFAULT_COVER_H1_SCALE } from '@/card'
 import { type ThemeContext, THEME_CONTEXT_KEY } from '@/composables/themeContext'
 
 // ── Props ──────────────────────────────────────────────────────────────────
@@ -40,8 +40,56 @@ const availableThemes = ref<ThemeDefinition[]>(getAllThemes())
 
 // ── CSS variable application ───────────────────────────────────────────────
 
+/** 重置所有主题相关的 CSS 变量 — 确保主题切换时旧样式不残留。 */
+function resetAllThemeVariables(): void {
+  const root = document.documentElement
+
+  // 调色板
+  const paletteVars = ['--card-page', '--card-page-alt', '--card-text', '--card-text-muted',
+    '--card-accent', '--card-accent-soft', '--card-border', '--card-shadow', '--card-glow']
+  // 表面
+  const surfaceVars = ['--card-grain-opacity', '--card-inner-frame-opacity', '--card-preview-shadow']
+  // 排版
+  const typoVars = ['--body-size', '--body-line-height']
+  // 标题 (H1-H6)
+  const headingBaseVars: string[] = []
+  for (let level = 1; level <= 6; level++) {
+    headingBaseVars.push(
+      `--card-heading-scale-h${level}`,
+      `--card-heading-line-height-h${level}`,
+      `--card-heading-margin-top-h${level}`,
+      `--card-heading-margin-bottom-h${level}`,
+      `--card-heading-font-weight-h${level}`,
+      `--card-heading-color-h${level}`,
+    )
+  }
+  // 封面标题
+  const coverVars = ['--card-cover-h1-scale', '--card-cover-h1-line-height',
+    '--card-cover-h1-centered', '--card-cover-h1-top-offset']
+  // 代码块
+  const codeVars = ['--card-code-bg', '--card-code-text', '--card-code-radius',
+    '--card-code-border', '--card-code-line-color']
+  // 引用
+  const quoteVars = ['--card-quote-bg', '--card-quote-bar-color', '--card-quote-bar-width',
+    '--card-quote-radius']
+  // 表格 / 分隔线 / 高亮 / 通用
+  const miscVars = ['--card-table-border-color', '--card-table-header-bg', '--card-table-radius',
+    '--card-divider-color', '--card-highlight-underline-color', '--card-highlight-marker-bg',
+    '--card-highlight-border-color', '--card-highlight-bold-accent-color',
+    '--card-list-marker-color', '--card-link-color']
+
+  const allVars = [...paletteVars, ...surfaceVars, ...typoVars, ...headingBaseVars,
+    ...coverVars, ...codeVars, ...quoteVars, ...miscVars]
+  for (const v of allVars) {
+    root.style.removeProperty(v)
+  }
+}
+
 function applyThemeToDOM(theme: ThemeDefinition): void {
   const root = document.documentElement
+
+  // ── 原子化重置旧主题样式（防止残留） ──────────────────────────
+  resetAllThemeVariables()
 
   // 调色板
   root.style.setProperty('--card-page', theme.palette.page)
@@ -64,12 +112,33 @@ function applyThemeToDOM(theme: ThemeDefinition): void {
   root.style.setProperty('--body-line-height', String(theme.editor.lineHeight))
 
   // ── Heading scales ──────────────────────────────────────────────
-  root.style.setProperty('--card-heading-scale-h1', '2.20')
-  root.style.setProperty('--card-heading-scale-h2', '1.65')
-  root.style.setProperty('--card-heading-scale-h3', '1.35')
-  root.style.setProperty('--card-heading-scale-h4', '1.15')
-  root.style.setProperty('--card-heading-scale-h5', '1.04')
-  root.style.setProperty('--card-heading-scale-h6', '0.98')
+  // Per-theme heading scales — resolved from theme heading config or defaults
+  for (let level = 1; level <= 6; level++) {
+    const scale = resolveHeadingScale(level, theme)
+    const lineH = resolveHeadingLineHeight(level, theme)
+    const marginTop = resolveHeadingMarginTop(level, theme)
+    const marginBottom = resolveHeadingMarginBottom(level, theme)
+    const fontWeight = resolveHeadingFontWeight(level, theme)
+    const color = resolveHeadingColor(level, theme)
+
+    root.style.setProperty(`--card-heading-scale-h${level}`, String(scale))
+    root.style.setProperty(`--card-heading-line-height-h${level}`, String(lineH))
+    root.style.setProperty(`--card-heading-margin-top-h${level}`, `${marginTop}px`)
+    root.style.setProperty(`--card-heading-margin-bottom-h${level}`, `${marginBottom}px`)
+    root.style.setProperty(`--card-heading-font-weight-h${level}`, String(fontWeight))
+    if (color) {
+      root.style.setProperty(`--card-heading-color-h${level}`, color)
+    } else {
+      root.style.removeProperty(`--card-heading-color-h${level}`)
+    }
+  }
+
+  // ── Cover heading (首张拆分卡片 H1 大字报) ──────────────────────
+  const coverCfg = theme.coverHeading
+  root.style.setProperty('--card-cover-h1-scale', String(coverCfg?.h1Scale ?? DEFAULT_COVER_H1_SCALE))
+  root.style.setProperty('--card-cover-h1-line-height', String(coverCfg?.h1LineHeight ?? 1.15))
+  root.style.setProperty('--card-cover-h1-centered', coverCfg?.centered ? '1' : '0')
+  root.style.setProperty('--card-cover-h1-top-offset', `${coverCfg?.topOffset ?? 0}px`)
 
   // ── Code block ──────────────────────────────────────────────────
   const codeBg = `rgba(${parseInt(theme.palette.text.slice(1,3),16)},${parseInt(theme.palette.text.slice(3,5),16)},${parseInt(theme.palette.text.slice(5,7),16)},0.06)`

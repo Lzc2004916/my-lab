@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc --noEmit && vite build",
-    "preview": "vite build && electron ."
+    "preview": "vite build && electron .",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@codemirror/commands": "^6.8.1",
@@ -30,16 +32,19 @@
     "@types/markdown-it": "^14.1.2",
     "@types/node": "^22.15.19",
     "@vitejs/plugin-vue": "^4.6.2",
+    "@vue/test-utils": "^2.4.11",
     "autoprefixer": "^10.4.20",
     "daisyui": "^4.12.0",
     "electron": "^35.2.1",
     "electron-builder": "^25.1.8",
+    "happy-dom": "^20.10.6",
     "postcss": "^8.4.49",
     "tailwindcss": "^3.4.0",
     "typescript": "^5.7.3",
     "vite": "^4.5.14",
     "vite-plugin-electron": "^0.28.8",
     "vite-plugin-electron-renderer": "^0.14.7",
+    "vitest": "^4.1.10",
     "vue-tsc": "^2.2.10"
   },
   "build": {

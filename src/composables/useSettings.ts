@@ -76,6 +76,25 @@ const bodyFontMode = ref<'wenkai' | 'yahei' | 'simsun' | 'kaiti' | 'dengxian' | 
   (localStorage.getItem(STORAGE_PREFIX + 'bodyFontMode') as 'wenkai' | 'yahei' | 'simsun' | 'kaiti' | 'dengxian' | 'fangsong') || 'wenkai',
 )
 
+// ── Heading style overrides ────────────────────────────────────────────
+
+function loadHeadingSize(key: string): number | null {
+  const raw = localStorage.getItem(STORAGE_PREFIX + key)
+  if (raw === null || raw === '') return null
+  const n = Number(raw)
+  return Number.isFinite(n) && n > 0 ? n : null
+}
+
+const headingH1Size = ref<number | null>(loadHeadingSize('headingH1Size'))
+const headingH2Size = ref<number | null>(loadHeadingSize('headingH2Size'))
+const headingH3Size = ref<number | null>(loadHeadingSize('headingH3Size'))
+const headingH4Size = ref<number | null>(loadHeadingSize('headingH4Size'))
+const headingH5Size = ref<number | null>(loadHeadingSize('headingH5Size'))
+const headingH6Size = ref<number | null>(loadHeadingSize('headingH6Size'))
+const headingH1Align = ref<'left' | 'center' | 'right'>(
+  (localStorage.getItem(STORAGE_PREFIX + 'headingH1Align') as 'left' | 'center' | 'right') || 'left',
+)
+
 // ── Auto-persist ────────────────────────────────────────────────────────
 
 watch(cardSize, (v) => localStorage.setItem(STORAGE_PREFIX + 'cardSize', v))
@@ -90,6 +109,15 @@ watch(footerEnabled, (v) => localStorage.setItem(STORAGE_PREFIX + 'footerEnabled
 watch(cardCornerMode, (v) => localStorage.setItem(STORAGE_PREFIX + 'cardCornerMode', v))
 watch(subheadingStyle, (v) => localStorage.setItem(STORAGE_PREFIX + 'subheadingStyle', v))
 watch(bodyFontMode, (v) => localStorage.setItem(STORAGE_PREFIX + 'bodyFontMode', v))
+
+// Heading style overrides — persist to localStorage
+watch(headingH1Size, (v) => localStorage.setItem(STORAGE_PREFIX + 'headingH1Size', v === null ? '' : String(v)))
+watch(headingH2Size, (v) => localStorage.setItem(STORAGE_PREFIX + 'headingH2Size', v === null ? '' : String(v)))
+watch(headingH3Size, (v) => localStorage.setItem(STORAGE_PREFIX + 'headingH3Size', v === null ? '' : String(v)))
+watch(headingH4Size, (v) => localStorage.setItem(STORAGE_PREFIX + 'headingH4Size', v === null ? '' : String(v)))
+watch(headingH5Size, (v) => localStorage.setItem(STORAGE_PREFIX + 'headingH5Size', v === null ? '' : String(v)))
+watch(headingH6Size, (v) => localStorage.setItem(STORAGE_PREFIX + 'headingH6Size', v === null ? '' : String(v)))
+watch(headingH1Align, (v) => localStorage.setItem(STORAGE_PREFIX + 'headingH1Align', v))
 
 // ── Composable ───────────────────────────────────────────────────────────
 
@@ -106,6 +134,13 @@ export function useSettings(): {
   cardCornerMode: typeof cardCornerMode
   subheadingStyle: typeof subheadingStyle
   bodyFontMode: typeof bodyFontMode
+  headingH1Size: typeof headingH1Size
+  headingH2Size: typeof headingH2Size
+  headingH3Size: typeof headingH3Size
+  headingH4Size: typeof headingH4Size
+  headingH5Size: typeof headingH5Size
+  headingH6Size: typeof headingH6Size
+  headingH1Align: typeof headingH1Align
 } {
   return {
     cardSize,
@@ -120,5 +155,12 @@ export function useSettings(): {
     cardCornerMode,
     subheadingStyle,
     bodyFontMode,
+    headingH1Size,
+    headingH2Size,
+    headingH3Size,
+    headingH4Size,
+    headingH5Size,
+    headingH6Size,
+    headingH1Align,
   }
 }

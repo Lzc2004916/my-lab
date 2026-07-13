@@ -5,7 +5,15 @@
 import { inject, computed, type ComputedRef } from 'vue'
 import { THEME_CONTEXT_KEY, type ThemeContext } from '@/composables/themeContext'
 import type { ThemeDefinition } from '@/card'
-import { HEADING_SIZE_RATIOS } from '@/card/types'
+import {
+  resolveHeadingScale,
+  resolveHeadingLineHeight,
+  resolveHeadingMarginTop,
+  resolveHeadingMarginBottom,
+  resolveHeadingFontWeight,
+  resolveHeadingColor,
+  DEFAULT_COVER_H1_SCALE,
+} from '@/card/types'
 
 // ── Public interface ──────────────────────────────────────────────────────
 
@@ -39,10 +47,26 @@ export interface MarkdownThemeTokens {
   /** 是否正在进行主题过渡。 */
   isTransitioning: ComputedRef<boolean>
   /**
-   * 计算给定级别（1-6）的标题字体大小。
- * 使用主题的 bodySize × HEADING_SIZE_RATIOS。
+   * 计算给定级别（1-6）的标题字体大小（px）。
+   * 优先使用主题 heading 配置，回退到 HEADING_SIZE_RATIOS × bodySize。
+   * @param isCover 是否为封面页（首张拆分卡片），封面页使用 coverHeading 配置。
    */
-  headingSize: (level: number) => number
+  headingSize: (level: number, isCover?: boolean) => number
+  /**
+   * 计算给定级别（1-6）的标题行高。
+   * 优先使用主题 heading 配置，回退到默认值。
+   */
+  headingLineHeight: (level: number, isCover?: boolean) => number
+  /** 计算给定级别的标题段前间距（px）。 */
+  headingMarginTop: (level: number) => number
+  /** 计算给定级别的标题段后间距（px）。 */
+  headingMarginBottom: (level: number) => number
+  /** 计算给定级别的标题字重。 */
+  headingFontWeight: (level: number) => number
+  /** 计算给定级别的标题颜色（返回 undefined 表示使用默认文本颜色）。 */
+  headingColor: (level: number) => string | undefined
+  /** 封面页 H1 缩放因子（响应式）。 */
+  coverH1Scale: ComputedRef<number>
 }
 
 // ── Composable ────────────────────────────────────────────────────────────
@@ -83,10 +107,28 @@ export function useMarkdownTheme(): MarkdownThemeTokens | null {
     // 过渡状态
     isTransitioning: computed(() => ctx.isTransitioning.value),
 
-    // 标题尺寸辅助
-    headingSize(level: number): number {
-      const ratio = HEADING_SIZE_RATIOS[level] ?? 1
+    // 标题尺寸辅助 — per-theme heading config
+    headingSize(level: number, isCover = false): number {
+      const ratio = resolveHeadingScale(level, theme.value, isCover)
       return Math.round(theme.value.editor.bodySize * ratio)
     },
+    headingLineHeight(level: number, isCover = false): number {
+      return resolveHeadingLineHeight(level, theme.value, isCover)
+    },
+    headingMarginTop(level: number): number {
+      return resolveHeadingMarginTop(level, theme.value)
+    },
+    headingMarginBottom(level: number): number {
+      return resolveHeadingMarginBottom(level, theme.value)
+    },
+    headingFontWeight(level: number): number {
+      return resolveHeadingFontWeight(level, theme.value)
+    },
+    headingColor(level: number): string | undefined {
+      return resolveHeadingColor(level, theme.value)
+    },
+    coverH1Scale: computed(() =>
+      theme.value.coverHeading?.h1Scale ?? DEFAULT_COVER_H1_SCALE,
+    ),
   }
 }

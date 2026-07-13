@@ -264,11 +264,11 @@ function insertAtCursor(text: string): void {
 /**
  * 去除文本中的内联 Markdown 格式化标记。
  *
- * 移除应用内联解析器（==highlight==, ^underline^, **bold**, *italic*）
+ * 移除应用内联解析器（==highlight==, ^underline^）
  * 所识别的标记。
  *
  * 剥离在循环中运行，以便嵌套格式化
- * （例如 **bold *and* text**）能被逐步解开
+ * 能被逐步解开
  * from the outside in.
  */
 function stripInlineMarkdown(text: string): string {
@@ -284,12 +284,6 @@ function stripInlineMarkdown(text: string): string {
 
     // 2. ^underline^
     result = result.replace(/\^([^^\n]+?)\^/g, '$1')
-
-    // 3. **bold** (strip before *italic* so ** is not mis-parsed as two *)
-    result = result.replace(/\*\*([\s\S]+?)\*\*/g, '$1')
-
-    // 4. *italic* (remaining single * are guaranteed not to be part of **)
-    result = result.replace(/\*([\s\S]+?)\*/g, '$1')
 
     if (result !== before) changed = true
   }
@@ -454,16 +448,6 @@ defineExpose({
 .markdown-editor :deep(.cm-editor:focus),
 .markdown-editor :deep(.cm-editor.cm-focused) {
   outline: none;
-}
-
-/* Syntax highlighting: bold & italic (ensure visibility regardless of CSS conflicts) */
-
-.markdown-editor :deep(.tok-strong) {
-  font-weight: 700;
-}
-
-.markdown-editor :deep(.tok-emphasis) {
-  font-style: italic;
 }
 
 /* Custom inline marks (==highlight== and ^underline^) */

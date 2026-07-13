@@ -62,7 +62,7 @@
             ref="editorRef"
             :modelValue="source"
             @update:modelValue="onSourceUpdate"
-            :theme="'one-dark'"
+            :theme="editorTheme"
             @ready="onEditorReady"
           />
         </div>
@@ -107,6 +107,7 @@
             :footer-enabled="footerEnabled"
             :gradient-config="gradientConfig"
             :preview-scale="previewScale"
+            :heading-overrides="headingOverrides"
           />
         </div>
       </div>
@@ -205,7 +206,8 @@ import { useDrafts, type AppSettings } from '@/composables/useDrafts'
 import { BODY_FONT_MODES, getTheme, type BodyFontMode } from '@/card'
 import DraftRecoveryModal from '@/components/DraftRecoveryModal.vue'
 import type { GradientConfig } from '@/card'
-import type { TypographySettings, HighlightStyle, SubheadingStyle } from '@/card'
+import type { TypographySettings, HighlightStyle, SubheadingStyle, HeadingStyleOverrides } from '@/card'
+import { useSettings } from '@/composables/useSettings'
 
 // ── App theme (light/dark) toggle ──────────────────────────────────────
 
@@ -263,6 +265,12 @@ const activeTags = computed<string[]>(() => store.activeDocument?.tags ?? [])
 const cardTheme = ref<string>('moss-paper')
 const bodyFontMode = ref<BodyFontMode>('wenkai')
 
+/** CodeMirror 编辑器主题：暗色卡牌 → one-dark，浅色 → light。 */
+const editorTheme = computed<string>(() => {
+  const theme = getTheme(cardTheme.value)
+  return theme.category === 'dark' ? 'one-dark' : 'light'
+})
+
 // Theme change → sync font ref + gradient to theme defaults
 watch(cardTheme, (newThemeId) => {
   const theme = getTheme(newThemeId)
@@ -290,6 +298,7 @@ const BODY_FONT_OPTIONS = Object.entries(BODY_FONT_MODES).map(([id, def]) => ({
 
 // ── Card rendering settings ─────────────────────────────────────────────
 
+const settings = useSettings()
 const bodyFontSize = ref<number>(30)
 const highlightStyle = ref<HighlightStyle>('underline' as HighlightStyle)
 const footerEnabled = ref<boolean>(true)
@@ -397,6 +406,18 @@ const typography = computed<TypographySettings>(() => {
     subheadingStyle: (theme.editor.subheadingStyle ?? 'large') as SubheadingStyle,
   }
 })
+
+// ── Heading style overrides ─────────────────────────────────────────────
+
+const headingOverrides = computed<HeadingStyleOverrides>(() => ({
+  h1Size: settings.headingH1Size.value,
+  h2Size: settings.headingH2Size.value,
+  h3Size: settings.headingH3Size.value,
+  h4Size: settings.headingH4Size.value,
+  h5Size: settings.headingH5Size.value,
+  h6Size: settings.headingH6Size.value,
+  h1Align: settings.headingH1Align.value,
+}))
 
 // ── Markdown / page state ──────────────────────────────────────────────
 
