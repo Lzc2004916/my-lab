@@ -613,7 +613,7 @@ export function layoutPages(opts: LayoutOptions): CardPage[] {
           block.kind === 'columnContainer') {
         // 估算非文本块的高度
         const estHeight = estimateBlockHeight(block, metrics.bodySize)
-        const blockTop = cursorY + getGapBetweenBlocks(previousBlock, { kind: 'body', raw: '' }, metrics)
+        const blockTop = cursorY + getGapBetweenBlocks(previousBlock, { kind: 'body', raw: '' }, metrics, headingOverrides, theme, pageKind === 'cover')
         const blockBottom = blockTop + estHeight
 
         if (blockBottom <= metrics.bodyBottomY || page.blocks.length === 0) {
@@ -648,7 +648,7 @@ export function layoutPages(opts: LayoutOptions): CardPage[] {
           ? getParagraphBlock(blockRaw)
           : (block as TextBlock)
       const currentText = blockRaw
-      const leadingGap = getGapBetweenBlocks(previousBlock, paraBlock, metrics)
+      const leadingGap = getGapBetweenBlocks(previousBlock, paraBlock, metrics, headingOverrides, theme, pageKind === 'cover')
       const { lines, height } = measureParagraphBlock(
         paraBlock,
         metrics.bodySize,

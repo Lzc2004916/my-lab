@@ -520,6 +520,28 @@ export const DEFAULT_HEADING_MARGIN_BOTTOM: Record<number, number> = {
   6: 2,
 }
 
+/**
+ * 动态计算标题底部外边距（标题→下级内容间距）。
+ * H1 公式：fontSize × 0.45，字号 ≥ 60px 保底 30px。
+ * 从 ~67px 起等比持续放大，100px→45px，120px→54px，不封顶。
+ * H2-H6 公式：fontSize × 0.35，保底 14px。
+ */
+export function computeHeadingMarginBottom(fontSize: number, level: number): number {
+  if (level === 1) {
+    const margin = Math.round(fontSize * 0.45)
+    return fontSize >= 60 ? Math.max(30, margin) : Math.max(14, margin)
+  }
+  return Math.max(14, Math.round(fontSize * 0.35))
+}
+
+/**
+ * 动态计算标题顶部外边距（上级内容→标题间距）。
+ * 公式：fontSize × 0.3，最小 16px。
+ */
+export function computeHeadingMarginTop(fontSize: number): number {
+  return Math.max(16, Math.round(fontSize * 0.3))
+}
+
 /** 封面页 H1 默认放大因子（相对于 bodySize）。 */
 export const DEFAULT_COVER_H1_SCALE = 4.0
 
@@ -554,12 +576,12 @@ export const DEFAULT_HEADING_OVERRIDES: HeadingStyleOverrides = {
 
 /** 预定义的 H1-H6 字体大小范围（px）。 */
 export const HEADING_SIZE_RANGES: Record<number, { min: number; max: number; default: number }> = {
-  1: { min: 16, max: 64, default: 32 },
-  2: { min: 14, max: 48, default: 24 },
-  3: { min: 12, max: 40, default: 20 },
-  4: { min: 11, max: 32, default: 18 },
-  5: { min: 10, max: 28, default: 16 },
-  6: { min: 9,  max: 24, default: 15 },
+  1: { min: 16, max: 120, default: 32 },
+  2: { min: 14, max: 60, default: 24 },
+  3: { min: 12, max: 60, default: 20 },
+  4: { min: 11, max: 60, default: 18 },
+  5: { min: 10, max: 60, default: 16 },
+  6: { min: 9,  max: 60, default: 15 },
 }
 
 /**

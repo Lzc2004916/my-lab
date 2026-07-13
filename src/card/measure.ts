@@ -24,6 +24,8 @@ import {
   getBodyFontFamily,
   resolveHeadingLineHeight,
   resolveHeadingSize,
+  computeHeadingMarginBottom,
+  computeHeadingMarginTop,
 } from './types'
 import type { HeadingStyleOverrides } from './types'
 
@@ -398,9 +400,13 @@ export function measureParagraphBlock(
   // 标题高度使用 lineHeight × 行数，而非 fontSize + (n-1)×lineHeight。
   // 后者在超大字号（>100px）下严重低估视觉高度：120px 标题丢失 30px leading，
   // 叠加仅 27px 的固定间距，导致标题与下文排版重叠。
+  // H1 强制最小块高度 ≥ fontSize × 1.2，防止 brutalist/cover 等紧行高主题
+  // （h1LineHeight 1.05~1.10）中标题文字渲染超出块边界。
   const textHeight =
     block.kind === 'subheading'
-      ? lines.length * activeLineHeight
+      ? (headingLevel === 1
+          ? Math.max(lines.length * activeLineHeight, Math.round(activeFontSize * 1.2))
+          : lines.length * activeLineHeight)
       : getParagraphVisualHeight(lines.length, activeFontSize, activeLineHeight)
   const quotePadTop = quoteMetrics?.paddingTop ?? 0
   const quotePadBottom = quoteMetrics?.paddingBottom ?? 0
@@ -465,14 +471,57 @@ export function getGapBetweenBlocks(
   prev: ParagraphBlock | null,
   curr: ParagraphBlock,
   metrics: PosterMetrics,
+  headingOverrides?: HeadingStyleOverrides | null,
+  theme?: ThemeDefinition,
+  isCover?: boolean,
 ): number {
   if (!prev) return 0
   const baseGap = metrics.bodyParagraphGap
   const quoteGap = baseGap * 1.08 + 4
-  if (curr.kind === 'subheading') return baseGap * 1.2
-  if (prev.kind === 'subheading') return baseGap * 0.85
-  if (prev.kind === 'quote' || curr.kind === 'quote') return quoteGap
-  return baseGap
+  /** 正文块顶部隔离缓冲区 — 所有正文/引用块在标题下方时获得额外呼吸空间。 */
+  const bodyTopBuffer = Math.max(16, Math.round(baseGap * 0.55))
+
+  // 获取标题块的实际渲染字号
+  const getHeadingFontSize = (block: ParagraphBlock): number => {
+    const level = (block as any).headingLevel as number | undefined
+    if (!level || !theme) return 0
+    return resolveHeadingSize(level, metrics.bodySize, theme, headingOverrides, isCover && level === 1)
+  }
+
+  const prevIsHeading = prev.kind === 'subheading'
+  const currIsHeading = curr.kind === 'subheading'
+
+  // ── 标题 → 标题：取两者间距较大值 + 隔离缓冲 ────────────
+  if (prevIsHeading && currIsHeading) {
+    const prevSize = getHeadingFontSize(prev)
+    const prevLevel = (prev as any).headingLevel as number | undefined || 1
+    const prevBottom = computeHeadingMarginBottom(prevSize, prevLevel)
+    const currSize = getHeadingFontSize(curr)
+    const currTop = computeHeadingMarginTop(currSize)
+    return Math.max(prevBottom, currTop) + bodyTopBuffer
+  }
+
+  // ── 标题 → 正文/引用：标题底边距 + 正文顶部隔离缓冲 ────
+  if (prevIsHeading) {
+    const prevSize = getHeadingFontSize(prev)
+    const prevLevel = (prev as any).headingLevel as number | undefined || 1
+    if (prevSize > 0) return computeHeadingMarginBottom(prevSize, prevLevel) + bodyTopBuffer
+    // 回退：无法解析标题字号时使用 baseGap
+    return baseGap + bodyTopBuffer
+  }
+
+  // ── 正文/引用 → 标题：正文缓冲 + 标题顶部隔离 ──────────
+  if (currIsHeading) {
+    const currSize = getHeadingFontSize(curr)
+    if (currSize > 0) return computeHeadingMarginTop(currSize) + bodyTopBuffer
+    return baseGap * 1.2
+  }
+
+  // ── 引用块间距 ────────────────────────────────────────
+  if (prev.kind === 'quote' || curr.kind === 'quote') return quoteGap + bodyTopBuffer
+
+  // ── 正文段落默认间距（含顶部隔离缓冲）──────────────────
+  return baseGap + bodyTopBuffer
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

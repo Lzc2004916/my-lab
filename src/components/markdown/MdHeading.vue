@@ -60,8 +60,8 @@ const headingStyle = computed(() => {
   // 使用 per-theme 分辨率函数（用户覆盖优先）
   const fontSize = userSize ?? ctx.headingSize(level, isCover)
   const lineHeight = ctx.headingLineHeight(level, isCover)
-  const marginTop = ctx.headingMarginTop(level)
-  const marginBottom = ctx.headingMarginBottom(level)
+  const marginTop = ctx.headingMarginTop(level, fontSize)
+  const marginBottom = ctx.headingMarginBottom(level, fontSize)
   const fontWeight = ctx.headingFontWeight(level)
   const headingColor = ctx.headingColor(level)
 

@@ -81,8 +81,8 @@ describe('DEFAULT_HEADING_OVERRIDES', () => {
 // ═══════════════════════════════════════════════════════════════════════════
 
 describe('HEADING_SIZE_RANGES', () => {
-  it('H1 range is 16-64 with default 32', () => {
-    expect(HEADING_SIZE_RANGES[1]).toEqual({ min: 16, max: 64, default: 32 })
+  it('H1 range is 16-120 with default 32', () => {
+    expect(HEADING_SIZE_RANGES[1]).toEqual({ min: 16, max: 120, default: 32 })
   })
 
   it('ranges descend for lower levels', () => {

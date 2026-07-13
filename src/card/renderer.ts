@@ -842,7 +842,7 @@ function drawColumnBlocks(
 
   for (const block of blocks) {
     const gap = prevBlock
-      ? getGapBetweenBlocks(prevBlock, { kind: 'body', raw: '' }, metrics) * 0.7
+      ? getGapBetweenBlocks(prevBlock, { kind: 'body', raw: '' }, metrics, headingOverrides, theme, false) * 0.7
       : 0
     cursorY += gap
 
@@ -945,11 +945,17 @@ function drawInlineParagraph(
     fontFamily,
     theme.editor.bodyFontWeight,
   )
-  const textHeight = getParagraphVisualHeight(
-    lines.length,
-    activeFontSize,
-    activeLineHeight,
-  )
+  // 标题高度与 measureParagraphBlock 保持一致：lineHeight × 行数，
+  // H1 强制最小块高度 ≥ fontSize × 1.2，防止紧行高主题文字溢出。
+  const textHeight = isSubheading
+    ? (headingLevel === 1
+        ? Math.max(lines.length * activeLineHeight, Math.round(activeFontSize * 1.2))
+        : lines.length * activeLineHeight)
+    : getParagraphVisualHeight(
+        lines.length,
+        activeFontSize,
+        activeLineHeight,
+      )
   const quotePadTop = quoteMetrics?.paddingTop ?? 0
   const quotePadBottom = quoteMetrics?.paddingBottom ?? 0
   const blockHeight = isQuote
@@ -1223,7 +1229,7 @@ export function renderCard(opts: RenderOptions): HTMLCanvasElement {
   for (let bi = 0; bi < page.blocks.length; bi++) {
     const paragraph = page.blocks[bi]!
     const blockTopWithGap = paragraphY + (previousBlock
-      ? getGapBetweenBlocks(previousBlock, paragraph as ParagraphBlock, metrics)
+      ? getGapBetweenBlocks(previousBlock, paragraph as ParagraphBlock, metrics, opts.headingOverrides, theme, page.kind === 'cover')
       : 0)
 
     // ── Text blocks (body / quote / subheading / divider) ──────────

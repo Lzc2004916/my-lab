@@ -68,6 +68,8 @@ export {
   resolveHeadingFontWeight,
   resolveHeadingColor,
   resolveHeadingSize,
+  computeHeadingMarginBottom,
+  computeHeadingMarginTop,
 } from './types'
 
 // 颜色工具

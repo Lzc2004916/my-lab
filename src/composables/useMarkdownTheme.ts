@@ -8,11 +8,11 @@ import type { ThemeDefinition } from '@/card'
 import {
   resolveHeadingScale,
   resolveHeadingLineHeight,
-  resolveHeadingMarginTop,
-  resolveHeadingMarginBottom,
   resolveHeadingFontWeight,
   resolveHeadingColor,
   DEFAULT_COVER_H1_SCALE,
+  computeHeadingMarginBottom,
+  computeHeadingMarginTop,
 } from '@/card/types'
 
 // ── Public interface ──────────────────────────────────────────────────────
@@ -58,9 +58,9 @@ export interface MarkdownThemeTokens {
    */
   headingLineHeight: (level: number, isCover?: boolean) => number
   /** 计算给定级别的标题段前间距（px）。 */
-  headingMarginTop: (level: number) => number
-  /** 计算给定级别的标题段后间距（px）。 */
-  headingMarginBottom: (level: number) => number
+  headingMarginTop: (level: number, fontSize?: number) => number
+  /** 计算给定级别的标题段后间距（px）。fontSize 为实际渲染字号，传入后使用动态公式。 */
+  headingMarginBottom: (level: number, fontSize?: number) => number
   /** 计算给定级别的标题字重。 */
   headingFontWeight: (level: number) => number
   /** 计算给定级别的标题颜色（返回 undefined 表示使用默认文本颜色）。 */
@@ -115,11 +115,19 @@ export function useMarkdownTheme(): MarkdownThemeTokens | null {
     headingLineHeight(level: number, isCover = false): number {
       return resolveHeadingLineHeight(level, theme.value, isCover)
     },
-    headingMarginTop(level: number): number {
-      return resolveHeadingMarginTop(level, theme.value)
+    headingMarginTop(level: number, fontSize?: number): number {
+      if (fontSize) return computeHeadingMarginTop(fontSize)
+      // 回退：无法获取实际字号时使用主题比例推算
+      const ratio = resolveHeadingScale(level, theme.value, false)
+      const size = Math.round(theme.value.editor.bodySize * ratio)
+      return computeHeadingMarginTop(size)
     },
-    headingMarginBottom(level: number): number {
-      return resolveHeadingMarginBottom(level, theme.value)
+    headingMarginBottom(level: number, fontSize?: number): number {
+      if (fontSize) return computeHeadingMarginBottom(fontSize, level)
+      // 回退：无法获取实际字号时使用主题比例推算
+      const ratio = resolveHeadingScale(level, theme.value, false)
+      const size = Math.round(theme.value.editor.bodySize * ratio)
+      return computeHeadingMarginBottom(size, level)
     },
     headingFontWeight(level: number): number {
       return resolveHeadingFontWeight(level, theme.value)
