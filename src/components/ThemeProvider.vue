@@ -10,7 +10,7 @@
 <script setup lang="ts">
 import { ref, watch, provide, onMounted } from 'vue'
 import type { ThemeDefinition } from '@/card'
-import { getTheme, getAllThemes, onRegistryChange, resolveHeadingScale, resolveHeadingLineHeight, resolveHeadingMarginTop, resolveHeadingMarginBottom, resolveHeadingFontWeight, resolveHeadingColor, DEFAULT_COVER_H1_SCALE } from '@/card'
+import { getTheme, getAllThemes, onRegistryChange, resolveHeadingScale, resolveHeadingLineHeight, resolveHeadingMarginTop, resolveHeadingMarginBottom, resolveHeadingFontWeight, resolveHeadingColor, resolveHeadingShadow, resolveHeadingStroke, resolveHeadingStrokeWidth, DEFAULT_COVER_H1_SCALE, getBodyFontFamily, DEFAULT_BODY_FONT_MODE } from '@/card'
 import { type ThemeContext, THEME_CONTEXT_KEY } from '@/composables/themeContext'
 
 // ── Props ──────────────────────────────────────────────────────────────────
@@ -50,7 +50,7 @@ function resetAllThemeVariables(): void {
   // 表面
   const surfaceVars = ['--card-grain-opacity', '--card-inner-frame-opacity', '--card-preview-shadow']
   // 排版
-  const typoVars = ['--body-size', '--body-line-height']
+  const typoVars = ['--body-size', '--body-line-height', '--font-body']
   // 标题 (H1-H6)
   const headingBaseVars: string[] = []
   for (let level = 1; level <= 6; level++) {
@@ -61,6 +61,9 @@ function resetAllThemeVariables(): void {
       `--card-heading-margin-bottom-h${level}`,
       `--card-heading-font-weight-h${level}`,
       `--card-heading-color-h${level}`,
+      `--card-heading-shadow-h${level}`,
+      `--card-heading-stroke-h${level}`,
+      `--card-heading-stroke-width-h${level}`,
     )
   }
   // 封面标题
@@ -110,6 +113,11 @@ function applyThemeToDOM(theme: ThemeDefinition): void {
   // 编辑器 / 排版
   root.style.setProperty('--body-size', `${theme.editor.bodySize}px`)
   root.style.setProperty('--body-line-height', String(theme.editor.lineHeight))
+  root.style.setProperty('--font-body', getBodyFontFamily(theme.editor.bodyFontMode ?? DEFAULT_BODY_FONT_MODE))
+
+  // 过渡动画参数（全局常量，按 UI.md §7 动态注入确保可用性）
+  root.style.setProperty('--theme-transition-duration', '0.35s')
+  root.style.setProperty('--theme-transition-easing', 'cubic-bezier(0.4, 0, 0.2, 1)')
 
   // ── Heading scales ──────────────────────────────────────────────
   // Per-theme heading scales — resolved from theme heading config or defaults
@@ -120,6 +128,9 @@ function applyThemeToDOM(theme: ThemeDefinition): void {
     const marginBottom = resolveHeadingMarginBottom(level, theme)
     const fontWeight = resolveHeadingFontWeight(level, theme)
     const color = resolveHeadingColor(level, theme)
+    const shadow = resolveHeadingShadow(level, theme)
+    const stroke = resolveHeadingStroke(level, theme)
+    const strokeWidth = resolveHeadingStrokeWidth(level, theme)
 
     root.style.setProperty(`--card-heading-scale-h${level}`, String(scale))
     root.style.setProperty(`--card-heading-line-height-h${level}`, String(lineH))
@@ -131,6 +142,17 @@ function applyThemeToDOM(theme: ThemeDefinition): void {
     } else {
       root.style.removeProperty(`--card-heading-color-h${level}`)
     }
+    if (shadow) {
+      root.style.setProperty(`--card-heading-shadow-h${level}`, shadow)
+    } else {
+      root.style.removeProperty(`--card-heading-shadow-h${level}`)
+    }
+    if (stroke) {
+      root.style.setProperty(`--card-heading-stroke-h${level}`, stroke)
+    } else {
+      root.style.removeProperty(`--card-heading-stroke-h${level}`)
+    }
+    root.style.setProperty(`--card-heading-stroke-width-h${level}`, `${strokeWidth}px`)
   }
 
   // ── Cover heading (首张拆分卡片 H1 大字报) ──────────────────────

@@ -10,6 +10,9 @@ import {
   resolveHeadingLineHeight,
   resolveHeadingFontWeight,
   resolveHeadingColor,
+  resolveHeadingShadow,
+  resolveHeadingStroke,
+  resolveHeadingStrokeWidth,
   DEFAULT_COVER_H1_SCALE,
   computeHeadingMarginBottom,
   computeHeadingMarginTop,
@@ -67,6 +70,20 @@ export interface MarkdownThemeTokens {
   headingColor: (level: number) => string | undefined
   /** 封面页 H1 缩放因子（响应式）。 */
   coverH1Scale: ComputedRef<number>
+  /**
+   * 计算给定级别（1-6）的标题阴影颜色。
+   * 返回 undefined 表示无阴影。需要传入用户覆盖以正确解析。
+   */
+  headingShadow: (level: number, overrides?: import('@/card/types').HeadingStyleOverrides | null) => string | undefined
+  /**
+   * 计算给定级别（1-6）的标题描边颜色。
+   * 返回 undefined 表示无描边。
+   */
+  headingStroke: (level: number, overrides?: import('@/card/types').HeadingStyleOverrides | null) => string | undefined
+  /**
+   * 计算给定级别（1-6）的标题描边宽度（px）。
+   */
+  headingStrokeWidth: (level: number, overrides?: import('@/card/types').HeadingStyleOverrides | null) => number
 }
 
 // ── Composable ────────────────────────────────────────────────────────────
@@ -134,6 +151,18 @@ export function useMarkdownTheme(): MarkdownThemeTokens | null {
     },
     headingColor(level: number): string | undefined {
       return resolveHeadingColor(level, theme.value)
+    },
+    /** 计算给定级别（1-6）的标题阴影颜色。返回 undefined 表示无阴影。 */
+    headingShadow(level: number, overrides?: import('@/card/types').HeadingStyleOverrides | null): string | undefined {
+      return resolveHeadingShadow(level, theme.value, overrides)
+    },
+    /** 计算给定级别（1-6）的标题描边颜色。返回 undefined 表示无描边。 */
+    headingStroke(level: number, overrides?: import('@/card/types').HeadingStyleOverrides | null): string | undefined {
+      return resolveHeadingStroke(level, theme.value, overrides)
+    },
+    /** 计算给定级别（1-6）的标题描边宽度（px）。 */
+    headingStrokeWidth(level: number, overrides?: import('@/card/types').HeadingStyleOverrides | null): number {
+      return resolveHeadingStrokeWidth(level, theme.value, overrides)
     },
     coverH1Scale: computed(() =>
       theme.value.coverHeading?.h1Scale ?? DEFAULT_COVER_H1_SCALE,

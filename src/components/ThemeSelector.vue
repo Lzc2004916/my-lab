@@ -15,6 +15,32 @@
       </button>
     </div>
 
+    <!-- ── Dark theme brightness hint (UI.md §6.2) ───────────────────── -->
+    <Transition name="brightness-tip">
+      <div
+        v-if="showBrightnessTip && isDarkThemeSelected"
+        class="flex items-center gap-2 px-3 py-1.5 rounded-md text-xs border transition-all duration-200"
+        :style="{
+          background: 'rgba(251, 191, 36, 0.08)',
+          borderColor: 'rgba(251, 191, 36, 0.2)',
+          color: 'rgba(180, 130, 20, 0.9)',
+        }"
+      >
+        <svg class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2a7 7 0 0 0-7 7c0 2.4 1.2 4.5 3 5.7V17a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2v-2.3c1.8-1.3 3-3.4 3-5.7a7 7 0 0 0-7-7z"/>
+          <line x1="12" y1="6" x2="12" y2="10"/>
+          <line x1="12" y1="14" x2="12.01" y2="14"/>
+        </svg>
+        <span class="flex-1">此暗色主题在低亮度屏幕上可能难以阅读，建议调高屏幕亮度以获得最佳体验。</span>
+        <button
+          class="shrink-0 w-4 h-4 rounded-full flex items-center justify-center opacity-40 hover:opacity-80 transition-opacity cursor-pointer"
+          :style="{ background: 'rgba(180, 130, 20, 0.15)' }"
+          @click="showBrightnessTip = false"
+          title="不再提示"
+        >×</button>
+      </div>
+    </Transition>
+
     <!-- ── Horizontal scroll track ──────────────────────────────────── -->
     <div
       ref="scrollRef"
@@ -149,6 +175,19 @@ const categories = computed<CategoryTab[]>(() => {
 const filteredThemes = computed<ThemeDefinition[]>(() => {
   if (activeCategory.value === 'all') return props.themes
   return props.themes.filter((t) => t.category === activeCategory.value)
+})
+
+// ── Dark theme brightness hint (UI.md §6.2) ──────────────────────────────
+
+const showBrightnessTip = ref(true)
+const isDarkThemeSelected = computed<boolean>(() => {
+  const theme = props.themes.find((t) => t.id === props.modelValue)
+  return theme?.category === 'dark'
+})
+
+// 每次切换到暗色主题时重新显示提示
+watch(isDarkThemeSelected, (isDark) => {
+  if (isDark) showBrightnessTip.value = true
 })
 
 // ── RAF-based smooth scroll ────────────────────────────────────────────────
@@ -412,6 +451,13 @@ watch(activeCategory, () => {
 .check-pop-leave-active { transition: all 0.2s ease-in; }
 .check-pop-enter-from   { opacity: 0; transform: scale(0.4); }
 .check-pop-leave-to     { opacity: 0; transform: scale(1.2); }
+
+/* ── Brightness tip transition ──────────────────────────────────────── */
+
+.brightness-tip-enter-active { transition: all 0.25s ease-out; }
+.brightness-tip-leave-active { transition: all 0.2s ease-in; }
+.brightness-tip-enter-from   { opacity: 0; transform: translateY(-6px); max-height: 0; }
+.brightness-tip-leave-to     { opacity: 0; transform: translateY(-6px); max-height: 0; }
 
 /* ── Override daisyUI focus style on radio buttons ──────────────────── */
 button[role="radio"]:focus-visible {

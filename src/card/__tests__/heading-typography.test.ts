@@ -236,17 +236,17 @@ describe('Real theme integration', () => {
     const theme = getTheme('brutalist-raw')
 
     expect(theme.editor.heading).toBeDefined()
-    expect(theme.editor.heading!.h1Scale).toBe(4.2)
+    expect(theme.editor.heading!.h1Scale).toBe(4.4)
     expect(theme.editor.heading!.h1FontWeight).toBe(900)
     expect(theme.coverHeading).toBeDefined()
-    expect(theme.coverHeading!.h1Scale).toBe(5.5)
+    expect(theme.coverHeading!.h1Scale).toBe(5.8)
     expect(theme.coverHeading!.centered).toBe(true)
 
     // 验证分辨率函数
     const scale = resolveHeadingScale(1, theme)
-    expect(scale).toBe(4.2)
+    expect(scale).toBe(4.4)
     const coverScale = resolveHeadingScale(1, theme, true)
-    expect(coverScale).toBe(4.2) // heading config takes precedence
+    expect(coverScale).toBe(4.4) // heading config takes precedence
     const weight = resolveHeadingFontWeight(1, theme)
     expect(weight).toBe(900)
   })
@@ -255,19 +255,19 @@ describe('Real theme integration', () => {
     const theme = getTheme('swiss-modern')
 
     expect(theme.editor.heading).toBeDefined()
-    expect(theme.editor.heading!.h1Scale).toBe(2.8)
-    expect(theme.editor.heading!.h1FontWeight).toBe(700)
+    expect(theme.editor.heading!.h1Scale).toBe(3.0)
+    expect(theme.editor.heading!.h1FontWeight).toBe(800)
     expect(theme.editor.heading!.h2Scale).toBe(1.55)
 
     const h1Size = resolveHeadingScale(1, theme)
-    // bodySize 28 * 2.8 = 78.4
-    expect(Math.round(theme.editor.bodySize * h1Size)).toBe(78)
+    // bodySize 28 * 3.0 = 84
+    expect(Math.round(theme.editor.bodySize * h1Size)).toBe(84)
   })
 
-  it('moss-paper theme falls back to defaults (no heading config)', () => {
-    const theme = getTheme('moss-paper')
+  it('warm-editor theme falls back to defaults (no heading config)', () => {
+    const theme = getTheme('warm-editor')
 
-    // moss-paper has no heading config — uses defaults
+    // warm-editor has no heading config — uses defaults
     expect(theme.editor.heading).toBeUndefined()
     expect(resolveHeadingScale(1, theme)).toBe(HEADING_SIZE_RATIOS[1])
     expect(resolveHeadingScale(2, theme)).toBe(HEADING_SIZE_RATIOS[2])

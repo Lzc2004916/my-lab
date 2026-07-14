@@ -125,7 +125,6 @@ export function drawGeometricPattern(
   ctx.save()
   ctx.strokeStyle = hexToRgba(color, alpha)
   ctx.lineWidth = 0.6
-  ctx.globalAlpha = alpha
 
   // 菱形网格
   for (let x = -spacing; x < PAGE_WIDTH + spacing; x += spacing) {

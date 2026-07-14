@@ -68,6 +68,10 @@ export {
   resolveHeadingFontWeight,
   resolveHeadingColor,
   resolveHeadingSize,
+  resolveHeadingShadow,
+  resolveHeadingStroke,
+  resolveHeadingStrokeWidth,
+  DEFAULT_STROKE_WIDTH,
   computeHeadingMarginBottom,
   computeHeadingMarginTop,
 } from './types'

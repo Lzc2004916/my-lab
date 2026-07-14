@@ -149,6 +149,30 @@ export interface HeadingTypography {
   h1Color?: string
   h2Color?: string
   h3Color?: string
+
+  /** 文本阴影颜色（CSS 颜色值）。null = 无阴影。应用为 "2px 2px 4px <color>"。 */
+  h1Shadow?: string
+  h2Shadow?: string
+  h3Shadow?: string
+  h4Shadow?: string
+  h5Shadow?: string
+  h6Shadow?: string
+
+  /** 文本描边颜色（CSS 颜色值，用于 -webkit-text-stroke）。null = 无描边。 */
+  h1Stroke?: string
+  h2Stroke?: string
+  h3Stroke?: string
+  h4Stroke?: string
+  h5Stroke?: string
+  h6Stroke?: string
+
+  /** 文本描边宽度（px）。默认：1.5。 */
+  h1StrokeWidth?: number
+  h2StrokeWidth?: number
+  h3StrokeWidth?: number
+  h4StrokeWidth?: number
+  h5StrokeWidth?: number
+  h6StrokeWidth?: number
 }
 
 /** 封面页（首张拆分卡片）特殊标题配置 — "大字报"效果。 */
@@ -561,6 +585,27 @@ export interface HeadingStyleOverrides {
   h6Size: number | null
   /** H1 文本对齐方式。 */
   h1Align: 'left' | 'center' | 'right'
+  /** H1-H6 文本阴影颜色覆盖（CSS 颜色值）。null = 无阴影。 */
+  h1Shadow: string | null
+  h2Shadow: string | null
+  h3Shadow: string | null
+  h4Shadow: string | null
+  h5Shadow: string | null
+  h6Shadow: string | null
+  /** H1-H6 文本描边颜色覆盖（CSS 颜色值）。null = 无描边。 */
+  h1Stroke: string | null
+  h2Stroke: string | null
+  h3Stroke: string | null
+  h4Stroke: string | null
+  h5Stroke: string | null
+  h6Stroke: string | null
+  /** H1-H6 文本描边宽度覆盖（px）。null = 使用默认 1.5px。 */
+  h1StrokeWidth: number | null
+  h2StrokeWidth: number | null
+  h3StrokeWidth: number | null
+  h4StrokeWidth: number | null
+  h5StrokeWidth: number | null
+  h6StrokeWidth: number | null
 }
 
 /** 默认标题覆盖值 — 全部使用主题默认。 */
@@ -572,6 +617,24 @@ export const DEFAULT_HEADING_OVERRIDES: HeadingStyleOverrides = {
   h5Size: null,
   h6Size: null,
   h1Align: 'left',
+  h1Shadow: null,
+  h2Shadow: null,
+  h3Shadow: null,
+  h4Shadow: null,
+  h5Shadow: null,
+  h6Shadow: null,
+  h1Stroke: null,
+  h2Stroke: null,
+  h3Stroke: null,
+  h4Stroke: null,
+  h5Stroke: null,
+  h6Stroke: null,
+  h1StrokeWidth: null,
+  h2StrokeWidth: null,
+  h3StrokeWidth: null,
+  h4StrokeWidth: null,
+  h5StrokeWidth: null,
+  h6StrokeWidth: null,
 }
 
 /** 预定义的 H1-H6 字体大小范围（px）。 */
@@ -682,6 +745,83 @@ export function resolveHeadingColor(level: number, theme?: { editor?: { heading?
     return headingCfg[key] as string
   }
   return undefined
+}
+
+/**
+ * 从用户覆盖和主题配置中解析指定级别的标题阴影颜色。
+ * 优先级：用户覆盖 → 主题 heading 配置 → undefined（无阴影）。
+ * @returns CSS 颜色值，或 undefined（无阴影）。
+ */
+export function resolveHeadingShadow(
+  level: number,
+  theme?: { editor?: { heading?: HeadingTypography } },
+  overrides?: HeadingStyleOverrides | null,
+): string | undefined {
+  // 1. 用户覆盖优先
+  if (overrides) {
+    const key = `h${level}Shadow` as keyof HeadingStyleOverrides
+    const val = overrides[key]
+    if (typeof val === 'string' && val.length > 0) return val
+  }
+  // 2. 回退到主题 heading 配置
+  const headingCfg = theme?.editor?.heading
+  const cfgKey = `h${level}Shadow` as keyof HeadingTypography
+  if (headingCfg && typeof headingCfg[cfgKey] === 'string' && (headingCfg[cfgKey] as string).length > 0) {
+    return headingCfg[cfgKey] as string
+  }
+  return undefined
+}
+
+/**
+ * 从用户覆盖和主题配置中解析指定级别的标题描边颜色。
+ * 优先级：用户覆盖 → 主题 heading 配置 → undefined（无描边）。
+ * @returns CSS 颜色值，或 undefined（无描边）。
+ */
+export function resolveHeadingStroke(
+  level: number,
+  theme?: { editor?: { heading?: HeadingTypography } },
+  overrides?: HeadingStyleOverrides | null,
+): string | undefined {
+  // 1. 用户覆盖优先
+  if (overrides) {
+    const key = `h${level}Stroke` as keyof HeadingStyleOverrides
+    const val = overrides[key]
+    if (typeof val === 'string' && val.length > 0) return val
+  }
+  // 2. 回退到主题 heading 配置
+  const headingCfg = theme?.editor?.heading
+  const cfgKey = `h${level}Stroke` as keyof HeadingTypography
+  if (headingCfg && typeof headingCfg[cfgKey] === 'string' && (headingCfg[cfgKey] as string).length > 0) {
+    return headingCfg[cfgKey] as string
+  }
+  return undefined
+}
+
+/** 默认文本描边宽度（px），当设置了描边颜色但未指定宽度时使用。 */
+export const DEFAULT_STROKE_WIDTH = 1
+
+/**
+ * 从用户覆盖和主题配置中解析指定级别的标题描边宽度（px）。
+ * 优先级：用户覆盖 → 主题 heading 配置 → DEFAULT_STROKE_WIDTH。
+ */
+export function resolveHeadingStrokeWidth(
+  level: number,
+  theme?: { editor?: { heading?: HeadingTypography } },
+  overrides?: HeadingStyleOverrides | null,
+): number {
+  // 1. 用户覆盖优先
+  if (overrides) {
+    const key = `h${level}StrokeWidth` as keyof HeadingStyleOverrides
+    const val = overrides[key]
+    if (typeof val === 'number' && val > 0) return val
+  }
+  // 2. 回退到主题 heading 配置
+  const headingCfg = theme?.editor?.heading
+  const cfgKey = `h${level}StrokeWidth` as keyof HeadingTypography
+  if (headingCfg && typeof headingCfg[cfgKey] === 'number' && (headingCfg[cfgKey] as number) > 0) {
+    return headingCfg[cfgKey] as number
+  }
+  return DEFAULT_STROKE_WIDTH
 }
 
 // ── Column layout ─────────────────────────────────────────────────────

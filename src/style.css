@@ -219,3 +219,34 @@
 .navbar .btn {
   -webkit-app-region: no-drag;
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Accessibility — prefers-reduced-motion (UI.md §6.3)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@media (prefers-reduced-motion: reduce) {
+  /* 关闭主题切换过渡动画 */
+  .theme-transitioning,
+  .theme-aware {
+    transition: none !important;
+  }
+
+  /* 关闭 html 背景/颜色过渡 */
+  html {
+    transition: none !important;
+  }
+
+  /* 关闭卡片画布主题切换动画 */
+  .card-canvas {
+    transition: none !important;
+  }
+
+  /* 通用：关闭所有过渡和动画，但保留瞬间完成的细微动画以防止布局破坏 */
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

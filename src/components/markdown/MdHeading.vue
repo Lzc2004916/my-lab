@@ -75,6 +75,47 @@ const headingStyle = computed(() => {
   // H1 文本对齐（用户设置优先）
   const textAlign = level === 1 ? settings.headingH1Align.value : undefined
 
+  // ── Shadow ────────────────────────────────────────────────────────
+  // 构建用户覆盖以传递给解析函数
+  const shadowOverrides = {
+    h1Shadow: settings.headingH1Shadow.value,
+    h2Shadow: settings.headingH2Shadow.value,
+    h3Shadow: settings.headingH3Shadow.value,
+    h4Shadow: settings.headingH4Shadow.value,
+    h5Shadow: settings.headingH5Shadow.value,
+    h6Shadow: settings.headingH6Shadow.value,
+  }
+  const shadowKey = `h${level}Shadow` as keyof typeof shadowOverrides
+  const userShadow = shadowOverrides[shadowKey] ?? null
+  const themeShadow = ctx.headingShadow(level, null)
+  const shadowColor = userShadow ?? themeShadow
+  const textShadow = shadowColor ? `0 1px 3px ${shadowColor}` : undefined
+
+  // ── Stroke ────────────────────────────────────────────────────────
+  const strokeOverrides = {
+    h1Stroke: settings.headingH1Stroke.value,
+    h2Stroke: settings.headingH2Stroke.value,
+    h3Stroke: settings.headingH3Stroke.value,
+    h4Stroke: settings.headingH4Stroke.value,
+    h5Stroke: settings.headingH5Stroke.value,
+    h6Stroke: settings.headingH6Stroke.value,
+  }
+  const strokeKey = `h${level}Stroke` as keyof typeof strokeOverrides
+  const userStroke = strokeOverrides[strokeKey] ?? null
+  const themeStroke = ctx.headingStroke(level, null)
+  const strokeColor = userStroke ?? themeStroke
+  const strokeWidthOverrides = {
+    h1StrokeWidth: settings.headingH1StrokeWidth.value,
+    h2StrokeWidth: settings.headingH2StrokeWidth.value,
+    h3StrokeWidth: settings.headingH3StrokeWidth.value,
+    h4StrokeWidth: settings.headingH4StrokeWidth.value,
+    h5StrokeWidth: settings.headingH5StrokeWidth.value,
+    h6StrokeWidth: settings.headingH6StrokeWidth.value,
+  }
+  const strokeWidthKey = `h${level}StrokeWidth` as keyof typeof strokeWidthOverrides
+  const userStrokeWidth = strokeWidthOverrides[strokeWidthKey] ?? null
+  const strokeWidth = userStrokeWidth ?? ctx.headingStrokeWidth(level, null)
+
   // 响应式缩放：通过 CSS 自定义属性实现，由 MdRenderer 容器通过媒体查询控制
   return {
     fontSize: `calc(${fontSize}px * var(--heading-responsive-scale, 1))`,
@@ -84,6 +125,8 @@ const headingStyle = computed(() => {
     marginTop: `calc(${marginTop}px * var(--heading-responsive-scale, 1))`,
     marginBottom: `calc(${marginBottom}px * var(--heading-responsive-scale, 1))`,
     ...(textAlign && textAlign !== 'left' ? { textAlign } : {}),
+    ...(textShadow ? { textShadow } : {}),
+    ...(strokeColor ? { WebkitTextStroke: `${strokeWidth}px ${strokeColor}`, paintOrder: 'stroke fill' } : {}),
   }
 })
 </script>

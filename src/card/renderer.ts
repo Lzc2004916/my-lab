@@ -38,6 +38,9 @@ import {
   resolveHeadingLineHeight,
   resolveHeadingColor,
   resolveHeadingFontWeight,
+  resolveHeadingShadow,
+  resolveHeadingStroke,
+  resolveHeadingStrokeWidth,
 } from './types'
 import {
   getPosterMetrics,
@@ -1045,6 +1048,27 @@ function drawInlineParagraph(
             : markBoldAccent
               ? theme.palette.accent
               : theme.palette.text
+
+      // ── 标题阴影 & 描边（仅 subheading 块） ────────────────────────
+      if (isSubheading && headingLevel) {
+        const headingShadow = resolveHeadingShadow(headingLevel, theme, headingOverrides)
+        if (headingShadow) {
+          ctx.shadowColor = headingShadow
+          ctx.shadowBlur = 3
+          ctx.shadowOffsetX = 0
+          ctx.shadowOffsetY = 1
+        }
+        const headingStroke = resolveHeadingStroke(headingLevel, theme, headingOverrides)
+        if (headingStroke) {
+          const sw = resolveHeadingStrokeWidth(headingLevel, theme, headingOverrides)
+          ctx.strokeStyle = headingStroke
+          ctx.lineWidth = sw
+          ctx.lineJoin = 'miter'
+          ctx.miterLimit = 2
+          ctx.strokeText(token.text, cursorX, baselineY)
+        }
+      }
+
       ctx.fillText(token.text, cursorX, baselineY)
 
       // 为 ^underline^ token 绘制下划线

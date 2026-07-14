@@ -28,8 +28,9 @@
       <div
         v-for="level in HEADING_LEVELS"
         :key="level"
-        class="flex flex-col gap-1"
+        class="flex flex-col gap-1.5 p-2 rounded-lg bg-base-200/30"
       >
+        <!-- Row 1: Label + Size input + Reset -->
         <div class="flex items-center justify-between">
           <label class="text-xs font-semibold text-base-content/80 select-none">
             H{{ level }}
@@ -59,6 +60,8 @@
             </button>
           </div>
         </div>
+
+        <!-- Row 2: Size slider -->
         <input
           :id="`heading-size-slider-h${level}`"
           type="range"
@@ -68,6 +71,109 @@
           :value="effectiveSize(level)"
           @input="onSizeSlider(level, $event)"
         />
+
+        <!-- Row 3: Shadow + Stroke color pickers -->
+        <div class="flex items-center gap-3">
+          <!-- Shadow -->
+          <div class="flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5 text-base-content/50 shrink-0" viewBox="0 0 24 24" fill="currentColor">
+              <circle cx="12" cy="12" r="7" opacity="0.75" />
+              <circle cx="12" cy="13" r="7" opacity="0.4" />
+            </svg>
+            <span class="text-xs text-base-content/60 select-none">阴影</span>
+            <div
+              class="relative w-7 h-7 rounded-full border-2 border-base-300/80 cursor-pointer shrink-0 transition-shadow hover:shadow-md"
+              :class="{ 'ring-2 ring-primary/30': shadowValue(level) }"
+              :style="{ background: shadowValue(level) || 'transparent' }"
+              :title="shadowValue(level) ? `阴影: ${shadowValue(level)}` : '点击设置阴影颜色'"
+            >
+              <div
+                v-if="!shadowValue(level)"
+                class="absolute inset-0 rounded-full overflow-hidden"
+                style="background: repeating-conic-gradient(#d1d5db 0% 25%, #fff 0% 50%) 50% / 8px 8px; opacity: 0.5;"
+              />
+              <div
+                v-else
+                class="absolute inset-0 rounded-full border-2 border-white/25"
+              />
+              <input
+                type="color"
+                :value="shadowValue(level) || '#000000'"
+                class="absolute inset-0 w-full h-full opacity-0 cursor-pointer rounded-full"
+                @input="onShadowInput(level, $event)"
+                @change="onShadowChange(level, $event)"
+              />
+            </div>
+            <button
+              v-if="shadowValue(level)"
+              class="btn btn-ghost btn-xs h-6 w-6 min-h-0 p-0 rounded-full text-base-content/40 hover:text-base-content/70 hover:bg-base-300/40"
+              title="清除阴影"
+              @click="clearShadow(level)"
+            >
+              <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </button>
+          </div>
+
+          <!-- Stroke -->
+          <div class="flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5 text-base-content/50 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <circle cx="12" cy="12" r="9" />
+              <circle cx="12" cy="12" r="6" />
+            </svg>
+            <span class="text-xs text-base-content/60 select-none">描边</span>
+            <div
+              class="relative w-7 h-7 rounded-full border-2 border-base-300/80 cursor-pointer shrink-0 transition-shadow hover:shadow-md"
+              :class="{ 'ring-2 ring-accent/30': strokeValue(level) }"
+              :style="{ background: strokeValue(level) || 'transparent' }"
+              :title="strokeValue(level) ? `描边: ${strokeValue(level)}` : '点击设置描边颜色'"
+            >
+              <div
+                v-if="!strokeValue(level)"
+                class="absolute inset-0 rounded-full overflow-hidden"
+                style="background: repeating-conic-gradient(#d1d5db 0% 25%, #fff 0% 50%) 50% / 8px 8px; opacity: 0.5;"
+              />
+              <div
+                v-else
+                class="absolute inset-0 rounded-full border-2 border-white/25"
+              />
+              <input
+                type="color"
+                :value="strokeValue(level) || '#000000'"
+                class="absolute inset-0 w-full h-full opacity-0 cursor-pointer rounded-full"
+                @input="onStrokeInput(level, $event)"
+                @change="onStrokeChange(level, $event)"
+              />
+            </div>
+            <button
+              v-if="strokeValue(level)"
+              class="btn btn-ghost btn-xs h-6 w-6 min-h-0 p-0 rounded-full text-base-content/40 hover:text-base-content/70 hover:bg-base-300/40"
+              title="清除描边"
+              @click="clearStroke(level)"
+            >
+              <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Row 3b: Stroke width (only visible when stroke is active) -->
+        <div v-if="strokeValue(level)" class="flex items-center gap-2 ml-1">
+          <span class="text-xs text-base-content/50 select-none">描边宽度</span>
+          <input
+            type="range"
+            class="range range-sm range-accent flex-1"
+            min="1"
+            max="6"
+            step="1"
+            :value="strokeWidthValue(level)"
+            @input="onStrokeWidthInput(level, $event)"
+            title="描边宽度"
+          />
+          <span class="text-xs font-medium text-base-content/70 w-7 text-right tabular-nums">{{ strokeWidthValue(level) }}px</span>
+        </div>
       </div>
 
       <!-- Separator -->
@@ -130,7 +236,7 @@
 <script setup lang="ts">
 import { ref, type Ref } from 'vue'
 import { useSettings } from '@/composables/useSettings'
-import { HEADING_SIZE_RANGES } from '@/card'
+import { HEADING_SIZE_RANGES, DEFAULT_STROKE_WIDTH } from '@/card'
 
 // ── Constants ────────────────────────────────────────────────────────────
 
@@ -154,7 +260,37 @@ const sizeRefs: Record<number, Ref<number | null>> = {
   6: settings.headingH6Size,
 }
 
-// ── Helpers ──────────────────────────────────────────────────────────────
+/** 标题级别 → 阴影颜色 Ref 的映射。 */
+const shadowRefs: Record<number, Ref<string | null>> = {
+  1: settings.headingH1Shadow,
+  2: settings.headingH2Shadow,
+  3: settings.headingH3Shadow,
+  4: settings.headingH4Shadow,
+  5: settings.headingH5Shadow,
+  6: settings.headingH6Shadow,
+}
+
+/** 标题级别 → 描边颜色 Ref 的映射。 */
+const strokeRefs: Record<number, Ref<string | null>> = {
+  1: settings.headingH1Stroke,
+  2: settings.headingH2Stroke,
+  3: settings.headingH3Stroke,
+  4: settings.headingH4Stroke,
+  5: settings.headingH5Stroke,
+  6: settings.headingH6Stroke,
+}
+
+/** 标题级别 → 描边宽度 Ref 的映射。 */
+const strokeWidthRefs: Record<number, Ref<number | null>> = {
+  1: settings.headingH1StrokeWidth,
+  2: settings.headingH2StrokeWidth,
+  3: settings.headingH3StrokeWidth,
+  4: settings.headingH4StrokeWidth,
+  5: settings.headingH5StrokeWidth,
+  6: settings.headingH6StrokeWidth,
+}
+
+// ── Font size helpers ────────────────────────────────────────────────────
 
 function rangeFor(level: number) {
   return HEADING_SIZE_RANGES[level] ?? { min: 9, max: 24, default: 15 }
@@ -186,7 +322,6 @@ function onSizeInput(level: number, event: Event): void {
   const target = event.target as HTMLInputElement
   const raw = target.value.trim()
   if (raw === '') {
-    // 清空 → 恢复主题默认
     const ref = sizeRefs[level]
     if (ref) ref.value = null
     return
@@ -214,15 +349,88 @@ function onSizeBlur(level: number, event: Event): void {
   if (ref) ref.value = clamped
 }
 
-function resetLevel(level: number): void {
-  const ref = sizeRefs[level]
+// ── Shadow helpers ───────────────────────────────────────────────────────
+
+function shadowValue(level: number): string | null {
+  return shadowRefs[level]?.value ?? null
+}
+
+function onShadowInput(level: number, event: Event): void {
+  const target = event.target as HTMLInputElement
+  const ref = shadowRefs[level]
+  if (ref) ref.value = target.value
+}
+
+function onShadowChange(_level: number, _event: Event): void {
+  // Persisted via watcher in useSettings
+}
+
+function clearShadow(level: number): void {
+  const ref = shadowRefs[level]
   if (ref) ref.value = null
+}
+
+// ── Stroke helpers ───────────────────────────────────────────────────────
+
+function strokeValue(level: number): string | null {
+  return strokeRefs[level]?.value ?? null
+}
+
+function onStrokeInput(level: number, event: Event): void {
+  const target = event.target as HTMLInputElement
+  const ref = strokeRefs[level]
+  if (ref) ref.value = target.value
+}
+
+function onStrokeChange(_level: number, _event: Event): void {
+  // Persisted via watcher in useSettings
+}
+
+function clearStroke(level: number): void {
+  const ref = strokeRefs[level]
+  if (ref) ref.value = null
+}
+
+// ── Stroke width helpers ─────────────────────────────────────────────────
+
+function strokeWidthValue(level: number): number {
+  const val = strokeWidthRefs[level]?.value
+  if (typeof val === 'number' && val > 0) return val
+  return DEFAULT_STROKE_WIDTH
+}
+
+function onStrokeWidthInput(level: number, event: Event): void {
+  const target = event.target as HTMLInputElement
+  const val = Number(target.value)
+  if (Number.isFinite(val)) {
+    const ref = strokeWidthRefs[level]
+    if (ref) ref.value = val
+  }
+}
+
+// ── Reset ────────────────────────────────────────────────────────────────
+
+function resetLevel(level: number): void {
+  const sizeRef = sizeRefs[level]
+  if (sizeRef) sizeRef.value = null
+  const shadowRef = shadowRefs[level]
+  if (shadowRef) shadowRef.value = null
+  const strokeRef = strokeRefs[level]
+  if (strokeRef) strokeRef.value = null
+  const swRef = strokeWidthRefs[level]
+  if (swRef) swRef.value = null
 }
 
 function resetAll(): void {
   for (const level of HEADING_LEVELS) {
-    const ref = sizeRefs[level]
-    if (ref) ref.value = null
+    const sizeRef = sizeRefs[level]
+    if (sizeRef) sizeRef.value = null
+    const shadowRef = shadowRefs[level]
+    if (shadowRef) shadowRef.value = null
+    const strokeRef = strokeRefs[level]
+    if (strokeRef) strokeRef.value = null
+    const swRef = strokeWidthRefs[level]
+    if (swRef) swRef.value = null
   }
   settings.headingH1Align.value = 'left'
 }
@@ -233,12 +441,13 @@ function resetAll(): void {
   /* Clean embedded layout — no outer border/bg (container provides framing) */
 }
 
-/* DaisyUI range overrides for tighter fit */
-.heading-style-panel :deep(.range) {
-  height: 0.5rem;
+/* Font-size slider: keep compact */
+.heading-style-panel :deep(.range-primary.range-xs) {
+  height: 0.375rem;
 }
 
-.heading-style-panel :deep(.range-xs) {
-  height: 0.375rem;
+/* Stroke-width slider: comfortable touch target */
+.heading-style-panel :deep(.range-accent.range-sm) {
+  height: 0.75rem;
 }
 </style>

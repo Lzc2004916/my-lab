@@ -95,6 +95,45 @@ const headingH1Align = ref<'left' | 'center' | 'right'>(
   (localStorage.getItem(STORAGE_PREFIX + 'headingH1Align') as 'left' | 'center' | 'right') || 'left',
 )
 
+// ── Heading shadow overrides ──────────────────────────────────────────
+
+function loadHeadingColor(key: string): string | null {
+  const raw = localStorage.getItem(STORAGE_PREFIX + key)
+  return raw && raw.length > 0 ? raw : null
+}
+
+const headingH1Shadow = ref<string | null>(loadHeadingColor('headingH1Shadow'))
+const headingH2Shadow = ref<string | null>(loadHeadingColor('headingH2Shadow'))
+const headingH3Shadow = ref<string | null>(loadHeadingColor('headingH3Shadow'))
+const headingH4Shadow = ref<string | null>(loadHeadingColor('headingH4Shadow'))
+const headingH5Shadow = ref<string | null>(loadHeadingColor('headingH5Shadow'))
+const headingH6Shadow = ref<string | null>(loadHeadingColor('headingH6Shadow'))
+
+// ── Heading stroke overrides ──────────────────────────────────────────
+
+const headingH1Stroke = ref<string | null>(loadHeadingColor('headingH1Stroke'))
+const headingH2Stroke = ref<string | null>(loadHeadingColor('headingH2Stroke'))
+const headingH3Stroke = ref<string | null>(loadHeadingColor('headingH3Stroke'))
+const headingH4Stroke = ref<string | null>(loadHeadingColor('headingH4Stroke'))
+const headingH5Stroke = ref<string | null>(loadHeadingColor('headingH5Stroke'))
+const headingH6Stroke = ref<string | null>(loadHeadingColor('headingH6Stroke'))
+
+// ── Heading stroke width overrides ────────────────────────────────────
+
+function loadHeadingStrokeWidth(key: string): number | null {
+  const raw = localStorage.getItem(STORAGE_PREFIX + key)
+  if (raw === null || raw === '') return null
+  const n = Number(raw)
+  return Number.isFinite(n) && n > 0 ? n : null
+}
+
+const headingH1StrokeWidth = ref<number | null>(loadHeadingStrokeWidth('headingH1StrokeWidth'))
+const headingH2StrokeWidth = ref<number | null>(loadHeadingStrokeWidth('headingH2StrokeWidth'))
+const headingH3StrokeWidth = ref<number | null>(loadHeadingStrokeWidth('headingH3StrokeWidth'))
+const headingH4StrokeWidth = ref<number | null>(loadHeadingStrokeWidth('headingH4StrokeWidth'))
+const headingH5StrokeWidth = ref<number | null>(loadHeadingStrokeWidth('headingH5StrokeWidth'))
+const headingH6StrokeWidth = ref<number | null>(loadHeadingStrokeWidth('headingH6StrokeWidth'))
+
 // ── Auto-persist ────────────────────────────────────────────────────────
 
 watch(cardSize, (v) => localStorage.setItem(STORAGE_PREFIX + 'cardSize', v))
@@ -119,6 +158,30 @@ watch(headingH5Size, (v) => localStorage.setItem(STORAGE_PREFIX + 'headingH5Size
 watch(headingH6Size, (v) => localStorage.setItem(STORAGE_PREFIX + 'headingH6Size', v === null ? '' : String(v)))
 watch(headingH1Align, (v) => localStorage.setItem(STORAGE_PREFIX + 'headingH1Align', v))
 
+// Heading shadow — persist to localStorage
+watch(headingH1Shadow, (v) => localStorage.setItem(STORAGE_PREFIX + 'headingH1Shadow', v ?? ''))
+watch(headingH2Shadow, (v) => localStorage.setItem(STORAGE_PREFIX + 'headingH2Shadow', v ?? ''))
+watch(headingH3Shadow, (v) => localStorage.setItem(STORAGE_PREFIX + 'headingH3Shadow', v ?? ''))
+watch(headingH4Shadow, (v) => localStorage.setItem(STORAGE_PREFIX + 'headingH4Shadow', v ?? ''))
+watch(headingH5Shadow, (v) => localStorage.setItem(STORAGE_PREFIX + 'headingH5Shadow', v ?? ''))
+watch(headingH6Shadow, (v) => localStorage.setItem(STORAGE_PREFIX + 'headingH6Shadow', v ?? ''))
+
+// Heading stroke — persist to localStorage
+watch(headingH1Stroke, (v) => localStorage.setItem(STORAGE_PREFIX + 'headingH1Stroke', v ?? ''))
+watch(headingH2Stroke, (v) => localStorage.setItem(STORAGE_PREFIX + 'headingH2Stroke', v ?? ''))
+watch(headingH3Stroke, (v) => localStorage.setItem(STORAGE_PREFIX + 'headingH3Stroke', v ?? ''))
+watch(headingH4Stroke, (v) => localStorage.setItem(STORAGE_PREFIX + 'headingH4Stroke', v ?? ''))
+watch(headingH5Stroke, (v) => localStorage.setItem(STORAGE_PREFIX + 'headingH5Stroke', v ?? ''))
+watch(headingH6Stroke, (v) => localStorage.setItem(STORAGE_PREFIX + 'headingH6Stroke', v ?? ''))
+
+// Heading stroke width — persist to localStorage
+watch(headingH1StrokeWidth, (v) => localStorage.setItem(STORAGE_PREFIX + 'headingH1StrokeWidth', v === null ? '' : String(v)))
+watch(headingH2StrokeWidth, (v) => localStorage.setItem(STORAGE_PREFIX + 'headingH2StrokeWidth', v === null ? '' : String(v)))
+watch(headingH3StrokeWidth, (v) => localStorage.setItem(STORAGE_PREFIX + 'headingH3StrokeWidth', v === null ? '' : String(v)))
+watch(headingH4StrokeWidth, (v) => localStorage.setItem(STORAGE_PREFIX + 'headingH4StrokeWidth', v === null ? '' : String(v)))
+watch(headingH5StrokeWidth, (v) => localStorage.setItem(STORAGE_PREFIX + 'headingH5StrokeWidth', v === null ? '' : String(v)))
+watch(headingH6StrokeWidth, (v) => localStorage.setItem(STORAGE_PREFIX + 'headingH6StrokeWidth', v === null ? '' : String(v)))
+
 // ── Composable ───────────────────────────────────────────────────────────
 
 export function useSettings(): {
@@ -141,6 +204,24 @@ export function useSettings(): {
   headingH5Size: typeof headingH5Size
   headingH6Size: typeof headingH6Size
   headingH1Align: typeof headingH1Align
+  headingH1Shadow: typeof headingH1Shadow
+  headingH2Shadow: typeof headingH2Shadow
+  headingH3Shadow: typeof headingH3Shadow
+  headingH4Shadow: typeof headingH4Shadow
+  headingH5Shadow: typeof headingH5Shadow
+  headingH6Shadow: typeof headingH6Shadow
+  headingH1Stroke: typeof headingH1Stroke
+  headingH2Stroke: typeof headingH2Stroke
+  headingH3Stroke: typeof headingH3Stroke
+  headingH4Stroke: typeof headingH4Stroke
+  headingH5Stroke: typeof headingH5Stroke
+  headingH6Stroke: typeof headingH6Stroke
+  headingH1StrokeWidth: typeof headingH1StrokeWidth
+  headingH2StrokeWidth: typeof headingH2StrokeWidth
+  headingH3StrokeWidth: typeof headingH3StrokeWidth
+  headingH4StrokeWidth: typeof headingH4StrokeWidth
+  headingH5StrokeWidth: typeof headingH5StrokeWidth
+  headingH6StrokeWidth: typeof headingH6StrokeWidth
 } {
   return {
     cardSize,
@@ -162,5 +243,23 @@ export function useSettings(): {
     headingH5Size,
     headingH6Size,
     headingH1Align,
+    headingH1Shadow,
+    headingH2Shadow,
+    headingH3Shadow,
+    headingH4Shadow,
+    headingH5Shadow,
+    headingH6Shadow,
+    headingH1Stroke,
+    headingH2Stroke,
+    headingH3Stroke,
+    headingH4Stroke,
+    headingH5Stroke,
+    headingH6Stroke,
+    headingH1StrokeWidth,
+    headingH2StrokeWidth,
+    headingH3StrokeWidth,
+    headingH4StrokeWidth,
+    headingH5StrokeWidth,
+    headingH6StrokeWidth,
   }
 }

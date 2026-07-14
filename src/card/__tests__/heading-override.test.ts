@@ -222,7 +222,7 @@ describe('Real theme + override integration', () => {
   })
 
   it('theme without heading config uses defaults + overrides', () => {
-    const theme = getTheme('moss-paper')
+    const theme = getTheme('warm-editor')
     expect(theme.editor.heading).toBeUndefined()
 
     // Without override: uses HEADING_SIZE_RATIOS
