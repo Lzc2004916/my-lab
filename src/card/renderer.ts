@@ -1128,6 +1128,59 @@ function drawFooter(
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
+// 页面内容高度预测量（用于垂直居中）
+// ═══════════════════════════════════════════════════════════════════════════
+
+/** 预测量单个块的渲染高度（不含间距）。 */
+function measureBlockHeight(
+  block: Block,
+  metrics: PosterMetrics,
+  theme: ThemeDefinition,
+  settings: TypographySettings,
+  headingOverrides?: HeadingStyleOverrides | null,
+  isCover?: boolean,
+): number {
+  // 文本块
+  if (block.kind === 'body' || block.kind === 'quote' ||
+      block.kind === 'subheading' || block.kind === 'divider') {
+    const { height } = measureParagraphBlock(
+      block, metrics.bodySize, metrics.bodyLineHeight, metrics.bodyWidth,
+      theme, settings.subheadingStyle, metrics.bodyFontFamily,
+      isCover ?? false, headingOverrides,
+    )
+    return height
+  }
+  // 代码块
+  if (block.kind === 'code') {
+    try {
+      const { height } = measureCodeBlock(block, metrics.bodySize)
+      return height
+    } catch {
+      const lineCount = block.code.split('\n').length
+      return 32 + lineCount * (metrics.bodySize * 0.92 * 1.5)
+    }
+  }
+  // 表格块
+  if (block.kind === 'table') {
+    const { totalHeight } = measureTableBlock(
+      block, metrics.bodySize, metrics.bodyLineHeight, metrics.bodyFontFamily,
+    )
+    return totalHeight
+  }
+  // 列容器
+  if (block.kind === 'columnContainer') {
+    const leftH = block.leftBlocks.reduce(
+      (h, b) => h + measureBlockHeight(b, metrics, theme, settings, headingOverrides, isCover) + 10, 0,
+    )
+    const rightH = block.rightBlocks.reduce(
+      (h, b) => h + measureBlockHeight(b, metrics, theme, settings, headingOverrides, isCover) + 10, 0,
+    )
+    return Math.max(leftH, rightH) + 20
+  }
+  return 0
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
 // 主渲染函数
 // ═══════════════════════════════════════════════════════════════════════════
 
@@ -1225,6 +1278,36 @@ export function renderCard(opts: RenderOptions): HTMLCanvasElement {
 
   // ── 6. Body blocks (dispatched by block kind) ──
   let paragraphY = metrics.bodyTopY
+
+  // ── 6a. H1 vertical centering: pre-measure total content height ──
+  if (opts.headingOverrides?.h1VerticalCenter && page.kind !== 'cover') {
+    const hasH1 = page.blocks.some(
+      (b) => b.kind === 'subheading' && (b as any).headingLevel === 1,
+    )
+    if (hasH1) {
+      let totalH = 0
+      let prev: ParagraphBlock | null = null as ParagraphBlock | null
+      for (const block of page.blocks) {
+        const gap = prev
+          ? getGapBetweenBlocks(prev, block as ParagraphBlock, metrics, opts.headingOverrides, theme, false)
+          : 0
+        const h = measureBlockHeight(block, metrics, theme, settings, opts.headingOverrides, false)
+        totalH += gap + h
+        // 为非文本块设回退 prev，使下一块的间距按 body→X 计算
+        if (block.kind === 'body' || block.kind === 'quote' ||
+            block.kind === 'subheading' || block.kind === 'divider') {
+          prev = block as ParagraphBlock
+        } else {
+          prev = { kind: 'body', raw: '' }
+        }
+      }
+      const available = metrics.bodyBottomY - metrics.bodyTopY
+      if (totalH < available) {
+        paragraphY = metrics.bodyTopY + Math.round((available - totalH) / 2)
+      }
+    }
+  }
+
   let previousBlock: ParagraphBlock | null = null
   for (let bi = 0; bi < page.blocks.length; bi++) {
     const paragraph = page.blocks[bi]!

@@ -561,6 +561,8 @@ export interface HeadingStyleOverrides {
   h6Size: number | null
   /** H1 文本对齐方式。 */
   h1Align: 'left' | 'center' | 'right'
+  /** H1 垂直居中 — 页面含 H1 标题时，所有内容在可视区域内垂直居中。 */
+  h1VerticalCenter: boolean
 }
 
 /** 默认标题覆盖值 — 全部使用主题默认。 */
@@ -572,6 +574,7 @@ export const DEFAULT_HEADING_OVERRIDES: HeadingStyleOverrides = {
   h5Size: null,
   h6Size: null,
   h1Align: 'left',
+  h1VerticalCenter: false,
 }
 
 /** 预定义的 H1-H6 字体大小范围（px）。 */

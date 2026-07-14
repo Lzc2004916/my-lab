@@ -111,6 +111,19 @@
             </button>
           </div>
         </div>
+
+        <!-- H1 Vertical Center Toggle -->
+        <div class="flex flex-col gap-1.5 pt-1">
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              class="checkbox checkbox-xs checkbox-primary"
+              :checked="settings.headingH1VerticalCenter.value"
+              @change="settings.headingH1VerticalCenter.value = ($event.target as HTMLInputElement).checked"
+            />
+            <span class="text-xs font-medium text-base-content/70 select-none">H1 垂直居中</span>
+          </label>
+        </div>
       </div>
 
       <!-- Reset all -->
@@ -224,6 +237,7 @@ function resetAll(): void {
     if (ref) ref.value = null
   }
   settings.headingH1Align.value = 'left'
+  settings.headingH1VerticalCenter.value = false
 }
 </script>
 

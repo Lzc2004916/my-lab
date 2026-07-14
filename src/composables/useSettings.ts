@@ -94,6 +94,9 @@ const headingH6Size = ref<number | null>(loadHeadingSize('headingH6Size'))
 const headingH1Align = ref<'left' | 'center' | 'right'>(
   (localStorage.getItem(STORAGE_PREFIX + 'headingH1Align') as 'left' | 'center' | 'right') || 'left',
 )
+const headingH1VerticalCenter = ref<boolean>(
+  localStorage.getItem(STORAGE_PREFIX + 'headingH1VerticalCenter') === 'true',
+)
 
 // ── Auto-persist ────────────────────────────────────────────────────────
 
@@ -118,6 +121,7 @@ watch(headingH4Size, (v) => localStorage.setItem(STORAGE_PREFIX + 'headingH4Size
 watch(headingH5Size, (v) => localStorage.setItem(STORAGE_PREFIX + 'headingH5Size', v === null ? '' : String(v)))
 watch(headingH6Size, (v) => localStorage.setItem(STORAGE_PREFIX + 'headingH6Size', v === null ? '' : String(v)))
 watch(headingH1Align, (v) => localStorage.setItem(STORAGE_PREFIX + 'headingH1Align', v))
+watch(headingH1VerticalCenter, (v) => localStorage.setItem(STORAGE_PREFIX + 'headingH1VerticalCenter', String(v)))
 
 // ── Composable ───────────────────────────────────────────────────────────
 
@@ -141,6 +145,7 @@ export function useSettings(): {
   headingH5Size: typeof headingH5Size
   headingH6Size: typeof headingH6Size
   headingH1Align: typeof headingH1Align
+  headingH1VerticalCenter: typeof headingH1VerticalCenter
 } {
   return {
     cardSize,
@@ -162,5 +167,6 @@ export function useSettings(): {
     headingH5Size,
     headingH6Size,
     headingH1Align,
+    headingH1VerticalCenter,
   }
 }

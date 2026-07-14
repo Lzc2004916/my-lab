@@ -280,9 +280,9 @@ function getHeadingLineHeightRatio(headingLevel?: number, theme?: ThemeDefinitio
   return 1.55
 }
 
-function getSubheadingLineHeight(fontSize: number, lineHeight: number, style: SubheadingStyle, headingLevel?: number, theme?: ThemeDefinition, isCover = false): number {
+function getSubheadingLineHeight(fontSize: number, lineHeight: number, style: SubheadingStyle, headingLevel?: number, theme?: ThemeDefinition, isCover = false, headingOverrides?: HeadingStyleOverrides | null): number {
   if (headingLevel && headingLevel >= 1 && headingLevel <= 6) {
-    const headingFontSize = getSubheadingFontSize(fontSize, headingLevel, theme, isCover)
+    const headingFontSize = getSubheadingFontSize(fontSize, headingLevel, theme, isCover, headingOverrides)
     return Math.round(headingFontSize * getHeadingLineHeightRatio(headingLevel, theme, isCover))
   }
   return style === 'large' ? lineHeight * 1.02 : lineHeight
@@ -382,7 +382,7 @@ export function measureParagraphBlock(
       : fontSize
   const activeLineHeight =
     block.kind === 'subheading'
-      ? getSubheadingLineHeight(fontSize, lineHeight, subheadingStyle, headingLevel, theme, isCover)
+      ? getSubheadingLineHeight(fontSize, lineHeight, subheadingStyle, headingLevel, theme, isCover, headingOverrides)
       : lineHeight
   const quoteMetrics =
     block.kind === 'quote'
@@ -441,7 +441,7 @@ export function getParagraphMaxLines(
       : fontSize
   const activeLineHeight =
     block.kind === 'subheading'
-      ? getSubheadingLineHeight(fontSize, lineHeight, subheadingStyle, headingLevel, theme, isCover)
+      ? getSubheadingLineHeight(fontSize, lineHeight, subheadingStyle, headingLevel, theme, isCover, headingOverrides)
       : lineHeight
   const quoteMetrics =
     block.kind === 'quote'
