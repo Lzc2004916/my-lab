@@ -417,7 +417,6 @@ const headingOverrides = computed<HeadingStyleOverrides>(() => ({
   h5Size: settings.headingH5Size.value,
   h6Size: settings.headingH6Size.value,
   h1Align: settings.headingH1Align.value,
-  h1VerticalCenter: settings.headingH1VerticalCenter.value,
 }))
 
 // ── Markdown / page state ──────────────────────────────────────────────
