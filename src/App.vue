@@ -278,6 +278,8 @@ watch(cardTheme, (newThemeId) => {
     bodyFontMode.value = theme.editor.bodyFontMode
   }
   highlightStyle.value = theme.editor.highlightStyle
+  // 清除用户自定义标题颜色，让新主题使用自己的标题颜色
+  settings.clearHeadingColors()
   if (theme.gradient) {
     gradientConfig.value = {
       enabled: gradientConfig.value.enabled,
@@ -417,12 +419,12 @@ const headingOverrides = computed<HeadingStyleOverrides>(() => ({
   h5Size: settings.headingH5Size.value,
   h6Size: settings.headingH6Size.value,
   h1Align: settings.headingH1Align.value,
-  h1Shadow: settings.headingH1Shadow.value,
-  h2Shadow: settings.headingH2Shadow.value,
-  h3Shadow: settings.headingH3Shadow.value,
-  h4Shadow: settings.headingH4Shadow.value,
-  h5Shadow: settings.headingH5Shadow.value,
-  h6Shadow: settings.headingH6Shadow.value,
+  h1Color: settings.headingH1Color.value,
+  h2Color: settings.headingH2Color.value,
+  h3Color: settings.headingH3Color.value,
+  h4Color: settings.headingH4Color.value,
+  h5Color: settings.headingH5Color.value,
+  h6Color: settings.headingH6Color.value,
   h1Stroke: settings.headingH1Stroke.value,
   h2Stroke: settings.headingH2Stroke.value,
   h3Stroke: settings.headingH3Stroke.value,

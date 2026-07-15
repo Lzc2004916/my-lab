@@ -19,7 +19,7 @@ process.env.VITE_PUBLIC = app.isPackaged
 
 const VITE_DEV_SERVER_URL = process.env['VITE_DEV_SERVER_URL']
 const PRELOAD_PATH = path.join(__dirname, 'preload.js')
-const ICON_PATH = path.join(process.env.VITE_PUBLIC!, 'markdown.jpg')
+const ICON_PATH = path.join(process.env.VITE_PUBLIC!, 'icon.png')
 
 let win: BrowserWindow | null = null
 let tray: Tray | null = null

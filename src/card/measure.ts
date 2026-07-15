@@ -93,7 +93,8 @@ export function getBodyTokenWidth(token: InlineToken, fontSize: number, fontFami
   const baseWeight = bodyFontWeight ?? BODY_TEXT_WEIGHT
   const weight = token.bold ? BODY_BOLD_WEIGHT : baseWeight
   const family = fontFamily ?? BODY_FONT_FAMILY
-  const font = `${weight} ${fontSize}px ${family}`
+  const fontStyle = token.italic ? 'italic ' : ''
+  const font = `${fontStyle}${weight} ${fontSize}px ${family}`
   return getMeasureCtx(font).measureText(token.text).width
 }
 
@@ -174,19 +175,8 @@ export function wrapInlineTokensByWidth(
         }
       }
 
-      // 样式匹配时与前一个 token 合并
-      const lastToken = currentLine[currentLine.length - 1]
-      if (
-        lastToken &&
-        lastToken.bold === token.bold &&
-        lastToken.italic === token.italic &&
-        lastToken.mark === token.mark &&
-        lastToken.underline === token.underline
-      ) {
-        lastToken.text += token.text
-      } else {
-        currentLine.push({ ...token })
-      }
+      // 始终追加新 token，避免合并后 measureText 宽度与换行时不一致
+      currentLine.push({ ...token })
       currentWidth += tokenWidth
     }
   }

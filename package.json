@@ -2,10 +2,12 @@
   "name": "rich-text-editor",
   "version": "1.0.0",
   "description": "A Rich Text Editor built with Electron + Vue 3 + TypeScript",
+  "author": "Rox",
   "main": "dist-electron/main.js",
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc --noEmit && vite build",
+    "build:app": "vue-tsc --noEmit && vite build && electron-builder",
     "preview": "vite build && electron .",
     "test": "vitest run",
     "test:watch": "vitest"
@@ -16,20 +18,13 @@
     "@codemirror/state": "^6.5.2",
     "@codemirror/theme-one-dark": "^6.1.2",
     "@codemirror/view": "^6.36.5",
-    "axios": "^1.9.0",
     "html2canvas": "^1.4.1",
     "jspdf": "^2.5.2",
-    "markdown-it": "^14.1.0",
-    "markdown-it-attrs": "^4.3.1",
-    "markdown-it-container": "^4.0.0",
-    "markdown-it-emoji": "^3.0.0",
     "pinia": "^2.3.1",
     "prismjs": "^1.30.0",
-    "vue": "^3.5.16",
-    "vue-router": "^4.5.1"
+    "vue": "^3.5.16"
   },
   "devDependencies": {
-    "@types/markdown-it": "^14.1.2",
     "@types/node": "^22.15.19",
     "@vitejs/plugin-vue": "^4.6.2",
     "@vue/test-utils": "^2.4.11",
@@ -39,6 +34,7 @@
     "electron-builder": "^25.1.8",
     "happy-dom": "^20.10.6",
     "postcss": "^8.4.49",
+    "sharp": "^0.35.3",
     "tailwindcss": "^3.4.0",
     "typescript": "^5.7.3",
     "vite": "^4.5.14",
@@ -50,6 +46,8 @@
   "build": {
     "appId": "com.richtexteditor.app",
     "productName": "Rich Text Editor",
+    "icon": "build/icon.png",
+    "afterPack": "./scripts/inject-icon.js",
     "directories": {
       "output": "release"
     },
@@ -58,7 +56,15 @@
       "dist-electron"
     ],
     "win": {
-      "target": "nsis"
+      "target": "nsis",
+      "sign": null,
+      "signAndEditExecutable": false,
+      "signDlls": false
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true
     },
     "mac": {
       "target": "dmg"

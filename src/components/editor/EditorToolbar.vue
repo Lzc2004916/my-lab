@@ -22,49 +22,9 @@
       v-for="item in toolbarItems"
       :key="item.id"
       class="tooltip tooltip-bottom"
-      :data-tip="item.id === 'heading' ? headingLabel : item.label"
+      :data-tip="item.label"
     >
-      <!-- ── Heading split button: dropdown ▼ selects level, main H applies it ── -->
-      <template v-if="item.id === 'heading'">
-        <div class="relative">
-          <div class="join">
-            <button
-              class="btn btn-ghost btn-sm h-7 min-h-0 px-1.5 join-item"
-              :aria-label="headingLabel"
-              @mousedown.prevent
-              @click="emit('insert', headingItem)"
-            >
-              <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M6 4v16"/><path d="M18 4v16"/><path d="M6 12h12"/><line x1="6" y1="4" x2="18" y2="4"/>
-              </svg>
-            </button>
-            <button
-              class="btn btn-ghost btn-sm h-7 min-h-0 px-0 join-item"
-              aria-label="选择标题级别"
-              @click.stop="headingDropdownOpen = !headingDropdownOpen"
-            >
-              <svg class="w-[7px] h-[4px] pointer-events-none rotate-180" viewBox="0 0 10 6" fill="currentColor">
-                <path d="M0 0l5 6 5-6z"/>
-              </svg>
-            </button>
-          </div>
-          <ul
-            v-show="headingDropdownOpen"
-            class="absolute top-full right-0 mt-1 menu p-1.5 shadow bg-base-200 rounded-box w-36 z-50 text-sm whitespace-nowrap"
-          >
-            <li class="menu-title"><span class="text-xs text-base-content/60">标题级别</span></li>
-            <li v-for="hl in HEADING_LEVELS" :key="hl.level">
-              <a @click="onHeadingSelect(hl)">
-                <span class="text-xs font-bold">{{ hl.level }}</span>
-              </a>
-            </li>
-          </ul>
-        </div>
-      </template>
-
-      <!-- ── Normal button (non-split items) ── -->
       <button
-        v-else
         class="btn btn-ghost btn-sm btn-square h-7 w-7 min-h-0"
         :aria-label="item.label"
         @mousedown.prevent
@@ -106,11 +66,27 @@
         <span v-else class="inline-flex items-center justify-center w-full h-full text-[13px] leading-none pointer-events-none" v-html="item.icon"></span>
       </button>
     </div>
+
+    <!-- Separator -->
+    <span class="w-px h-5 bg-base-300/60 mx-0.5"></span>
+
+    <!-- H1-H6 heading buttons -->
+    <button
+      v-for="level in 6"
+      :key="'h' + level"
+      class="btn btn-ghost btn-sm h-7 min-h-0 px-1.5 tooltip tooltip-bottom"
+      :data-tip="'标题 (H' + level + ')'"
+      :aria-label="'H' + level"
+      @mousedown.prevent
+      @click="emit('insert', makeHeadingItem(level))"
+    >
+      <span class="text-xs font-bold leading-none">H{{ level }}</span>
+    </button>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+// (no Vue reactivity imports needed — toolbar is stateless)
 
 // ── Types ────────────────────────────────────────────────────────────
 
@@ -148,47 +124,19 @@ const emit = defineEmits<{
   (e: 'command', action: 'undo'): void
 }>()
 
-// ── Heading dropdown logic ───────────────────────────────────────────
+// ── Heading helpers ────────────────────────────────────────────────
 
-const headingDropdownOpen = ref(false)
-
-/** 用户从下拉菜单中显式选择的标题级别（尚未应用）；默认 H2。 */
-const selectedHeadingLevel = ref(2)
-
-/** 反映待应用级别的标题标签（来自下拉选择，而非当前行状态）。 */
-const headingLabel = computed(() => `标题 (H${selectedHeadingLevel.value})`)
-
-/** 携带动态 headingLevel 的标题工具栏项，供主按钮 emit 使用。 */
-const headingItem = computed(() => ({
-  id: 'heading' as const,
-  icon: '<strong>H</strong>',
-  label: headingLabel.value,
-  template: '#'.repeat(selectedHeadingLevel.value) + ' ',
-  wrap: {
-    prefix: '#'.repeat(selectedHeadingLevel.value) + ' ',
-    suffix: '',
-    placeholder: '',
-  },
-  headingLevel: selectedHeadingLevel.value,
-}))
-
-interface HeadingLevelOption {
-  level: string
-  label: string
-  prefix: string
-  placeholder: string
-}
-
-const HEADING_LEVELS: HeadingLevelOption[] = [
-  { level: 'H1', label: '一级标题', prefix: '# ', placeholder: '' },
-  { level: 'H2', label: '二级标题', prefix: '## ', placeholder: '' },
-  { level: 'H3', label: '三级标题', prefix: '### ', placeholder: '' },
-]
-
-/** 下拉选择 → 仅记录所选级别，不立即应用。需再次点击主按钮才会生效。 */
-function onHeadingSelect(hl: HeadingLevelOption): void {
-  selectedHeadingLevel.value = parseInt(hl.level[1])
-  headingDropdownOpen.value = false
+/** 为指定级别（1-6）构建标题工具栏项。 */
+function makeHeadingItem(level: number): ToolbarItem {
+  const prefix = '#'.repeat(level) + ' '
+  return {
+    id: 'heading',
+    icon: `<strong>H${level}</strong>`,
+    label: `标题 (H${level})`,
+    template: prefix,
+    wrap: { prefix, suffix: '', placeholder: '' },
+    headingLevel: level,
+  } as ToolbarItem & { headingLevel: number }
 }
 
 // ── Toolbar config ───────────────────────────────────────────────────
@@ -203,8 +151,6 @@ const toolbarItems: readonly ToolbarItem[] = [
   // ── Text formatting ──
   { id: 'highlight',   icon: '🖍',                   label: '高亮', template: '==高亮文本==',
     wrap: { prefix: '==', suffix: '==', placeholder: '高亮文本' } },
-  { id: 'heading',     icon: '<strong>H</strong>',  label: '标题 (H2)', template: '## ',
-    wrap: { prefix: '## ', suffix: '',   placeholder: '' } },
 
   // ── Link & media ──
   { id: 'link',        icon: '🔗',                   label: '链接', template: '[链接文本](url)' },

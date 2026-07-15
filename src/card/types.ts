@@ -149,6 +149,9 @@ export interface HeadingTypography {
   h1Color?: string
   h2Color?: string
   h3Color?: string
+  h4Color?: string
+  h5Color?: string
+  h6Color?: string
 
   /** 文本阴影颜色（CSS 颜色值）。null = 无阴影。应用为 "2px 2px 4px <color>"。 */
   h1Shadow?: string
@@ -409,15 +412,15 @@ export const PAGE_HEIGHT = 960
  * 推到 56px（每侧 7.8%），使文本在换行前紧贴卡片边缘 —
  * 最大化可用宽度，同时保留窄边距。
  */
-export const CONTENT_LEFT = 56
+export const CONTENT_LEFT = 40
 
 /**
  * 内容区域的右边界。
- * 对称 56px 边距：720 − 56 = 664。
+ * 对称 40px 边距：720 − 40 = 680。
  */
-export const CONTENT_RIGHT = 664
+export const CONTENT_RIGHT = 680
 
-/** 可用内容宽度（608px ≈ PAGE_WIDTH 720 的 84.4%）。 */
+/** 可用内容宽度（640px ≈ PAGE_WIDTH 720 的 88.9%）。 */
 export const CONTENT_WIDTH = CONTENT_RIGHT - CONTENT_LEFT
 
 /** Retina 输出的设备像素缩放因子 */
@@ -585,13 +588,13 @@ export interface HeadingStyleOverrides {
   h6Size: number | null
   /** H1 文本对齐方式。 */
   h1Align: 'left' | 'center' | 'right'
-  /** H1-H6 文本阴影颜色覆盖（CSS 颜色值）。null = 无阴影。 */
-  h1Shadow: string | null
-  h2Shadow: string | null
-  h3Shadow: string | null
-  h4Shadow: string | null
-  h5Shadow: string | null
-  h6Shadow: string | null
+  /** H1-H6 字体颜色覆盖（CSS 颜色值）。null = 使用主题默认颜色。 */
+  h1Color: string | null
+  h2Color: string | null
+  h3Color: string | null
+  h4Color: string | null
+  h5Color: string | null
+  h6Color: string | null
   /** H1-H6 文本描边颜色覆盖（CSS 颜色值）。null = 无描边。 */
   h1Stroke: string | null
   h2Stroke: string | null
@@ -617,12 +620,12 @@ export const DEFAULT_HEADING_OVERRIDES: HeadingStyleOverrides = {
   h5Size: null,
   h6Size: null,
   h1Align: 'left',
-  h1Shadow: null,
-  h2Shadow: null,
-  h3Shadow: null,
-  h4Shadow: null,
-  h5Shadow: null,
-  h6Shadow: null,
+  h1Color: null,
+  h2Color: null,
+  h3Color: null,
+  h4Color: null,
+  h5Color: null,
+  h6Color: null,
   h1Stroke: null,
   h2Stroke: null,
   h3Stroke: null,
@@ -735,14 +738,25 @@ export function resolveHeadingFontWeight(level: number, theme?: { editor?: { hea
 }
 
 /**
- * 从主题配置中解析指定级别的标题颜色。
- * 优先级：主题 heading 颜色覆盖 → undefined（让调用方使用调色板颜色）。
+ * 从用户覆盖和主题配置中解析指定级别的标题颜色。
+ * 优先级：用户覆盖 > 主题 heading 颜色覆盖 → undefined（让调用方使用调色板颜色）。
  */
-export function resolveHeadingColor(level: number, theme?: { editor?: { heading?: { h1Color?: string; h2Color?: string; h3Color?: string } } }): string | undefined {
+export function resolveHeadingColor(
+  level: number,
+  theme?: { editor?: { heading?: HeadingTypography } },
+  overrides?: HeadingStyleOverrides | null,
+): string | undefined {
+  // 1. 用户覆盖优先
+  if (overrides) {
+    const overrideKey = `h${level}Color` as keyof HeadingStyleOverrides
+    const val = overrides[overrideKey]
+    if (typeof val === 'string' && val.length > 0) return val
+  }
+  // 2. 回退到主题 heading 配置
   const headingCfg = theme?.editor?.heading
-  const key = `h${level}Color` as keyof typeof headingCfg
-  if (headingCfg && headingCfg[key] !== undefined) {
-    return headingCfg[key] as string
+  const cfgKey = `h${level}Color` as keyof HeadingTypography
+  if (headingCfg && typeof headingCfg[cfgKey] === 'string' && (headingCfg[cfgKey] as string).length > 0) {
+    return headingCfg[cfgKey] as string
   }
   return undefined
 }

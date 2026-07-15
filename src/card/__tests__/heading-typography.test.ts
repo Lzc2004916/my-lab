@@ -16,6 +16,7 @@ import {
   DEFAULT_HEADING_MARGIN_TOP,
   DEFAULT_HEADING_MARGIN_BOTTOM,
   DEFAULT_COVER_H1_SCALE,
+  DEFAULT_HEADING_OVERRIDES,
   SUBHEADING_TEXT_WEIGHT,
 } from '../types'
 import type { ThemeDefinition } from '../types'
@@ -223,6 +224,34 @@ describe('resolveHeadingColor', () => {
     expect(resolveHeadingColor(1, theme)).toBe('#ff0000')
     expect(resolveHeadingColor(2, theme)).toBe('#00ff00')
     expect(resolveHeadingColor(3, theme)).toBeUndefined()
+  })
+
+  it('user override takes priority over theme heading color', () => {
+    const theme = makeTheme({
+      heading: { h1Color: '#ff0000', h2Color: '#00ff00' },
+    })
+    const overrides = { ...DEFAULT_HEADING_OVERRIDES, h1Color: '#0000ff' }
+    expect(resolveHeadingColor(1, theme, overrides)).toBe('#0000ff')
+    // h2 has no user override, falls back to theme
+    expect(resolveHeadingColor(2, theme, overrides)).toBe('#00ff00')
+  })
+
+  it('user override works for H4-H6 levels', () => {
+    const theme = makeTheme({
+      heading: { h4Color: '#aaaaaa', h5Color: '#bbbbbb', h6Color: '#cccccc' },
+    })
+    expect(resolveHeadingColor(4, theme)).toBe('#aaaaaa')
+    expect(resolveHeadingColor(5, theme)).toBe('#bbbbbb')
+    expect(resolveHeadingColor(6, theme)).toBe('#cccccc')
+
+    const overrides = { ...DEFAULT_HEADING_OVERRIDES, h4Color: '#111111' }
+    expect(resolveHeadingColor(4, theme, overrides)).toBe('#111111')
+    expect(resolveHeadingColor(5, theme, overrides)).toBe('#bbbbbb')
+  })
+
+  it('returns undefined when overrides is null and no theme config', () => {
+    expect(resolveHeadingColor(1, makeTheme(), null)).toBeUndefined()
+    expect(resolveHeadingColor(4, makeTheme(), null)).toBeUndefined()
   })
 })
 

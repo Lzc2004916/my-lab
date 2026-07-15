@@ -1,29 +1,5 @@
 <template>
-  <div class="heading-style-panel">
-    <!-- Header -->
-    <div class="flex items-center justify-between px-3 py-2.5 bg-base-200/70 border-b border-base-300/60">
-      <span class="text-sm font-medium">Markdown 样式</span>
-      <button
-        class="btn btn-ghost btn-xs h-6 min-h-0 px-1"
-        @click="collapsed = !collapsed"
-        aria-label="折叠面板"
-      >
-        <svg
-          class="w-3.5 h-3.5 transition-transform duration-200"
-          :class="{ 'rotate-180': !collapsed }"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2.5"
-          stroke-linecap="round"
-        >
-          <polyline points="6 9 12 15 18 9" />
-        </svg>
-      </button>
-    </div>
-
-    <!-- Panel body -->
-    <div v-show="!collapsed" class="px-3 py-2 space-y-2.5 overflow-y-auto max-h-[55vh]">
+  <div class="heading-style-panel px-3 py-2 space-y-2.5">
       <!-- H1-H6 font size sliders -->
       <div
         v-for="level in HEADING_LEVELS"
@@ -72,23 +48,22 @@
           @input="onSizeSlider(level, $event)"
         />
 
-        <!-- Row 3: Shadow + Stroke color pickers -->
+        <!-- Row 3: Font color + Stroke color pickers -->
         <div class="flex items-center gap-3">
-          <!-- Shadow -->
+          <!-- Font color -->
           <div class="flex items-center gap-1.5">
             <svg class="w-3.5 h-3.5 text-base-content/50 shrink-0" viewBox="0 0 24 24" fill="currentColor">
-              <circle cx="12" cy="12" r="7" opacity="0.75" />
-              <circle cx="12" cy="13" r="7" opacity="0.4" />
+              <path d="M9.64 2L4 22h3.34l1.4-4h6.52l1.4 4H20L14.36 2h-4.72zm.84 4.76h.04l2.58 7.44H7.9l2.58-7.44z"/>
             </svg>
-            <span class="text-xs text-base-content/60 select-none">阴影</span>
+            <span class="text-xs text-base-content/60 select-none">颜色</span>
             <div
               class="relative w-7 h-7 rounded-full border-2 border-base-300/80 cursor-pointer shrink-0 transition-shadow hover:shadow-md"
-              :class="{ 'ring-2 ring-primary/30': shadowValue(level) }"
-              :style="{ background: shadowValue(level) || 'transparent' }"
-              :title="shadowValue(level) ? `阴影: ${shadowValue(level)}` : '点击设置阴影颜色'"
+              :class="{ 'ring-2 ring-primary/30': colorValue(level) }"
+              :style="{ background: colorValue(level) || 'transparent' }"
+              :title="colorValue(level) ? `颜色: ${colorValue(level)}` : '点击设置字体颜色'"
             >
               <div
-                v-if="!shadowValue(level)"
+                v-if="!colorValue(level)"
                 class="absolute inset-0 rounded-full overflow-hidden"
                 style="background: repeating-conic-gradient(#d1d5db 0% 25%, #fff 0% 50%) 50% / 8px 8px; opacity: 0.5;"
               />
@@ -98,17 +73,17 @@
               />
               <input
                 type="color"
-                :value="shadowValue(level) || '#000000'"
+                :value="colorValue(level) || '#000000'"
                 class="absolute inset-0 w-full h-full opacity-0 cursor-pointer rounded-full"
-                @input="onShadowInput(level, $event)"
-                @change="onShadowChange(level, $event)"
+                @input="onColorInput(level, $event)"
+                @change="onColorChange(level, $event)"
               />
             </div>
             <button
-              v-if="shadowValue(level)"
+              v-if="colorValue(level)"
               class="btn btn-ghost btn-xs h-6 w-6 min-h-0 p-0 rounded-full text-base-content/40 hover:text-base-content/70 hover:bg-base-300/40"
-              title="清除阴影"
-              @click="clearShadow(level)"
+              title="清除颜色"
+              @click="clearColor(level)"
             >
               <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
                 <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
@@ -229,12 +204,11 @@
           重置全部
         </button>
       </div>
-    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, type Ref } from 'vue'
+import { type Ref } from 'vue'
 import { useSettings } from '@/composables/useSettings'
 import { HEADING_SIZE_RANGES, DEFAULT_STROKE_WIDTH } from '@/card'
 
@@ -245,7 +219,6 @@ const HEADING_LEVELS = [1, 2, 3, 4, 5, 6] as const
 // ── State ────────────────────────────────────────────────────────────────
 
 const settings = useSettings()
-const collapsed = ref(false)
 
 /**
  * 标题级别 → 字体大小 Ref 的映射。
@@ -260,14 +233,14 @@ const sizeRefs: Record<number, Ref<number | null>> = {
   6: settings.headingH6Size,
 }
 
-/** 标题级别 → 阴影颜色 Ref 的映射。 */
-const shadowRefs: Record<number, Ref<string | null>> = {
-  1: settings.headingH1Shadow,
-  2: settings.headingH2Shadow,
-  3: settings.headingH3Shadow,
-  4: settings.headingH4Shadow,
-  5: settings.headingH5Shadow,
-  6: settings.headingH6Shadow,
+/** 标题级别 → 字体颜色 Ref 的映射。 */
+const colorRefs: Record<number, Ref<string | null>> = {
+  1: settings.headingH1Color,
+  2: settings.headingH2Color,
+  3: settings.headingH3Color,
+  4: settings.headingH4Color,
+  5: settings.headingH5Color,
+  6: settings.headingH6Color,
 }
 
 /** 标题级别 → 描边颜色 Ref 的映射。 */
@@ -349,24 +322,24 @@ function onSizeBlur(level: number, event: Event): void {
   if (ref) ref.value = clamped
 }
 
-// ── Shadow helpers ───────────────────────────────────────────────────────
+// ── Color helpers ───────────────────────────────────────────────────────
 
-function shadowValue(level: number): string | null {
-  return shadowRefs[level]?.value ?? null
+function colorValue(level: number): string | null {
+  return colorRefs[level]?.value ?? null
 }
 
-function onShadowInput(level: number, event: Event): void {
+function onColorInput(level: number, event: Event): void {
   const target = event.target as HTMLInputElement
-  const ref = shadowRefs[level]
+  const ref = colorRefs[level]
   if (ref) ref.value = target.value
 }
 
-function onShadowChange(_level: number, _event: Event): void {
+function onColorChange(_level: number, _event: Event): void {
   // Persisted via watcher in useSettings
 }
 
-function clearShadow(level: number): void {
-  const ref = shadowRefs[level]
+function clearColor(level: number): void {
+  const ref = colorRefs[level]
   if (ref) ref.value = null
 }
 
@@ -413,8 +386,8 @@ function onStrokeWidthInput(level: number, event: Event): void {
 function resetLevel(level: number): void {
   const sizeRef = sizeRefs[level]
   if (sizeRef) sizeRef.value = null
-  const shadowRef = shadowRefs[level]
-  if (shadowRef) shadowRef.value = null
+  const colorRef = colorRefs[level]
+  if (colorRef) colorRef.value = null
   const strokeRef = strokeRefs[level]
   if (strokeRef) strokeRef.value = null
   const swRef = strokeWidthRefs[level]
@@ -425,8 +398,8 @@ function resetAll(): void {
   for (const level of HEADING_LEVELS) {
     const sizeRef = sizeRefs[level]
     if (sizeRef) sizeRef.value = null
-    const shadowRef = shadowRefs[level]
-    if (shadowRef) shadowRef.value = null
+    const colorRef = colorRefs[level]
+    if (colorRef) colorRef.value = null
     const strokeRef = strokeRefs[level]
     if (strokeRef) strokeRef.value = null
     const swRef = strokeWidthRefs[level]

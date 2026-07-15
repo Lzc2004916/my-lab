@@ -41,7 +41,7 @@ const cardSize = ref<CardSizePreset>(
   (localStorage.getItem(STORAGE_PREFIX + 'cardSize') as CardSizePreset) || 'medium',
 )
 const bodyFontSize = ref<number>(
-  Number(localStorage.getItem(STORAGE_PREFIX + 'bodyFontSize')) || 16,
+  Number(localStorage.getItem(STORAGE_PREFIX + 'bodyFontSize')) || 30,
 )
 const exportFormat = ref<'PNG' | 'JPG' | 'PDF'>(
   (localStorage.getItem(STORAGE_PREFIX + 'exportFormat') as 'PNG' | 'JPG' | 'PDF') || 'PNG',
@@ -95,19 +95,19 @@ const headingH1Align = ref<'left' | 'center' | 'right'>(
   (localStorage.getItem(STORAGE_PREFIX + 'headingH1Align') as 'left' | 'center' | 'right') || 'left',
 )
 
-// ── Heading shadow overrides ──────────────────────────────────────────
+// ── Heading color overrides ──────────────────────────────────────────
 
 function loadHeadingColor(key: string): string | null {
   const raw = localStorage.getItem(STORAGE_PREFIX + key)
   return raw && raw.length > 0 ? raw : null
 }
 
-const headingH1Shadow = ref<string | null>(loadHeadingColor('headingH1Shadow'))
-const headingH2Shadow = ref<string | null>(loadHeadingColor('headingH2Shadow'))
-const headingH3Shadow = ref<string | null>(loadHeadingColor('headingH3Shadow'))
-const headingH4Shadow = ref<string | null>(loadHeadingColor('headingH4Shadow'))
-const headingH5Shadow = ref<string | null>(loadHeadingColor('headingH5Shadow'))
-const headingH6Shadow = ref<string | null>(loadHeadingColor('headingH6Shadow'))
+const headingH1Color = ref<string | null>(loadHeadingColor('headingH1Color'))
+const headingH2Color = ref<string | null>(loadHeadingColor('headingH2Color'))
+const headingH3Color = ref<string | null>(loadHeadingColor('headingH3Color'))
+const headingH4Color = ref<string | null>(loadHeadingColor('headingH4Color'))
+const headingH5Color = ref<string | null>(loadHeadingColor('headingH5Color'))
+const headingH6Color = ref<string | null>(loadHeadingColor('headingH6Color'))
 
 // ── Heading stroke overrides ──────────────────────────────────────────
 
@@ -158,13 +158,13 @@ watch(headingH5Size, (v) => localStorage.setItem(STORAGE_PREFIX + 'headingH5Size
 watch(headingH6Size, (v) => localStorage.setItem(STORAGE_PREFIX + 'headingH6Size', v === null ? '' : String(v)))
 watch(headingH1Align, (v) => localStorage.setItem(STORAGE_PREFIX + 'headingH1Align', v))
 
-// Heading shadow — persist to localStorage
-watch(headingH1Shadow, (v) => localStorage.setItem(STORAGE_PREFIX + 'headingH1Shadow', v ?? ''))
-watch(headingH2Shadow, (v) => localStorage.setItem(STORAGE_PREFIX + 'headingH2Shadow', v ?? ''))
-watch(headingH3Shadow, (v) => localStorage.setItem(STORAGE_PREFIX + 'headingH3Shadow', v ?? ''))
-watch(headingH4Shadow, (v) => localStorage.setItem(STORAGE_PREFIX + 'headingH4Shadow', v ?? ''))
-watch(headingH5Shadow, (v) => localStorage.setItem(STORAGE_PREFIX + 'headingH5Shadow', v ?? ''))
-watch(headingH6Shadow, (v) => localStorage.setItem(STORAGE_PREFIX + 'headingH6Shadow', v ?? ''))
+// Heading color — persist to localStorage
+watch(headingH1Color, (v) => localStorage.setItem(STORAGE_PREFIX + 'headingH1Color', v ?? ''))
+watch(headingH2Color, (v) => localStorage.setItem(STORAGE_PREFIX + 'headingH2Color', v ?? ''))
+watch(headingH3Color, (v) => localStorage.setItem(STORAGE_PREFIX + 'headingH3Color', v ?? ''))
+watch(headingH4Color, (v) => localStorage.setItem(STORAGE_PREFIX + 'headingH4Color', v ?? ''))
+watch(headingH5Color, (v) => localStorage.setItem(STORAGE_PREFIX + 'headingH5Color', v ?? ''))
+watch(headingH6Color, (v) => localStorage.setItem(STORAGE_PREFIX + 'headingH6Color', v ?? ''))
 
 // Heading stroke — persist to localStorage
 watch(headingH1Stroke, (v) => localStorage.setItem(STORAGE_PREFIX + 'headingH1Stroke', v ?? ''))
@@ -204,12 +204,12 @@ export function useSettings(): {
   headingH5Size: typeof headingH5Size
   headingH6Size: typeof headingH6Size
   headingH1Align: typeof headingH1Align
-  headingH1Shadow: typeof headingH1Shadow
-  headingH2Shadow: typeof headingH2Shadow
-  headingH3Shadow: typeof headingH3Shadow
-  headingH4Shadow: typeof headingH4Shadow
-  headingH5Shadow: typeof headingH5Shadow
-  headingH6Shadow: typeof headingH6Shadow
+  headingH1Color: typeof headingH1Color
+  headingH2Color: typeof headingH2Color
+  headingH3Color: typeof headingH3Color
+  headingH4Color: typeof headingH4Color
+  headingH5Color: typeof headingH5Color
+  headingH6Color: typeof headingH6Color
   headingH1Stroke: typeof headingH1Stroke
   headingH2Stroke: typeof headingH2Stroke
   headingH3Stroke: typeof headingH3Stroke
@@ -222,7 +222,18 @@ export function useSettings(): {
   headingH4StrokeWidth: typeof headingH4StrokeWidth
   headingH5StrokeWidth: typeof headingH5StrokeWidth
   headingH6StrokeWidth: typeof headingH6StrokeWidth
+  /** 清除所有用户自定义的标题颜色（主题切换时调用）。 */
+  clearHeadingColors: () => void
 } {
+  function clearHeadingColors(): void {
+    headingH1Color.value = null
+    headingH2Color.value = null
+    headingH3Color.value = null
+    headingH4Color.value = null
+    headingH5Color.value = null
+    headingH6Color.value = null
+  }
+
   return {
     cardSize,
     bodyFontSize,
@@ -243,12 +254,12 @@ export function useSettings(): {
     headingH5Size,
     headingH6Size,
     headingH1Align,
-    headingH1Shadow,
-    headingH2Shadow,
-    headingH3Shadow,
-    headingH4Shadow,
-    headingH5Shadow,
-    headingH6Shadow,
+    headingH1Color,
+    headingH2Color,
+    headingH3Color,
+    headingH4Color,
+    headingH5Color,
+    headingH6Color,
     headingH1Stroke,
     headingH2Stroke,
     headingH3Stroke,
@@ -261,5 +272,6 @@ export function useSettings(): {
     headingH4StrokeWidth,
     headingH5StrokeWidth,
     headingH6StrokeWidth,
+    clearHeadingColors,
   }
 }

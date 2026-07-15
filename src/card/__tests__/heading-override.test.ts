@@ -74,6 +74,15 @@ describe('DEFAULT_HEADING_OVERRIDES', () => {
   it('default h1Align is left', () => {
     expect(DEFAULT_HEADING_OVERRIDES.h1Align).toBe('left')
   })
+
+  it('all color overrides are null (use theme defaults)', () => {
+    expect(DEFAULT_HEADING_OVERRIDES.h1Color).toBeNull()
+    expect(DEFAULT_HEADING_OVERRIDES.h2Color).toBeNull()
+    expect(DEFAULT_HEADING_OVERRIDES.h3Color).toBeNull()
+    expect(DEFAULT_HEADING_OVERRIDES.h4Color).toBeNull()
+    expect(DEFAULT_HEADING_OVERRIDES.h5Color).toBeNull()
+    expect(DEFAULT_HEADING_OVERRIDES.h6Color).toBeNull()
+  })
 })
 
 // ═══════════════════════════════════════════════════════════════════════════

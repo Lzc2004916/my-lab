@@ -38,7 +38,6 @@ import {
   resolveHeadingLineHeight,
   resolveHeadingColor,
   resolveHeadingFontWeight,
-  resolveHeadingShadow,
   resolveHeadingStroke,
   resolveHeadingStrokeWidth,
 } from './types'
@@ -1021,13 +1020,14 @@ function drawInlineParagraph(
       const headingFontWeight = isSubheading && headingLevel
         ? resolveHeadingFontWeight(headingLevel, theme)
         : SUBHEADING_TEXT_WEIGHT
+      const bodyTextWeight = theme.editor.bodyFontWeight ?? BODY_TEXT_WEIGHT
       const weight = isSubheading
         ? headingFontWeight
         : (token.bold || markBoldAccent)
           ? BODY_BOLD_WEIGHT
           : isQuote
             ? QUOTE_TEXT_WEIGHT
-            : BODY_TEXT_WEIGHT
+            : bodyTextWeight
 
       const fontStyle = token.italic ? 'italic ' : ''
 
@@ -1036,9 +1036,9 @@ function drawInlineParagraph(
         : ('multiply' as GlobalCompositeOperation)
       ctx.font = `${fontStyle}${weight} ${activeFontSize}px ${fontFamily ?? BODY_FONT_FAMILY}`
 
-      // 标题颜色：per-theme heading color → subheading accent → 默认文本
+      // 标题颜色：用户覆盖 > per-theme heading color > subheading accent > 默认文本
       const headingColor = isSubheading && headingLevel
-        ? resolveHeadingColor(headingLevel, theme)
+        ? resolveHeadingColor(headingLevel, theme, headingOverrides)
         : undefined
       ctx.fillStyle =
         headingColor
@@ -1049,15 +1049,8 @@ function drawInlineParagraph(
               ? theme.palette.accent
               : theme.palette.text
 
-      // ── 标题阴影 & 描边（仅 subheading 块） ────────────────────────
+      // ── 标题描边（仅 subheading 块） ──────────────────────────────
       if (isSubheading && headingLevel) {
-        const headingShadow = resolveHeadingShadow(headingLevel, theme, headingOverrides)
-        if (headingShadow) {
-          ctx.shadowColor = headingShadow
-          ctx.shadowBlur = 3
-          ctx.shadowOffsetX = 0
-          ctx.shadowOffsetY = 1
-        }
         const headingStroke = resolveHeadingStroke(headingLevel, theme, headingOverrides)
         if (headingStroke) {
           const sw = resolveHeadingStrokeWidth(headingLevel, theme, headingOverrides)
