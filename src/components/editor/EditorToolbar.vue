@@ -62,6 +62,24 @@
         <svg v-else-if="item.id === 'right-column'" class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <rect x="3" y="3" width="8" height="18" rx="1"/><rect x="14" y="3" width="7" height="18" rx="1"/><line x1="11" y1="3" x2="11" y2="21" stroke-width="1" stroke-dasharray="2 2"/>
         </svg>
+        <!-- Unordered List -->
+        <svg v-else-if="item.id === 'unordered-list'" class="w-[20px] h-[20px]" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="4" cy="5" r="3" fill="currentColor"/>
+          <line x1="10" y1="5" x2="22" y2="5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+          <circle cx="4" cy="12" r="3" fill="currentColor"/>
+          <line x1="10" y1="12" x2="22" y2="12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+          <circle cx="4" cy="19" r="3" fill="currentColor"/>
+          <line x1="10" y1="19" x2="22" y2="19" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+        </svg>
+        <!-- Ordered List -->
+        <svg v-else-if="item.id === 'ordered-list'" class="w-[20px] h-[20px]" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <line x1="11" y1="5" x2="22" y2="5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+          <line x1="11" y1="12" x2="22" y2="12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+          <line x1="11" y1="19" x2="22" y2="19" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+          <text x="4" y="9.5" font-size="12" font-weight="bold" fill="currentColor" text-anchor="middle">1</text>
+          <text x="4" y="16.5" font-size="12" font-weight="bold" fill="currentColor" text-anchor="middle">2</text>
+          <text x="4" y="23" font-size="12" font-weight="bold" fill="currentColor" text-anchor="middle">3</text>
+        </svg>
         <!-- Fallback -->
         <span v-else class="inline-flex items-center justify-center w-full h-full text-[13px] leading-none pointer-events-none" v-html="item.icon"></span>
       </button>
@@ -164,6 +182,10 @@ const toolbarItems: readonly ToolbarItem[] = [
 
   // ── Separator ──
   { id: 'divider',     icon: '—',                    label: '分割线', template: '\n---\n' },
+
+  // ── Lists ──
+  { id: 'unordered-list', icon: '•',                 label: '无序列表', template: '- 列表项', wrap: { prefix: '- ', suffix: '', placeholder: '列表项' } },
+  { id: 'ordered-list',   icon: '1.',                label: '有序列表', template: '1. 列表项', wrap: { prefix: '1. ', suffix: '', placeholder: '列表项' } },
 
   // ── Layout ──
   { id: 'left-column',  icon: '◧',                   label: '左分栏', template: ':::left\n左栏内容\n:::' },

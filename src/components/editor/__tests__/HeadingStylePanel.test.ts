@@ -37,7 +37,9 @@ describe('HeadingStylePanel', () => {
 
   it('renders the panel header', () => {
     const wrapper = mountPanel()
-    expect(wrapper.text()).toContain('Markdown 样式')
+    // The panel now shows H1-H6 labels directly — verify it renders heading controls
+    expect(wrapper.text()).toContain('H1')
+    expect(wrapper.text()).toContain('H6')
   })
 
   it('renders H1-H6 labels', () => {
@@ -75,26 +77,19 @@ describe('HeadingStylePanel', () => {
     expect(wrapper.text()).toContain('重置全部')
   })
 
-  // ── Collapse / expand ──────────────────────────────────────────────────
+  // ── Panel body visibility ─────────────────────────────────────────────
 
-  it('can collapse and expand the panel body', async () => {
+  it('panel body is always visible with heading controls', () => {
     const wrapper = mountPanel()
-    // Panel body should be visible initially (collapsed = false)
-    const toggleBtn = wrapper.find('button[aria-label="折叠面板"]')
-    expect(toggleBtn.exists()).toBe(true)
-
-    // The body contains the sliders — should be present in DOM
+    // The redesigned panel shows H1-H6 controls directly (no collapse toggle).
+    // All sliders should be present in DOM on initial render.
     const h1Slider = wrapper.find('#heading-size-slider-h1')
     expect(h1Slider.exists()).toBe(true)
 
-    // Click to collapse — slider still exists but parent div has v-show=false
-    await toggleBtn.trigger('click')
-    // After collapse, the slider is still in DOM (v-show, not v-if)
-    expect(wrapper.find('#heading-size-slider-h1').exists()).toBe(true)
-
-    // Click again to expand
-    await toggleBtn.trigger('click')
-    expect(wrapper.find('#heading-size-slider-h1').exists()).toBe(true)
+    // Verify all heading levels have sliders
+    for (let l = 1; l <= 6; l++) {
+      expect(wrapper.find(`#heading-size-slider-h${l}`).exists()).toBe(true)
+    }
   })
 
   // ── Slider interaction ─────────────────────────────────────────────────

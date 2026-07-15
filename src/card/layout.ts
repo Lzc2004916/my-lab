@@ -13,6 +13,8 @@ import type {
   CodeBlock,
   TableDisplayBlock,
   ColumnContainerBlock,
+  ListBlock,
+  ListItem,
   HeadingLevel,
 } from './types'
 import {
@@ -20,9 +22,11 @@ import {
   getGapBetweenBlocks,
   measureParagraphBlock,
   getParagraphMaxLines,
+  measureListBlock,
 } from './measure'
 import { measureCodeBlock } from './code-renderer'
 import { getBodyFontFamily } from './types'
+import type { ThemeDefinition } from './types'
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Markdown 块分类
@@ -56,6 +60,40 @@ export function getParagraphBlock(text: string): TextBlock {
     return { kind: 'quote', raw: quoteMatch[1]!.trim() }
   }
   return { kind: 'body', raw: trimmed }
+}
+
+// ── List detection helpers ─────────────────────────────────────────────────
+
+/** 匹配无序列表项：`- `, `* `, `+ ` 开头 */
+const UNORDERED_LIST_RE = /^(\s*)([-*+])\s+(.+)$/
+
+/** 匹配有序列表项：`1. `, `1) ` 等开头 */
+const ORDERED_LIST_RE = /^(\s*)(\d+)([.)])\s+(.+)$/
+
+/** 检查一行是否为列表项（有序或无序）。 */
+function isListItemLine(line: string): boolean {
+  return UNORDERED_LIST_RE.test(line) || ORDERED_LIST_RE.test(line)
+}
+
+/** 检查是否为无序列表项。 */
+function isUnorderedListItem(line: string): boolean {
+  return UNORDERED_LIST_RE.test(line)
+}
+
+/** 从列表项行中提取缩进层级（每 2 个空格算一级）。 */
+function getListItemIndent(line: string): number {
+  const match = line.match(/^(\s*)/)
+  const spaces = match ? match[1]!.length : 0
+  return Math.floor(spaces / 2)
+}
+
+/** 从列表项行中提取纯文本内容。 */
+function getListItemText(line: string): string {
+  const uMatch = line.match(UNORDERED_LIST_RE)
+  if (uMatch) return uMatch[3]!.trim()
+  const oMatch = line.match(ORDERED_LIST_RE)
+  if (oMatch) return oMatch[4]!.trim()
+  return line.trim()
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -272,6 +310,29 @@ export function parseInputBlocks(raw: string): Block[] {
       continue
     }
 
+    // ── List block (consecutive list items) ──────────────────────
+    if (isListItemLine(line)) {
+      flushTextBuffer(textBuffer)
+      textBuffer = ''
+      const listItems: ListItem[] = []
+      const isOrdered = !isUnorderedListItem(line)
+
+      while (i < lines.length && isListItemLine(lines[i]!)) {
+        const itemLine = lines[i]!
+        listItems.push({
+          text: getListItemText(itemLine),
+          indent: getListItemIndent(itemLine),
+        })
+        i++
+      }
+
+      blocks.push({
+        kind: isOrdered ? 'orderedList' : 'unorderedList',
+        items: listItems,
+      } as ListBlock)
+      continue
+    }
+
     // ── Regular text ───────────────────────────────────────────
     // 如果该行是标题且缓冲区已有内容，
 // 先刷新缓冲区，使标题从自己的块开始。
@@ -464,7 +525,14 @@ function splitInlineLines(
 // ═══════════════════════════════════════════════════════════════════════════
 
 /** 估计非文本块用于布局目的的渲染高度。 */
-function estimateBlockHeight(block: Block, bodySize: number): number {
+function estimateBlockHeight(
+  block: Block,
+  bodySize: number,
+  bodyLineHeight?: number,
+  maxWidth?: number,
+  theme?: ThemeDefinition,
+  fontFamily?: string,
+): number {
   switch (block.kind) {
     case 'code': {
       const cb = block as CodeBlock
@@ -488,10 +556,29 @@ function estimateBlockHeight(block: Block, bodySize: number): number {
     case 'columnContainer': {
       const cc = block as ColumnContainerBlock
       const leftH = cc.leftBlocks.reduce((h, b) =>
-        h + estimateBlockHeight(b, bodySize) + 10, 0)
+        h + estimateBlockHeight(b, bodySize, bodyLineHeight, maxWidth, theme, fontFamily) + 10, 0)
       const rightH = cc.rightBlocks.reduce((h, b) =>
-        h + estimateBlockHeight(b, bodySize) + 10, 0)
+        h + estimateBlockHeight(b, bodySize, bodyLineHeight, maxWidth, theme, fontFamily) + 10, 0)
       return Math.max(leftH, rightH) + 20
+    }
+    case 'orderedList':
+    case 'unorderedList': {
+      const lb = block as ListBlock
+      // Use measureListBlock when theme metrics are available for
+      // accurate height accounting (indentation, wrapping, item gaps).
+      if (theme && bodyLineHeight !== undefined && maxWidth !== undefined) {
+        try {
+          const { totalHeight } = measureListBlock(
+            lb, bodySize, bodyLineHeight, maxWidth, theme, fontFamily,
+          )
+          return totalHeight
+        } catch {
+          // Fall through to simple estimate
+        }
+      }
+      // Simple fallback estimate
+      const lineH = bodySize * 1.55
+      return 14 + lb.items.length * (lineH + 10) + 14
     }
     default:
       return 40
@@ -610,9 +697,14 @@ export function layoutPages(opts: LayoutOptions): CardPage[] {
       // ── For non-text blocks: measure and fit atomically ─────
       if (block.kind === 'code' ||
           block.kind === 'table' ||
-          block.kind === 'columnContainer') {
-        // 估算非文本块的高度
-        const estHeight = estimateBlockHeight(block, metrics.bodySize)
+          block.kind === 'columnContainer' ||
+          block.kind === 'orderedList' ||
+          block.kind === 'unorderedList') {
+        // 估算非文本块的高度（传入完整尺寸参数以获得准确列表高度）
+        const estHeight = estimateBlockHeight(
+          block, metrics.bodySize, metrics.bodyLineHeight,
+          metrics.bodyWidth, theme, bodyFontFamily,
+        )
         const blockTop = cursorY + getGapBetweenBlocks(previousBlock, { kind: 'body', raw: '' }, metrics, headingOverrides, theme, pageKind === 'cover')
         const blockBottom = blockTop + estHeight
 

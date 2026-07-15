@@ -22,6 +22,10 @@ export type {
   CodeBlock,
   TableDisplayBlock,
   ColumnContainerBlock,
+  ListBlock,
+  ListItem,
+  ListKind,
+  ListStyleConfig,
   Block,
   HeadingLevel,
   TextRange,
@@ -61,6 +65,7 @@ export {
   DEFAULT_COVER_H1_SCALE,
   HEADING_SIZE_RANGES,
   DEFAULT_HEADING_OVERRIDES,
+  DEFAULT_LIST_STYLE,
   resolveHeadingScale,
   resolveHeadingLineHeight,
   resolveHeadingMarginTop,
@@ -133,6 +138,7 @@ export {
   measureParagraphBlock,
   getParagraphMaxLines,
   getGapBetweenBlocks,
+  measureListBlock,
 } from './measure'
 
 // 组件 — 使用 src/components/CardPreview.vue 中的组件

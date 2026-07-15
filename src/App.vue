@@ -52,8 +52,6 @@
         :style="{ flexBasis: split + '%' }"
       >
         <EditorToolbar
-          :highlightStyle="highlightStyle"
-          @update:highlightStyle="highlightStyle = $event"
           @insert="onToolbarInsert"
           @command="onToolbarCommand"
         />

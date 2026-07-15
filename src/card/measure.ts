@@ -12,6 +12,8 @@ import type {
   SubheadingStyle,
   TypographySettings,
   CardPage,
+  ListBlock,
+  ListStyleConfig,
 } from './types'
 import {
   BODY_TEXT_WEIGHT,
@@ -26,6 +28,7 @@ import {
   resolveHeadingSize,
   computeHeadingMarginBottom,
   computeHeadingMarginTop,
+  DEFAULT_LIST_STYLE,
 } from './types'
 import type { HeadingStyleOverrides } from './types'
 
@@ -407,6 +410,59 @@ export function measureParagraphBlock(
         ? quotePadTop + textHeight + quotePadBottom
         : textHeight,
   }
+}
+
+// ── List block measurement ─────────────────────────────────────────────
+
+/** 测量列表中单个项目的渲染高度（含内联 markdown 解析和自动换行）。 */
+function measureListItem(
+  text: string,
+  fontSize: number,
+  lineHeight: number,
+  maxTextWidth: number,
+  fontFamily?: string,
+  bodyFontWeight?: number,
+): { lines: InlineLine[]; height: number } {
+  const tokens = parseInlineMarkdown(text)
+  const lines = wrapInlineTokensByWidth(tokens, fontSize, maxTextWidth, fontFamily, bodyFontWeight)
+  const height = lines.length * lineHeight
+  return { lines, height }
+}
+
+/** 测量整个列表块的渲染高度。 */
+export function measureListBlock(
+  block: ListBlock,
+  fontSize: number,
+  bodyLineHeight: number,
+  maxWidth: number,
+  theme: ThemeDefinition,
+  fontFamily?: string,
+): { itemHeights: number[]; totalHeight: number } {
+  const listStyle: ListStyleConfig = theme.editor.list ?? DEFAULT_LIST_STYLE
+  const bodyFontWeight = theme.editor.bodyFontWeight ?? BODY_TEXT_WEIGHT
+
+  const bulletSize = Math.round(fontSize * listStyle.bulletSizeRatio)
+  const bulletGap = Math.max(4, Math.round(fontSize * 0.22))
+  const isOrdered = block.kind === 'orderedList'
+  // 有序列表 100% 正文；无序列表符号至少 90% 正文兜底
+  const effectiveMarkerSize = isOrdered
+    ? fontSize
+    : Math.max(bulletSize, Math.round(fontSize * 0.9))
+
+  let totalHeight = 12 // top padding
+  const itemHeights: number[] = []
+
+  for (const item of block.items) {
+    const indent = item.indent * listStyle.indentPerLevel
+    const textWidth = Math.max(60, maxWidth - indent - effectiveMarkerSize - bulletGap)
+    const { height } = measureListItem(item.text, fontSize, bodyLineHeight, textWidth, fontFamily, bodyFontWeight)
+    const itemHeight = Math.max(height, bodyLineHeight)
+    itemHeights.push(itemHeight)
+    totalHeight += itemHeight + listStyle.itemGap
+  }
+
+  totalHeight += 12 - listStyle.itemGap // bottom padding (adjust for last item's gap)
+  return { itemHeights, totalHeight }
 }
 
 /** 计算在 availableHeight 内能容纳的最大行数。 */

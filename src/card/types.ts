@@ -190,6 +190,33 @@ export interface CoverHeadingConfig {
   topOffset?: number
 }
 
+// ── List style config ────────────────────────────────────────────────────
+
+/** 每个主题的列表样式配置。 */
+export interface ListStyleConfig {
+  /** 无序列表的项目符号字符。 */
+  bulletChar: string
+  /** 项目符号大小倍率（相对于 bodySize）。默认 0.85。 */
+  bulletSizeRatio: number
+  /** 每级缩进（px）。默认 28。 */
+  indentPerLevel: number
+  /** 列表项之间的额外间距（px）。默认 8。 */
+  itemGap: number
+  /** 有序列表编号是否使用圆角边框背景。默认 false。 */
+  orderedMarkerBox?: boolean
+  /** 有序列表编号是否保留后缀点号（如 "1." → "1"）。默认 true。 */
+  orderedNumberDot?: boolean
+}
+
+/** 默认列表样式 — 当主题未显式配置时使用。 */
+export const DEFAULT_LIST_STYLE: ListStyleConfig = {
+  bulletChar: '•', // •
+  bulletSizeRatio: 0.85,
+  indentPerLevel: 28,
+  itemGap: 8,
+  orderedMarkerBox: false,
+}
+
 export interface ThemeEditor {
   /** 默认正文字体大小（px） */
   bodySize: number
@@ -205,6 +232,8 @@ export interface ThemeEditor {
   highlightStyle: HighlightStyle
   /** 每个主题独立的标题排版配置 */
   heading?: HeadingTypography
+  /** 每个主题独立的列表样式配置 */
+  list?: ListStyleConfig
 }
 
 // ── Decor ornament system ──────────────────────────────────────────────────
@@ -327,11 +356,30 @@ export interface ColumnContainerBlock {
   totalHeight?: number
 }
 
+// ── List blocks ────────────────────────────────────────────────────────────
+
+export type ListKind = 'orderedList' | 'unorderedList'
+
+export interface ListItem {
+  /** 列表项文本内容（保留内联 markdown 标记）。 */
+  text: string
+  /** 嵌套层级（0 = 顶层）。 */
+  indent: number
+}
+
+export interface ListBlock {
+  kind: ListKind
+  items: ListItem[]
+  /** 有序列表的起始编号（默认 1）。 */
+  start?: number
+}
+
 export type Block =
   | TextBlock
   | CodeBlock
   | TableDisplayBlock
   | ColumnContainerBlock
+  | ListBlock
 
 // ── Text range ───────────────────────────────────────────────────
 

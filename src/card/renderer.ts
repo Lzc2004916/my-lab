@@ -14,6 +14,8 @@ import type {
   TypographySettings,
   ColumnContainerBlock,
   Block,
+  ListBlock,
+  ListStyleConfig,
   HeadingStyleOverrides,
 } from './types'
 import {
@@ -34,17 +36,20 @@ import {
   BODY_FONT_FAMILY,
   FOOTER_FONT_FAMILY,
   COLUMN_GAP,
+  DEFAULT_LIST_STYLE,
   resolveHeadingSize,
   resolveHeadingLineHeight,
   resolveHeadingColor,
   resolveHeadingFontWeight,
   resolveHeadingStroke,
   resolveHeadingStrokeWidth,
+  resolveHeadingShadow,
 } from './types'
 import {
   getPosterMetrics,
   getGapBetweenBlocks,
   measureParagraphBlock,
+  measureListBlock,
   getBodyTokenWidth,
   parseInlineMarkdown,
   wrapInlineTokensByWidth,
@@ -782,6 +787,171 @@ function getDividerBlockHeight(fontSize: number): number {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
+// 列表绘制
+// ═══════════════════════════════════════════════════════════════════════════
+
+/** 获取有序列表的编号字符串。 */
+function getOrderedListNumber(index: number, start = 1): string {
+  return `${start + index}.`
+}
+
+/** 在画布上绘制列表块，返回消耗的总高度。 */
+function drawListBlock(
+  ctx: CanvasRenderingContext2D,
+  block: ListBlock,
+  x: number,
+  y: number,
+  fontSize: number,
+  bodyLineHeight: number,
+  maxWidth: number,
+  theme: ThemeDefinition,
+  fontFamily?: string,
+): number {
+  const listStyle: ListStyleConfig = theme.editor.list ?? DEFAULT_LIST_STYLE
+  const bodyFontWeight = theme.editor.bodyFontWeight ?? BODY_TEXT_WEIGHT
+  const isDark = isDarkTheme(theme)
+
+  const bulletSize = Math.round(fontSize * listStyle.bulletSizeRatio)
+  const bulletGap = Math.max(4, Math.round(fontSize * 0.22))
+
+  const { itemHeights, totalHeight } = measureListBlock(
+    block, fontSize, bodyLineHeight, maxWidth, theme, fontFamily,
+  )
+
+  let cursorY = y + 12 // top padding
+
+  for (let ii = 0; ii < block.items.length; ii++) {
+    const item = block.items[ii]!
+    const indent = item.indent * listStyle.indentPerLevel
+    // 有序列表 100% 正文；无序列表至少 90% 正文兜底
+    const isOrdered = block.kind === 'orderedList'
+    const effectiveMarkerSize = isOrdered
+      ? fontSize
+      : Math.max(bulletSize, Math.round(fontSize * 0.9))
+    const textWidth = Math.max(60, maxWidth - indent - effectiveMarkerSize - bulletGap)
+    const itemX = x + indent
+    const markerX = itemX
+    const textX = itemX + effectiveMarkerSize + bulletGap
+
+    // Parse and wrap the item text
+    const tokens = parseInlineMarkdown(item.text)
+    const lines = wrapInlineTokensByWidth(
+      tokens, fontSize, textWidth, fontFamily, bodyFontWeight,
+    )
+
+    const itemHeight = itemHeights[ii]!
+
+    // Draw marker (bullet or number)
+    ctx.save()
+    ctx.globalCompositeOperation = isDark
+      ? ('screen' as GlobalCompositeOperation)
+      : ('multiply' as GlobalCompositeOperation)
+
+    // 无序列表符号至少 88% 正文大小兜底
+    const ulMarkerSize = Math.max(bulletSize, Math.round(fontSize * 0.9))
+    const markerFont = `500 ${ulMarkerSize}px ${fontFamily ?? BODY_FONT_FAMILY}`
+    ctx.font = markerFont
+    ctx.fillStyle = theme.palette.accent
+    ctx.textBaseline = 'alphabetic'
+
+    // Align marker with first line of text
+    const markerBaselineY = cursorY + fontSize * 0.84
+
+    if (block.kind === 'orderedList') {
+      const numText = getOrderedListNumber(ii, block.start ?? 1)
+      // 有序列表编号统一 100% 正文大小
+      const olFont = `600 ${fontSize}px ${fontFamily ?? BODY_FONT_FAMILY}`
+
+      if (listStyle.orderedMarkerBox) {
+        // 圆角边框编号 — 无后缀点号
+        const numClean = numText.replace(/\.$/, '')
+        const markerSize = fontSize
+        ctx.textAlign = 'center'
+        ctx.font = olFont
+        const numWidth = ctx.measureText(numClean).width
+        // 正方形盒子 = 正圆形边框，取宽高中较大者保证编号完整可见
+        const pad = Math.round(markerSize * 0.32)
+        const boxSide = Math.max(numWidth, markerSize) + pad * 2
+        const boxW = boxSide
+        const boxH = boxSide
+        const boxRadius = Math.round(boxSide / 2) // 正方形 → 正圆
+
+        // 盒子整体左移 pad*2，避免与正文重叠
+        const numRight = textX - Math.round(bulletGap * 0.4) - pad * 2
+        const numCenterX = numRight - numWidth / 2
+        const visualCenterY = markerBaselineY - markerSize * 0.3
+
+        const boxX = numCenterX - boxW / 2
+        const boxY = visualCenterY - boxH / 2
+
+        // 描边圆角矩形
+        ctx.strokeStyle = theme.palette.accent
+        ctx.lineWidth = Math.max(1.4, Math.round(markerSize * 0.1))
+        roundRectPath(ctx, boxX, boxY, boxW, boxH, boxRadius)
+        ctx.stroke()
+
+        // 编号文字使用 accent 色（无点号）
+        ctx.fillStyle = theme.palette.accent
+        ctx.fillText(numClean, numCenterX, markerBaselineY)
+      } else {
+        // 无框有序列表 — 同样 100% 正文字号
+        ctx.font = olFont
+        ctx.textAlign = 'right'
+        ctx.fillText(numText, textX - Math.round(bulletGap * 0.4), markerBaselineY)
+      }
+    } else {
+      ctx.textAlign = 'center'
+      ctx.fillText(listStyle.bulletChar, markerX + bulletSize / 2, markerBaselineY)
+    }
+
+    ctx.restore()
+
+    // Draw each line of text
+    for (let li = 0; li < lines.length; li++) {
+      const line = lines[li]!
+      let cursorX = textX
+      const baselineY = cursorY + fontSize * 0.84 + li * bodyLineHeight
+
+      for (const token of line.tokens) {
+        const tokenWidth = getBodyTokenWidth(token, fontSize)
+
+        ctx.save()
+        ctx.globalCompositeOperation = isDark
+          ? ('screen' as GlobalCompositeOperation)
+          : ('multiply' as GlobalCompositeOperation)
+
+        const weight = token.bold ? BODY_BOLD_WEIGHT : bodyFontWeight
+        const fontStyle = token.italic ? 'italic ' : ''
+        ctx.font = `${fontStyle}${weight} ${fontSize}px ${fontFamily ?? BODY_FONT_FAMILY}`
+        ctx.fillStyle = theme.palette.text
+
+        ctx.fillText(token.text, cursorX, baselineY)
+
+        // Draw underline for ^underline^ tokens
+        if (token.underline) {
+          const ulineY = baselineY + Math.max(2, fontSize * 0.08)
+          ctx.strokeStyle = ctx.fillStyle
+          ctx.lineWidth = Math.max(1, fontSize * 0.05)
+          ctx.lineCap = 'round'
+          ctx.beginPath()
+          ctx.moveTo(cursorX, ulineY)
+          ctx.lineTo(cursorX + tokenWidth, ulineY)
+          ctx.stroke()
+        }
+
+        ctx.restore()
+
+        cursorX += tokenWidth
+      }
+    }
+
+    cursorY += itemHeight + listStyle.itemGap
+  }
+
+  return totalHeight
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
 // 列容器绘制
 // ═══════════════════════════════════════════════════════════════════════════
 
@@ -895,6 +1065,22 @@ function drawColumnBlocks(
       }
       ctx.restore()
       cursorY += totalHeight
+      prevBlock = { kind: 'body', raw: '' }
+    } else if (block.kind === 'orderedList' || block.kind === 'unorderedList') {
+      const listBlock = block as ListBlock
+      const scaleFactor = Math.min(1, maxWidth / CONTENT_WIDTH)
+      ctx.save()
+      if (scaleFactor < 1) {
+        ctx.scale(scaleFactor, 1)
+        cursorY += drawListBlock(ctx, listBlock, x / scaleFactor, cursorY,
+          metrics.bodySize, metrics.bodyLineHeight, maxWidth / scaleFactor,
+          theme, metrics.bodyFontFamily)
+      } else {
+        cursorY += drawListBlock(ctx, listBlock, x, cursorY,
+          metrics.bodySize, metrics.bodyLineHeight, maxWidth,
+          theme, metrics.bodyFontFamily)
+      }
+      ctx.restore()
       prevBlock = { kind: 'body', raw: '' }
     }
   }
@@ -1049,6 +1235,17 @@ function drawInlineParagraph(
               ? theme.palette.accent
               : theme.palette.text
 
+      // ── 标题阴影（仅 subheading 块） ──────────────────────────────
+      if (isSubheading && headingLevel) {
+        const headingShadow = resolveHeadingShadow(headingLevel, theme, headingOverrides)
+        if (headingShadow) {
+          ctx.shadowColor = headingShadow
+          ctx.shadowBlur = 4
+          ctx.shadowOffsetX = 2
+          ctx.shadowOffsetY = 2
+        }
+      }
+
       // ── 标题描边（仅 subheading 块） ──────────────────────────────
       if (isSubheading && headingLevel) {
         const headingStroke = resolveHeadingStroke(headingLevel, theme, headingOverrides)
@@ -1063,6 +1260,17 @@ function drawInlineParagraph(
       }
 
       ctx.fillText(token.text, cursorX, baselineY)
+
+      // Reset shadow after drawing (to avoid affecting other elements)
+      if (isSubheading && headingLevel) {
+        const headingShadow = resolveHeadingShadow(headingLevel, theme, headingOverrides)
+        if (headingShadow) {
+          ctx.shadowColor = 'transparent'
+          ctx.shadowBlur = 0
+          ctx.shadowOffsetX = 0
+          ctx.shadowOffsetY = 0
+        }
+      }
 
       // 为 ^underline^ token 绘制下划线
       if (token.underline) {
@@ -1303,6 +1511,27 @@ export function renderCard(opts: RenderOptions): HTMLCanvasElement {
       paragraphY = blockTopWithGap
       const drawnH = drawTableBlock(ctx, paragraph, CONTENT_LEFT, paragraphY,
         metrics.bodySize, metrics.bodyLineHeight, theme, metrics.bodyFontFamily)
+      paragraphY += drawnH
+      previousBlock = { kind: 'body', raw: '' }
+      continue
+    }
+
+    // ── List blocks ────────────────────────────────────────────
+    if (paragraph.kind === 'orderedList' || paragraph.kind === 'unorderedList') {
+      const listBlock = paragraph as ListBlock
+      const { totalHeight } = measureListBlock(
+        listBlock, metrics.bodySize, metrics.bodyLineHeight,
+        metrics.bodyWidth, theme, metrics.bodyFontFamily,
+      )
+      const blockBottom = blockTopWithGap + totalHeight
+      if (blockBottom > metrics.bodyBottomY && page.blocks.indexOf(paragraph) > 0) break
+      paragraphY = blockTopWithGap
+      const drawnH = drawListBlock(
+        ctx, listBlock,
+        CONTENT_LEFT, paragraphY,
+        metrics.bodySize, metrics.bodyLineHeight, metrics.bodyWidth,
+        theme, metrics.bodyFontFamily,
+      )
       paragraphY += drawnH
       previousBlock = { kind: 'body', raw: '' }
       continue
