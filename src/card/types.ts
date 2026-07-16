@@ -295,6 +295,8 @@ export interface TypographySettings {
   lineHeight: number
   bodyFontMode: BodyFontMode
   subheadingStyle: SubheadingStyle
+  /** 正文字重 (100–900)，默认 undefined 表示使用主题默认值或 400。 */
+  bodyFontWeight?: number
 }
 
 // ── Inline token (parsed from markdown) ───────────────────────────────────
@@ -515,15 +517,21 @@ export const BODY_FONT_FAMILY =
 
 // ── Body font modes ─────────────────────────────────────────────────────
 
-export type BodyFontMode = 'wenkai' | 'yahei' | 'simsun' | 'kaiti' | 'dengxian' | 'fangsong'
+export type BodyFontMode =
+  | 'wenkai' | 'yahei' | 'simsun' | 'kaiti' | 'dengxian' | 'fangsong'
+  | 'simhei' | 'youyuan' | 'notosans' | 'notoserif'
 
 export const BODY_FONT_MODES: Record<BodyFontMode, { family: string; label: string }> = {
-  wenkai:   { family: '"LXGW WenKai","KaiTi","STKaiti",serif',                       label: '霞鹜文楷' },
-  yahei:    { family: '"Microsoft YaHei","PingFang SC","Helvetica Neue",sans-serif', label: '微软雅黑' },
-  simsun:   { family: '"SimSun","Songti SC","Noto Serif SC",serif',                  label: '宋体' },
-  kaiti:    { family: '"KaiTi","STKaiti","LXGW WenKai",serif',                       label: '楷体' },
-  dengxian: { family: '"DengXian","PingFang SC","Microsoft YaHei",sans-serif',       label: '等线' },
-  fangsong: { family: '"FangSong","STFangsong","Noto Serif SC",serif',               label: '仿宋' },
+  wenkai:    { family: '"LXGW WenKai","KaiTi","STKaiti",serif',                       label: '霞鹜文楷' },
+  yahei:     { family: '"Microsoft YaHei","PingFang SC","Helvetica Neue",sans-serif', label: '微软雅黑' },
+  simsun:    { family: '"SimSun","Songti SC","Noto Serif SC",serif',                  label: '宋体' },
+  kaiti:     { family: '"KaiTi","STKaiti","LXGW WenKai",serif',                       label: '楷体' },
+  dengxian:  { family: '"DengXian","PingFang SC","Microsoft YaHei",sans-serif',       label: '等线' },
+  fangsong:  { family: '"FangSong","STFangsong","Noto Serif SC",serif',               label: '仿宋' },
+  simhei:    { family: '"SimHei","PingFang SC","Microsoft YaHei",sans-serif',         label: '黑体' },
+  youyuan:   { family: '"YouYuan","PingFang SC","Microsoft YaHei",sans-serif',        label: '幼圆' },
+  notosans:  { family: '"Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif',   label: '思源黑体' },
+  notoserif: { family: '"Noto Serif SC","Songti SC","SimSun",serif',                  label: '思源宋体' },
 }
 
 export const DEFAULT_BODY_FONT_MODE: BodyFontMode = 'wenkai'

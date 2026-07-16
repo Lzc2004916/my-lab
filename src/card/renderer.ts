@@ -806,16 +806,17 @@ function drawListBlock(
   maxWidth: number,
   theme: ThemeDefinition,
   fontFamily?: string,
+  bodyFontWeight?: number,
 ): number {
   const listStyle: ListStyleConfig = theme.editor.list ?? DEFAULT_LIST_STYLE
-  const bodyFontWeight = theme.editor.bodyFontWeight ?? BODY_TEXT_WEIGHT
+  const resolvedWeight = bodyFontWeight ?? theme.editor.bodyFontWeight ?? BODY_TEXT_WEIGHT
   const isDark = isDarkTheme(theme)
 
   const bulletSize = Math.round(fontSize * listStyle.bulletSizeRatio)
   const bulletGap = Math.max(4, Math.round(fontSize * 0.22))
 
   const { itemHeights, totalHeight } = measureListBlock(
-    block, fontSize, bodyLineHeight, maxWidth, theme, fontFamily,
+    block, fontSize, bodyLineHeight, maxWidth, theme, fontFamily, resolvedWeight,
   )
 
   let cursorY = y + 12 // top padding
@@ -920,7 +921,7 @@ function drawListBlock(
           ? ('screen' as GlobalCompositeOperation)
           : ('multiply' as GlobalCompositeOperation)
 
-        const weight = token.bold ? BODY_BOLD_WEIGHT : bodyFontWeight
+        const weight = token.bold ? BODY_BOLD_WEIGHT : resolvedWeight
         const fontStyle = token.italic ? 'italic ' : ''
         ctx.font = `${fontStyle}${weight} ${fontSize}px ${fontFamily ?? BODY_FONT_FAMILY}`
         ctx.fillStyle = theme.palette.text
@@ -1009,6 +1010,7 @@ function drawColumnBlocks(
   highlightStyle: HighlightStyle,
   headingOverrides?: HeadingStyleOverrides | null,
 ): void {
+  const colBodyWeight = settings.bodyFontWeight ?? theme.editor.bodyFontWeight ?? BODY_TEXT_WEIGHT
   let cursorY = y
   let prevBlock: ParagraphBlock | null = null
 
@@ -1027,6 +1029,7 @@ function drawColumnBlocks(
         metrics.bodyFontFamily,
         false, // columns are never cover pages
         headingOverrides,
+        colBodyWeight,
       )
       drawInlineParagraph(
         ctx, paraBlock, x, cursorY,
@@ -1034,6 +1037,7 @@ function drawColumnBlocks(
         theme, highlightStyle, settings.subheadingStyle, metrics.bodyFontFamily,
         false, // columns are never cover pages
         headingOverrides,
+        colBodyWeight,
       )
       cursorY += height
       prevBlock = paraBlock
@@ -1074,11 +1078,11 @@ function drawColumnBlocks(
         ctx.scale(scaleFactor, 1)
         cursorY += drawListBlock(ctx, listBlock, x / scaleFactor, cursorY,
           metrics.bodySize, metrics.bodyLineHeight, maxWidth / scaleFactor,
-          theme, metrics.bodyFontFamily)
+          theme, metrics.bodyFontFamily, colBodyWeight)
       } else {
         cursorY += drawListBlock(ctx, listBlock, x, cursorY,
           metrics.bodySize, metrics.bodyLineHeight, maxWidth,
-          theme, metrics.bodyFontFamily)
+          theme, metrics.bodyFontFamily, colBodyWeight)
       }
       ctx.restore()
       prevBlock = { kind: 'body', raw: '' }
@@ -1103,6 +1107,7 @@ function drawInlineParagraph(
   /** 封面页（首张拆分卡片）— H1 使用大字报效果。 */
   isCover = false,
   headingOverrides?: HeadingStyleOverrides | null,
+  bodyFontWeight?: number,
 ): number {
   if (block.kind === 'divider') {
     const h = getDividerBlockHeight(fontSize)
@@ -1131,7 +1136,7 @@ function drawInlineParagraph(
     activeFontSize,
     quoteWidth,
     fontFamily,
-    theme.editor.bodyFontWeight,
+    bodyFontWeight ?? theme.editor.bodyFontWeight,
   )
   // 标题高度与 measureParagraphBlock 保持一致：lineHeight × 行数，
   // H1 强制最小块高度 ≥ fontSize × 1.2，防止紧行高主题文字溢出。
@@ -1206,7 +1211,7 @@ function drawInlineParagraph(
       const headingFontWeight = isSubheading && headingLevel
         ? resolveHeadingFontWeight(headingLevel, theme)
         : SUBHEADING_TEXT_WEIGHT
-      const bodyTextWeight = theme.editor.bodyFontWeight ?? BODY_TEXT_WEIGHT
+      const bodyTextWeight = bodyFontWeight ?? theme.editor.bodyFontWeight ?? BODY_TEXT_WEIGHT
       const weight = isSubheading
         ? headingFontWeight
         : (token.bold || markBoldAccent)
@@ -1392,6 +1397,7 @@ export function renderCard(opts: RenderOptions): HTMLCanvasElement {
   ctx.scale(CANVAS_SCALE, CANVAS_SCALE)
 
   const metrics = getPosterMetrics(page, settings, footerEnabled)
+  const bodyFontWeight = settings.bodyFontWeight ?? theme.editor.bodyFontWeight ?? BODY_TEXT_WEIGHT
 
   // ── 1-3. Background + shape + clip ──
   if (isBrutalTheme(theme)) {
@@ -1473,6 +1479,7 @@ export function renderCard(opts: RenderOptions): HTMLCanvasElement {
         metrics.bodyFontFamily,
         isCover,
         opts.headingOverrides,
+        bodyFontWeight,
       )
       const blockBottom = paragraphY + height
       if (blockBottom > metrics.bodyBottomY) return canvas
@@ -1483,6 +1490,7 @@ export function renderCard(opts: RenderOptions): HTMLCanvasElement {
         theme, highlightStyle, settings.subheadingStyle, metrics.bodyFontFamily,
         isCover,
         opts.headingOverrides,
+        bodyFontWeight,
       )
 
 
@@ -1522,6 +1530,7 @@ export function renderCard(opts: RenderOptions): HTMLCanvasElement {
       const { totalHeight } = measureListBlock(
         listBlock, metrics.bodySize, metrics.bodyLineHeight,
         metrics.bodyWidth, theme, metrics.bodyFontFamily,
+        bodyFontWeight,
       )
       const blockBottom = blockTopWithGap + totalHeight
       if (blockBottom > metrics.bodyBottomY && page.blocks.indexOf(paragraph) > 0) break
@@ -1531,6 +1540,7 @@ export function renderCard(opts: RenderOptions): HTMLCanvasElement {
         CONTENT_LEFT, paragraphY,
         metrics.bodySize, metrics.bodyLineHeight, metrics.bodyWidth,
         theme, metrics.bodyFontFamily,
+        bodyFontWeight,
       )
       paragraphY += drawnH
       previousBlock = { kind: 'body', raw: '' }

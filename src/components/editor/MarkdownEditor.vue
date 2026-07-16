@@ -11,7 +11,8 @@ import {
   highlightActiveLine,
   keymap,
 } from '@codemirror/view'
-import { defaultKeymap, history, historyKeymap, undo } from '@codemirror/commands'
+import { defaultKeymap, history, historyKeymap, undo, redo } from '@codemirror/commands'
+import { Transaction } from '@codemirror/state'
 import { markdown } from '@codemirror/lang-markdown'
 import { oneDark } from '@codemirror/theme-one-dark'
 import { highlightDecorations } from './highlight-decorations'
@@ -173,6 +174,8 @@ watch(
           to: currentValue.length,
           insert: newValue,
         },
+        // 禁止将标签页切换记录到撤销历史中
+        annotations: Transaction.addToHistory.of(false),
       })
     }
   },
@@ -381,6 +384,7 @@ function setValue(text: string): void {
   if (text !== currentValue) {
     view.dispatch({
       changes: { from: 0, to: currentValue.length, insert: text },
+      annotations: Transaction.addToHistory.of(false),
     })
   }
 }
@@ -397,6 +401,13 @@ function undoEdit(): void {
   undo(view)
 }
 
+/** 重做上一次撤销（CodeMirror 历史）。 */
+function redoEdit(): void {
+  const view = editorView
+  if (!view) return
+  redo(view)
+}
+
 defineExpose({
   insertAtCursor,
   wrapSelectionOrInsert,
@@ -409,6 +420,7 @@ defineExpose({
   setValue,
   getEditorView,
   undo: undoEdit,
+  redo: redoEdit,
 })
 </script>
 

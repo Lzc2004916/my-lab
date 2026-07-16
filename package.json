@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc --noEmit && vite build",
-    "build:app": "vue-tsc --noEmit && vite build && electron-builder",
+    "build:app": "vue-tsc --noEmit && vite build && node scripts/generate-ico.js && electron-builder",
     "preview": "vite build && electron .",
     "test": "vitest run",
     "test:watch": "vitest"

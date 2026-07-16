@@ -25,7 +25,7 @@ import {
   measureListBlock,
 } from './measure'
 import { measureCodeBlock } from './code-renderer'
-import { getBodyFontFamily } from './types'
+import { getBodyFontFamily, BODY_TEXT_WEIGHT } from './types'
 import type { ThemeDefinition } from './types'
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -602,6 +602,7 @@ function estimateBlockHeight(
 export function layoutPages(opts: LayoutOptions): CardPage[] {
   const { source, settings, theme, footerEnabled, headingOverrides } = opts
   const bodyFontFamily = getBodyFontFamily(settings.bodyFontMode)
+  const bodyFontWeight = settings.bodyFontWeight ?? theme.editor.bodyFontWeight ?? BODY_TEXT_WEIGHT
 
   const allBlocks = parseInputBlocks(source)
   const title = ''
@@ -751,6 +752,7 @@ export function layoutPages(opts: LayoutOptions): CardPage[] {
         bodyFontFamily,
         false,
         headingOverrides,
+        bodyFontWeight,
       )
       const blockTop = cursorY + leadingGap
       const blockBottom = blockTop + height
@@ -796,6 +798,7 @@ export function layoutPages(opts: LayoutOptions): CardPage[] {
             undefined,
             false,
             headingOverrides,
+            bodyFontWeight,
           )
           if (blockTop + candidateHeight <= metrics.bodyBottomY) {
             fittedRaw = candidateRaw
@@ -819,6 +822,7 @@ export function layoutPages(opts: LayoutOptions): CardPage[] {
                 sentenceBlock, metrics.bodySize, metrics.bodyLineHeight,
                 metrics.bodyWidth, theme, settings.subheadingStyle,
                 undefined, false, headingOverrides,
+                bodyFontWeight,
               )
               const gapFill = splitInlineLines(sLines, maxGapLines)
               const gapTaken = gapFill.takenRaw(sentenceBlock.kind, (sentenceBlock as any).headingLevel)
@@ -831,6 +835,7 @@ export function layoutPages(opts: LayoutOptions): CardPage[] {
                   getParagraphBlock(combined), metrics.bodySize, metrics.bodyLineHeight,
                   metrics.bodyWidth, theme, settings.subheadingStyle,
                   undefined, false, headingOverrides,
+                  bodyFontWeight,
                 )).height
                 gapRestRaw = serializeInlineTokens(
                   sLines.slice(maxGapLines).flatMap((l) => l.tokens),
@@ -884,6 +889,7 @@ export function layoutPages(opts: LayoutOptions): CardPage[] {
                 getParagraphBlock(fillTaken), metrics.bodySize, metrics.bodyLineHeight,
                 metrics.bodyWidth, theme, settings.subheadingStyle, bodyFontFamily,
                 false, headingOverrides,
+                bodyFontWeight,
               )).height
               previousBlock = getParagraphBlock(fillTaken)
               const fillRest = restRaw(paraBlock.kind, (paraBlock as any).headingLevel)
@@ -922,6 +928,7 @@ export function layoutPages(opts: LayoutOptions): CardPage[] {
           takenBlock, metrics.bodySize, metrics.bodyLineHeight,
           metrics.bodyWidth, theme, settings.subheadingStyle, bodyFontFamily,
           false, headingOverrides,
+          bodyFontWeight,
         )).height
         previousBlock = takenBlock
       }

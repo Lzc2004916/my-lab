@@ -15,6 +15,8 @@ export interface AppSettings {
   split: number
   rightSplit: number
   previewScale: number
+  /** 正文字重 (100–900)，默认 400。 */
+  bodyFontWeight: number
   gradientConfig?: { enabled: boolean; color1: string; color2: string; angle: number }
 }
 
@@ -34,6 +36,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   split: 50,
   rightSplit: 22,
   previewScale: 1.0,
+  bodyFontWeight: 400,
   gradientConfig: { enabled: false, color1: '#6c5ce7', color2: '#a29bfe', angle: 135 },
 }
 

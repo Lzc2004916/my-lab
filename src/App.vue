@@ -54,6 +54,8 @@
         <EditorToolbar
           @insert="onToolbarInsert"
           @command="onToolbarCommand"
+          :can-undo="canUndo"
+          :can-redo="canRedo"
         />
         <div class="flex-1 min-h-0">
           <MarkdownEditor
@@ -131,6 +133,8 @@
           @update:body-font-mode="(v: string) => bodyFontMode = v as BodyFontMode"
           :body-font-size="bodyFontSize"
           @update:body-font-size="bodyFontSize = $event"
+          :body-font-weight="bodyFontWeight"
+          @update:body-font-weight="bodyFontWeight = $event"
           :highlight-style="highlightStyle"
           @update:highlight-style="(v: string) => highlightStyle = v as HighlightStyle"
           :footer-enabled="footerEnabled"
@@ -260,6 +264,12 @@ const source = computed<string>({
 
 const activeTags = computed<string[]>(() => store.activeDocument?.tags ?? [])
 
+/** 当前文档是否还有可撤销的操作。 */
+const canUndo = computed<boolean>(() => store.activeId ? store.canUndo(store.activeId) : false)
+
+/** 当前文档是否还有可重做的操作。 */
+const canRedo = computed<boolean>(() => store.activeId ? store.canRedo(store.activeId) : false)
+
 const cardTheme = ref<string>('moss-paper')
 const bodyFontMode = ref<BodyFontMode>('wenkai')
 
@@ -300,6 +310,7 @@ const BODY_FONT_OPTIONS = Object.entries(BODY_FONT_MODES).map(([id, def]) => ({
 
 const settings = useSettings()
 const bodyFontSize = ref<number>(30)
+const bodyFontWeight = ref<number>(400)
 const highlightStyle = ref<HighlightStyle>('underline' as HighlightStyle)
 const footerEnabled = ref<boolean>(true)
 const gradientConfig = ref<GradientConfig>({
@@ -403,6 +414,7 @@ const typography = computed<TypographySettings>(() => {
     bodySize: bodyFontSize.value,
     lineHeight: 1.84,
     bodyFontMode: bodyFontMode.value,
+    bodyFontWeight: bodyFontWeight.value,
     subheadingStyle: (theme.editor.subheadingStyle ?? 'large') as SubheadingStyle,
   }
 })
@@ -498,6 +510,7 @@ function collectSettings(): AppSettings {
     cardTheme: cardTheme.value,
     bodyFontMode: bodyFontMode.value,
     bodyFontSize: bodyFontSize.value,
+    bodyFontWeight: bodyFontWeight.value,
     highlightStyle: highlightStyle.value,
     footerEnabled: footerEnabled.value,
     split: split.value,
@@ -512,6 +525,7 @@ function applySettings(s: AppSettings): void {
   cardTheme.value = s.cardTheme
   bodyFontMode.value = (s.bodyFontMode as BodyFontMode) || 'wenkai'
   bodyFontSize.value = s.bodyFontSize
+  bodyFontWeight.value = s.bodyFontWeight ?? 400
   highlightStyle.value = s.highlightStyle as HighlightStyle
   footerEnabled.value = s.footerEnabled
   split.value = s.split
@@ -525,7 +539,7 @@ function applySettings(s: AppSettings): void {
 // 任何设置变更时自动持久化（saveSettings 内部有 1 秒防抖）。
 watch(
   [
-    cardTheme, bodyFontMode, bodyFontSize,
+    cardTheme, bodyFontMode, bodyFontSize, bodyFontWeight,
     highlightStyle, footerEnabled, split, rightSplit, previewScale, gradientConfig,
   ],
   () => saveSettings(collectSettings()),
@@ -539,11 +553,23 @@ interface MarkdownEditorAPI {
   wrapSelectionOrInsert: (prefix: string, suffix: string, placeholder: string) => void
   focus: () => void
   undo: () => void
+  redo: () => void
+  setValue: (text: string) => void
 }
 
 const editorRef = ref<MarkdownEditorAPI | null>(null)
 
+/** 撤销/重做操作进行中时抑制快照捕获，防止循环。 */
+let isUndoRedoing = false
+
 function onSourceUpdate(value: string): void {
+  // 在应用更改前保存当前状态快照（用于撤销）
+  if (store.activeId && !isUndoRedoing) {
+    const doc = store.activeDocument
+    if (doc && doc.content !== value) {
+      store.pushUndo(store.activeId, doc.content)
+    }
+  }
   source.value = value
 }
 
@@ -560,8 +586,31 @@ function onToolbarInsert(item: ToolbarItem): void {
   editorRef.value?.focus()
 }
 
-function onToolbarCommand(action: 'undo'): void {
-  if (action === 'undo') editorRef.value?.undo()
+function onToolbarCommand(action: 'undo' | 'redo'): void {
+  if (!store.activeId) return
+
+  isUndoRedoing = true
+  try {
+    if (action === 'undo') {
+      // 优先使用文档级撤销栈（合并后的快照）
+      const restored = store.undo(store.activeId)
+      if (restored !== null) {
+        editorRef.value?.setValue(restored)
+      } else {
+        // 回退到 CodeMirror 细粒度撤销
+        editorRef.value?.undo()
+      }
+    } else if (action === 'redo') {
+      const restored = store.redo(store.activeId)
+      if (restored !== null) {
+        editorRef.value?.setValue(restored)
+      } else {
+        editorRef.value?.redo()
+      }
+    }
+  } finally {
+    isUndoRedoing = false
+  }
   editorRef.value?.focus()
 }
 

@@ -363,6 +363,7 @@ export function measureParagraphBlock(
   fontFamily?: string,
   isCover = false,
   headingOverrides?: HeadingStyleOverrides | null,
+  bodyFontWeight?: number,
 ): { lines: InlineLine[]; height: number } {
   if (block.kind === 'divider') {
     return { lines: [], height: getDividerBlockHeight(fontSize) }
@@ -382,13 +383,13 @@ export function measureParagraphBlock(
       ? getQuoteBoxMetrics(theme, activeFontSize, maxWidth)
       : null
   const quoteWidth = quoteMetrics?.textWidth ?? maxWidth
-	  const bodyWeight = theme.editor.bodyFontWeight
+	  const bodyWeight = bodyFontWeight ?? theme.editor.bodyFontWeight
   const lines = wrapInlineTokensByWidth(
     parseInlineMarkdown(block.raw),
     activeFontSize,
     quoteWidth,
     fontFamily,
-	    bodyWeight,
+    bodyWeight,
   )
   // 标题高度使用 lineHeight × 行数，而非 fontSize + (n-1)×lineHeight。
   // 后者在超大字号（>100px）下严重低估视觉高度：120px 标题丢失 30px leading，
@@ -437,9 +438,10 @@ export function measureListBlock(
   maxWidth: number,
   theme: ThemeDefinition,
   fontFamily?: string,
+  bodyFontWeight?: number,
 ): { itemHeights: number[]; totalHeight: number } {
   const listStyle: ListStyleConfig = theme.editor.list ?? DEFAULT_LIST_STYLE
-  const bodyFontWeight = theme.editor.bodyFontWeight ?? BODY_TEXT_WEIGHT
+  const resolvedWeight = bodyFontWeight ?? theme.editor.bodyFontWeight ?? BODY_TEXT_WEIGHT
 
   const bulletSize = Math.round(fontSize * listStyle.bulletSizeRatio)
   const bulletGap = Math.max(4, Math.round(fontSize * 0.22))
@@ -455,7 +457,7 @@ export function measureListBlock(
   for (const item of block.items) {
     const indent = item.indent * listStyle.indentPerLevel
     const textWidth = Math.max(60, maxWidth - indent - effectiveMarkerSize - bulletGap)
-    const { height } = measureListItem(item.text, fontSize, bodyLineHeight, textWidth, fontFamily, bodyFontWeight)
+    const { height } = measureListItem(item.text, fontSize, bodyLineHeight, textWidth, fontFamily, resolvedWeight)
     const itemHeight = Math.max(height, bodyLineHeight)
     itemHeights.push(itemHeight)
     totalHeight += itemHeight + listStyle.itemGap

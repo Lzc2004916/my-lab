@@ -5,12 +5,28 @@
       class="btn btn-ghost btn-sm btn-square h-7 w-7 min-h-0 tooltip tooltip-bottom"
       data-tip="撤回 (Ctrl+Z)"
       aria-label="撤回 (Ctrl+Z)"
+      :disabled="canUndo === false"
       @mousedown.prevent
       @click="emit('command', 'undo')"
     >
       <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
         <polyline points="1 4 1 10 7 10"/>
         <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>
+      </svg>
+    </button>
+
+    <!-- Redo -->
+    <button
+      class="btn btn-ghost btn-sm btn-square h-7 w-7 min-h-0 tooltip tooltip-bottom"
+      data-tip="重做 (Ctrl+Y)"
+      aria-label="重做 (Ctrl+Y)"
+      :disabled="canRedo === false"
+      @mousedown.prevent
+      @click="emit('command', 'redo')"
+    >
+      <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="23 4 23 10 17 10"/>
+        <path d="M20.49 15a9 9 0 1 1-2.13-9.36L23 10"/>
       </svg>
     </button>
 
@@ -133,13 +149,17 @@ export interface ToolbarItem {
 defineProps<{
   /** 光标所在行的当前标题级别（0 = 非标题，1-3 = H1-H3）。 */
   currentHeadingLevel?: number
+  /** 为 false 时禁用撤销按钮（无可撤销的操作时）。 */
+  canUndo?: boolean
+  /** 为 false 时禁用重做按钮（无可重做的操作时）。 */
+  canRedo?: boolean
 }>()
 
 // ── Emits ────────────────────────────────────────────────────────────
 
 const emit = defineEmits<{
   (e: 'insert', item: ToolbarItem): void
-  (e: 'command', action: 'undo'): void
+  (e: 'command', action: 'undo' | 'redo'): void
 }>()
 
 // ── Heading helpers ────────────────────────────────────────────────

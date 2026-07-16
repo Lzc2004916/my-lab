@@ -25,6 +25,7 @@ const VALID_HIGHLIGHT_STYLES: Set<string> = new Set([
 
 const VALID_BODY_FONT_MODES: Set<string> = new Set([
   'wenkai', 'yahei', 'simsun', 'kaiti', 'dengxian', 'fangsong',
+  'simhei', 'youyuan', 'notosans', 'notoserif',
 ])
 
 const VALID_SUBHEADING_STYLES: Set<string> = new Set([

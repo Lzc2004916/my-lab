@@ -171,6 +171,22 @@ export const useDocumentsStore = defineStore('documents', () => {
   const documents = ref<Document[]>([])
   const activeId = ref<string>('')
 
+  // ── 撤销 / 重做栈（按文档 ID 索引） ──────────────────────
+
+  const MAX_HISTORY = 100
+
+  /** 每个文档的撤销快照栈（最近的在末尾）。 */
+  const undoStacks = ref<Map<string, string[]>>(new Map())
+
+  /** 每个文档的重做快照栈（最近的在末尾）。 */
+  const redoStacks = ref<Map<string, string[]>>(new Map())
+
+  /** 每个文档最后一次入栈的时间戳，用于合并快速连续的编辑。 */
+  const lastPushTime = new Map<string, number>()
+
+  /** 在此时间窗口（毫秒）内的连续编辑会合并为一个撤销步骤。 */
+  const COALESCE_WINDOW_MS = 500
+
   // ── 获取器 ─────────────────────────────────────────────────
 
   const activeDocument = computed<Document | null>(() => {
@@ -205,6 +221,9 @@ export const useDocumentsStore = defineStore('documents', () => {
 
   /** 通过 ID 移除文档。拒绝移除最后一个文档。 */
   function removeDocument(id: string): void {
+    // 清理被移除文档的撤销/重做历史
+    clearHistory(id)
+
     if (documents.value.length <= 1) {
       // 用新的空白文档替换而不是删除
       const doc = defaultDoc()
@@ -232,6 +251,98 @@ export const useDocumentsStore = defineStore('documents', () => {
     }
   }
 
+  // ── 撤销 / 重做操作 ──────────────────────────────────
+
+  /** 将内容快照推入指定文档的撤销栈。 */
+  function pushUndo(id: string, content: string): void {
+    let stack = undoStacks.value.get(id)
+    if (!stack) {
+      stack = []
+      undoStacks.value.set(id, stack)
+    }
+
+    // 合并快速连续的编辑：如果在合并窗口内，替换栈顶而不是追加
+    const now = Date.now()
+    const last = lastPushTime.get(id) ?? 0
+    if (now - last < COALESCE_WINDOW_MS && stack.length > 0) {
+      stack[stack.length - 1] = content
+    } else {
+      if (stack.length >= MAX_HISTORY) stack.shift() // 驱逐最旧的
+      stack.push(content)
+    }
+    lastPushTime.set(id, now)
+
+    // 新编辑 → 清空该文档的重做栈
+    redoStacks.value.delete(id)
+  }
+
+  /** 撤销指定文档的最后一步操作。返回要恢复的内容，或 null。 */
+  function undo(id: string): string | null {
+    const doc = documents.value.find((d) => d.id === id)
+    if (!doc) return null
+
+    const stack = undoStacks.value.get(id)
+    if (!stack || stack.length === 0) return null
+
+    // 将当前内容推入重做栈
+    let redoStack = redoStacks.value.get(id)
+    if (!redoStack) {
+      redoStack = []
+      redoStacks.value.set(id, redoStack)
+    }
+    redoStack.push(doc.content)
+
+    // 弹出上一个快照
+    const previous = stack.pop()!
+    if (stack.length === 0) undoStacks.value.delete(id)
+
+    return previous
+  }
+
+  /** 重做指定文档的最后一次撤销。返回要恢复的内容，或 null。 */
+  function redo(id: string): string | null {
+    const doc = documents.value.find((d) => d.id === id)
+    if (!doc) return null
+
+    const stack = redoStacks.value.get(id)
+    if (!stack || stack.length === 0) return null
+
+    // 将当前内容推入撤销栈
+    let undoStack = undoStacks.value.get(id)
+    if (!undoStack) {
+      undoStack = []
+      undoStacks.value.set(id, undoStack)
+    }
+    undoStack.push(doc.content)
+
+    // 弹出上一个重做快照
+    const next = stack.pop()!
+    if (stack.length === 0) redoStacks.value.delete(id)
+
+    return next
+  }
+
+  /** 指定文档是否可以撤销。 */
+  function canUndo(id: string): boolean {
+    const stack = undoStacks.value.get(id)
+    return (stack?.length ?? 0) > 0
+  }
+
+  /** 指定文档是否可以重做。 */
+  function canRedo(id: string): boolean {
+    const stack = redoStacks.value.get(id)
+    return (stack?.length ?? 0) > 0
+  }
+
+  /** 清除指定文档的所有撤销/重做历史。 */
+  function clearHistory(id: string): void {
+    undoStacks.value.delete(id)
+    redoStacks.value.delete(id)
+    lastPushTime.delete(id)
+  }
+
+  // ── 操作 ─────────────────────────────────────────────────（续）
+
   /** 更新内容 + 自动提取标题和标签。 */
   function updateContent(id: string, content: string): void {
     const doc = documents.value.find((d) => d.id === id)
@@ -254,5 +365,11 @@ export const useDocumentsStore = defineStore('documents', () => {
     removeDocument,
     setActive,
     updateContent,
+    pushUndo,
+    undo,
+    redo,
+    canUndo,
+    canRedo,
+    clearHistory,
   }
 })

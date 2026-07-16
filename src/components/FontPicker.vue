@@ -35,19 +35,14 @@ export interface FontOption {
 
 // ── Props ──────────────────────────────────────────────────────────────────
 
-const props = withDefaults(
-  defineProps<{
-    /** 当前选中的字体 ID（v-model）。 */
-    modelValue: string
-    /** 所有可用的字体选项。 */
-    fonts: FontOption[]
-    /** 选择框前的可选标签。 */
-    label?: string
-  }>(),
-  {
-    label: '内容字体',
-  },
-)
+const props = defineProps<{
+  /** 当前选中的字体 ID（v-model）。 */
+  modelValue: string
+  /** 所有可用的字体选项。 */
+  fonts: FontOption[]
+  /** 选择框前的可选标签。不传则不显示标签。 */
+  label?: string
+}>()
 
 // ── Emits ───────────────────────────────────────────────────────────────────
 

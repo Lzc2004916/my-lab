@@ -28,7 +28,7 @@ export interface AppSettings {
   /** 卡片圆角模式 */
   cardCornerMode: 'rounded' | 'square'
   /** 正文字体模式 */
-  bodyFontMode: 'wenkai' | 'yahei' | 'simsun' | 'kaiti' | 'dengxian' | 'fangsong'
+  bodyFontMode: 'wenkai' | 'yahei' | 'simsun' | 'kaiti' | 'dengxian' | 'fangsong' | 'simhei' | 'youyuan' | 'notosans' | 'notoserif'
   /** 子标题样式 */
   subheadingStyle: 'large' | 'accent'
 }
@@ -72,8 +72,8 @@ const cardCornerMode = ref<'rounded' | 'square'>(
 const subheadingStyle = ref<'large' | 'accent'>(
   (localStorage.getItem(STORAGE_PREFIX + 'subheadingStyle') as 'large' | 'accent') || 'large',
 )
-const bodyFontMode = ref<'wenkai' | 'yahei' | 'simsun' | 'kaiti' | 'dengxian' | 'fangsong'>(
-  (localStorage.getItem(STORAGE_PREFIX + 'bodyFontMode') as 'wenkai' | 'yahei' | 'simsun' | 'kaiti' | 'dengxian' | 'fangsong') || 'wenkai',
+const bodyFontMode = ref<'wenkai' | 'yahei' | 'simsun' | 'kaiti' | 'dengxian' | 'fangsong' | 'simhei' | 'youyuan' | 'notosans' | 'notoserif'>(
+  (localStorage.getItem(STORAGE_PREFIX + 'bodyFontMode') as 'wenkai' | 'yahei' | 'simsun' | 'kaiti' | 'dengxian' | 'fangsong' | 'simhei' | 'youyuan' | 'notosans' | 'notoserif') || 'wenkai',
 )
 
 // ── Heading style overrides ────────────────────────────────────────────

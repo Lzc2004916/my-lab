@@ -75,6 +75,18 @@
           />
         </div>
 
+        <!-- Body font weight -->
+        <div class="ctrl-row-item">
+          <span class="ctrl-label">正文字重</span>
+          <input
+            :value="bodyFontWeight"
+            type="range" min="100" max="900" step="100"
+            class="range range-xs range-primary flex-1 min-w-0"
+            @input="emit('update:bodyFontWeight', Number(($event.target as HTMLInputElement).value))"
+          />
+          <span class="ctrl-value w-7">{{ bodyFontWeight }}</span>
+        </div>
+
         <!-- Highlight style selector -->
         <div class="ctrl-row-item">
           <span class="ctrl-label">高亮样式</span>
@@ -177,6 +189,7 @@ interface Props {
   cardTheme: string
   bodyFontMode: string
   bodyFontSize: number
+  bodyFontWeight: number
   highlightStyle: string
   footerEnabled: boolean
   gradientConfig: GradientConfig
@@ -195,6 +208,7 @@ const emit = defineEmits<{
   (e: 'update:cardTheme', value: string): void
   (e: 'update:bodyFontMode', value: string): void
   (e: 'update:bodyFontSize', value: number): void
+  (e: 'update:bodyFontWeight', value: number): void
   (e: 'update:highlightStyle', value: string): void
   (e: 'update:footerEnabled', value: boolean): void
   (e: 'update:gradientConfig', value: GradientConfig): void
