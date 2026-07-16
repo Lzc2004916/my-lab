@@ -203,7 +203,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import type { EditorView } from '@codemirror/view'
 import MarkdownEditor from '@/components/editor/MarkdownEditor.vue'
 import EditorToolbar from '@/components/editor/EditorToolbar.vue'
@@ -426,6 +426,16 @@ function onCloseDialogDismiss(): void {
 
 onMounted(() => {
   initWindowControls()
+
+  // 通知 main.ts：Vue 组件树已挂载，等待 Canvas 首帧渲染后发出就绪信号
+  nextTick(() => {
+    // 再等两帧确保 Canvas 已完成首次绘制
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        window.dispatchEvent(new CustomEvent('app-render-ready'))
+      })
+    })
+  })
 })
 
 const typography = computed<TypographySettings>(() => {

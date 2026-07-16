@@ -1066,6 +1066,231 @@ export function drawMatchaRing(
   ctx.restore()
 }
 
+// ── Seal stamp (中国传统印章) ────────────────────────────────────────────────
+
+/**
+ * 中国传统印章装饰 — 朱红方框 + 篆书印文 + 做旧肌理。
+ * 用于 chinese-trad 等中式主题。
+ *
+ * 视觉特征：
+ *   • 朱砂红方形外框（微圆角，仿金石篆刻）
+ *   • 2×2 篆书印文布局
+ *   • 做旧斑驳效果 — 印章泥不均匀渗透感
+ *   • 角落放置，模拟书画落款钤印
+ */
+export function drawSealStamp(
+  ctx: CanvasRenderingContext2D,
+  theme: ThemeDefinition,
+): void {
+  const decor = theme.decor
+  if (!decor || decor.kind !== 'sealStamp') return
+
+  const alpha = decor.opacity
+  const color = decor.color ?? theme.palette.accent
+  const scale = decor.scale ?? 1
+
+  ctx.save()
+  ctx.globalAlpha = alpha
+
+  // ── 印章布局参数 ──────────────────────────────────────────────────────
+  const stampSize = 58 * scale
+  const cx = PAGE_WIDTH - 74 * scale      // 右下角
+  const cy = PAGE_HEIGHT - 74 * scale
+  const half = stampSize / 2
+  const cornerRadius = 3 * scale           // 微圆角（金石篆刻的磨损感）
+  const borderWidth = 2.2 * scale
+
+  // ── 绘制外框（带微圆角的方形）─────────────────────────────────────────
+  ctx.strokeStyle = color  // 直接用主题色，不做二次 rgba 混合
+  ctx.lineWidth = borderWidth
+  ctx.lineJoin = 'round'
+  ctx.beginPath()
+  // 手动绘制圆角矩形
+  const x0 = cx - half, y0 = cy - half
+  const x1 = cx + half, y1 = cy + half
+  const r = cornerRadius
+  ctx.moveTo(x0 + r, y0)
+  ctx.lineTo(x1 - r, y0)
+  ctx.arcTo(x1, y0, x1, y0 + r, r)
+  ctx.lineTo(x1, y1 - r)
+  ctx.arcTo(x1, y1, x1 - r, y1, r)
+  ctx.lineTo(x0 + r, y1)
+  ctx.arcTo(x0, y1, x0, y1 - r, r)
+  ctx.lineTo(x0, y0 + r)
+  ctx.arcTo(x0, y0, x0 + r, y0, r)
+  ctx.closePath()
+  ctx.stroke()
+
+  // ── 内填充（做旧斑驳感 — 比外框更淡）────────────────────────────────
+  const fillAlpha = 0.18
+  ctx.fillStyle = hexToRgba(color, fillAlpha)
+  ctx.fill()
+
+  // ── 斑驳纹理（随机半透明方块模拟印泥不均）────────────────────────────
+  const seed = 619
+  for (let i = 0; i < 16; i++) {
+    const px = x0 + 6 * scale + ((seed * (i + 1) * 31 + i * 17) % (stampSize - 12 * scale))
+    const py = y0 + 6 * scale + ((seed * (i + 1) * 47 + i * 23) % (stampSize - 12 * scale))
+    const spotSize = (1.2 + (i % 4) * 0.8) * scale
+    const spotAlpha = 0.04 + (i % 6) * 0.03
+    ctx.fillStyle = hexToRgba(color, spotAlpha)
+    ctx.beginPath()
+    ctx.arc(px, py, spotSize, 0, Math.PI * 2)
+    ctx.fill()
+  }
+
+  // ── 2×2 篆书印文 ────────────────────────────────────────────────────
+  const chars = ['翰', '墨', '书', '香']
+  // 「翰墨书香」— 笔墨书香，传统文人意境
+  const charSize = stampSize * 0.28
+  const cellOffset = stampSize * 0.27      // 每格中心偏移量
+
+  ctx.fillStyle = color
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'middle'
+  ctx.font = `bold ${charSize}px "SimSun","STSong","Noto Serif SC","KaiTi",serif`
+
+  for (let row = 0; row < 2; row++) {
+    for (let col = 0; col < 2; col++) {
+      const charX = cx + (col - 0.5) * cellOffset * 2
+      const charY = cy + (row - 0.5) * cellOffset * 2
+      ctx.fillText(chars[row * 2 + col]!, charX, charY)
+    }
+  }
+
+  // ── 印章外微光晕（印泥渗入纸纤维的毛细扩散效果）─────────────────────
+  ctx.strokeStyle = hexToRgba(color, 0.06)
+  ctx.lineWidth = 6 * scale
+  ctx.beginPath()
+  ctx.moveTo(x0 + r, y0)
+  ctx.lineTo(x1 - r, y0)
+  ctx.arcTo(x1, y0, x1, y0 + r, r)
+  ctx.lineTo(x1, y1 - r)
+  ctx.arcTo(x1, y1, x1 - r, y1, r)
+  ctx.lineTo(x0 + r, y1)
+  ctx.arcTo(x0, y1, x0, y1 - r, r)
+  ctx.lineTo(x0, y0 + r)
+  ctx.arcTo(x0, y0, x0 + r, y0, r)
+  ctx.closePath()
+  ctx.stroke()
+
+  ctx.restore()
+}
+
+// ── iOS Notes navigation bar ─────────────────────────────────────────────────
+
+/**
+ * iPhone 备忘录导航栏装饰 — 左上返回按钮 + 右上操作图标。
+ *
+ * 1:1 还原 iPhone 备忘录 App 顶部导航栏：
+ *   • 左上：「< 备忘录」— SF 风格粗体标题 + iOS 返回箭头
+ *   • 右上：分享按钮 + 更多操作 ⋯ 按钮
+ *   • 纤细分割线 — 导航栏与正文之间的 iOS 标准分隔
+ */
+export function drawIosNotesNav(
+  ctx: CanvasRenderingContext2D,
+  theme: ThemeDefinition,
+): void {
+  const decor = theme.decor
+  if (!decor || decor.kind !== 'iosNotesNav') return
+
+  const alpha = decor.opacity
+  const scale = decor.scale ?? 1
+
+  const navY = 60 * scale                          // 导航栏垂直中心（下移，给标题更多呼吸空间）
+
+  ctx.save()
+  ctx.globalAlpha = alpha
+
+  // ── 常量 ──────────────────────────────────────────────────────────────
+  const mutedColor = theme.palette.muted
+  const textColor = theme.palette.text
+
+  // ═══════════════════════════════════════════════════════════════════════
+  // 左上区域：「< 备忘录」
+  // ═══════════════════════════════════════════════════════════════════════
+
+  const leftX = CONTENT_LEFT + 2 * scale
+
+  // iOS 返回箭头 «（V 形）— 放大 1.7×
+  ctx.strokeStyle = mutedColor
+  ctx.lineWidth = 2.5 * scale
+  ctx.lineCap = 'round'
+  ctx.lineJoin = 'round'
+  ctx.beginPath()
+  const arrowSize = 12 * scale
+  ctx.moveTo(leftX + arrowSize, navY - arrowSize)
+  ctx.lineTo(leftX, navY)
+  ctx.lineTo(leftX + arrowSize, navY + arrowSize)
+  ctx.stroke()
+
+  // 「备忘录」粗体标题 — 放大至 26px
+  const titleX = leftX + arrowSize + 12 * scale
+  ctx.fillStyle = textColor
+  ctx.textAlign = 'left'
+  ctx.textBaseline = 'middle'
+  ctx.font = `600 ${26 * scale}px "PingFang SC","Microsoft YaHei","Helvetica Neue",sans-serif`
+  ctx.fillText('备忘录', titleX, navY)
+
+  // ═══════════════════════════════════════════════════════════════════════
+  // 右上区域：分享 + 更多操作
+  // ═══════════════════════════════════════════════════════════════════════
+
+  const rightBase = CONTENT_RIGHT - 4 * scale
+  const iconGap = 38 * scale
+
+  // ── 分享按钮（方框 + 向上箭头）— 放大 1.5× ────────────────────────────
+  const shareX = rightBase - iconGap
+  ctx.strokeStyle = mutedColor
+  ctx.lineWidth = 2.2 * scale
+  ctx.lineCap = 'round'
+  ctx.lineJoin = 'round'
+
+  // 方框主体
+  const boxSize = 11 * scale
+  const boxTop = navY - boxSize
+  ctx.strokeRect(shareX - boxSize * 0.6, boxTop, boxSize * 1.2, boxSize * 1.2)
+
+  // 向上箭头（从方框内伸出）
+  const arrowBaseY = boxTop
+  ctx.beginPath()
+  ctx.moveTo(shareX, arrowBaseY)
+  ctx.lineTo(shareX, arrowBaseY - 7 * scale)
+  ctx.stroke()
+
+  // 箭头尖端
+  ctx.beginPath()
+  ctx.moveTo(shareX - 4 * scale, arrowBaseY - 4 * scale)
+  ctx.lineTo(shareX, arrowBaseY - 8 * scale)
+  ctx.lineTo(shareX + 4 * scale, arrowBaseY - 4 * scale)
+  ctx.stroke()
+
+  // ── 更多操作按钮（三个圆点横排）— 放大 1.6× ──────────────────────────
+  const moreX = rightBase
+  const dotRadius = 2.2 * scale
+  const dotGap = 5.5 * scale
+  ctx.fillStyle = mutedColor
+
+  for (let i = -1; i <= 1; i++) {
+    ctx.beginPath()
+    ctx.arc(moreX + i * dotGap, navY, dotRadius, 0, Math.PI * 2)
+    ctx.fill()
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════
+  // 导航栏底部分割线（iOS 标准 hairline）
+  // ═══════════════════════════════════════════════════════════════════════
+  const separatorY = navY + 26 * scale
+  ctx.strokeStyle = hexToRgba(mutedColor, 0.18)
+  ctx.lineWidth = 1.0 * scale
+  ctx.beginPath()
+  ctx.moveTo(CONTENT_LEFT, separatorY)
+  ctx.lineTo(CONTENT_RIGHT, separatorY)
+  ctx.stroke()
+
+  ctx.restore()
+}
+
 // ═══════════════════════════════════════════════════════════════════════════
 // 主装饰分发
 // ═══════════════════════════════════════════════════════════════════════════
@@ -1130,6 +1355,12 @@ export function drawDecor(
       break
     case 'matchaRing':
       drawMatchaRing(ctx, theme)
+      break
+    case 'sealStamp':
+      drawSealStamp(ctx, theme)
+      break
+    case 'iosNotesNav':
+      drawIosNotesNav(ctx, theme)
       break
   }
 }

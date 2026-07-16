@@ -1131,12 +1131,17 @@ function drawInlineParagraph(
   const quoteInset = quoteMetrics?.textInset ?? 0
   const quoteWidth = quoteMetrics?.textWidth ?? maxWidth
 
+  // 标题块使用标题字重换行，避免 body 字重（400）与渲染字重（最高 900）
+  // 不一致导致换行位置和字符间距计算错误，造成文字叠加。
+  const wrapWeight = isSubheading && headingLevel
+    ? resolveHeadingFontWeight(headingLevel, theme)
+    : (bodyFontWeight ?? theme.editor.bodyFontWeight)
   const lines = wrapInlineTokensByWidth(
     parseInlineMarkdown(block.raw),
     activeFontSize,
     quoteWidth,
     fontFamily,
-    bodyFontWeight ?? theme.editor.bodyFontWeight,
+    wrapWeight,
   )
   // 标题高度与 measureParagraphBlock 保持一致：lineHeight × 行数，
   // H1 强制最小块高度 ≥ fontSize × 1.2，防止紧行高主题文字溢出。
@@ -1180,7 +1185,7 @@ function drawInlineParagraph(
     if (h1Align !== 'left') {
       let totalLineWidth = 0
       for (const token of line.tokens) {
-        totalLineWidth += getBodyTokenWidth(token, activeFontSize)
+        totalLineWidth += getBodyTokenWidth(token, activeFontSize, fontFamily, wrapWeight)
       }
       if (h1Align === 'center') {
         cursorX = x + (maxWidth - totalLineWidth) / 2
@@ -1190,7 +1195,7 @@ function drawInlineParagraph(
     }
 
     for (const token of line.tokens) {
-      const tokenWidth = getBodyTokenWidth(token, activeFontSize)
+      const tokenWidth = getBodyTokenWidth(token, activeFontSize, fontFamily, wrapWeight)
 
       // 为 ==mark== 标记绘制高亮背景（'boldAccent' 不绘制）
       if (token.mark) {

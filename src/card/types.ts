@@ -238,7 +238,7 @@ export interface ThemeEditor {
 
 // ── Decor ornament system ──────────────────────────────────────────────────
 
-export type DecorKind = 'none' | 'cornerBracket' | 'topRule' | 'watermark' | 'geometricPattern' | 'leafMotif' | 'circuitTrace' | 'goldFoil' | 'auroraGlow' | 'fanBurst' | 'macosWindow' | 'desertSun' | 'sakuraPetal' | 'coralBranch' | 'crystalFacet' | 'sketchHatch' | 'matchaRing'
+export type DecorKind = 'none' | 'cornerBracket' | 'topRule' | 'watermark' | 'geometricPattern' | 'leafMotif' | 'circuitTrace' | 'goldFoil' | 'auroraGlow' | 'fanBurst' | 'macosWindow' | 'desertSun' | 'sakuraPetal' | 'coralBranch' | 'crystalFacet' | 'sketchHatch' | 'matchaRing' | 'sealStamp' | 'iosNotesNav'
 
 export interface ThemeDecor {
   /** 渲染哪种装饰 */

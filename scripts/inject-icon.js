@@ -17,9 +17,17 @@ exports.default = async function (context) {
   ];
   const icoPath = candidates.find((p) => fs.existsSync(p));
 
-  // rcedit 工具路径
-  const rceditExe = path.join(os.homedir(), 'AppData', 'Local', 'electron-builder',
-    'Cache', 'winCodeSign', 'extracted', 'rcedit-x64.exe');
+  // rcedit 工具路径 — 遍历 winCodeSign 目录找到 rcedit-x64.exe
+  const winCodeSignDir = path.join(os.homedir(), 'AppData', 'Local', 'electron-builder',
+    'Cache', 'winCodeSign');
+  let rceditExe = null;
+  if (fs.existsSync(winCodeSignDir)) {
+    const dirs = fs.readdirSync(winCodeSignDir);
+    for (const d of dirs) {
+      const candidate = path.join(winCodeSignDir, d, 'rcedit-x64.exe');
+      if (fs.existsSync(candidate)) { rceditExe = candidate; break; }
+    }
+  }
   const appBuilder = path.join(context.packager.projectDir, 'node_modules',
     'app-builder-bin', 'win', 'x64', 'app-builder.exe');
 
@@ -48,7 +56,8 @@ exports.default = async function (context) {
   }
 
   if (fs.existsSync(appBuilder)) {
-    if (tryCmd(`"${appBuilder}" rcedit --args="${exePath} --set-icon ${icoPath}"`)) {
+    const args = Buffer.from(`${exePath} --set-icon ${icoPath}`).toString('base64');
+    if (tryCmd(`"${appBuilder}" rcedit --args="${args}"`)) {
       console.log('[afterPack] Icon injected via app-builder rcedit');
       return;
     }

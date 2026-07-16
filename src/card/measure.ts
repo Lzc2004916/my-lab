@@ -26,6 +26,7 @@ import {
   getBodyFontFamily,
   resolveHeadingLineHeight,
   resolveHeadingSize,
+  resolveHeadingFontWeight,
   computeHeadingMarginBottom,
   computeHeadingMarginTop,
   DEFAULT_LIST_STYLE,
@@ -384,12 +385,18 @@ export function measureParagraphBlock(
       : null
   const quoteWidth = quoteMetrics?.textWidth ?? maxWidth
 	  const bodyWeight = bodyFontWeight ?? theme.editor.bodyFontWeight
+  // 标题块使用标题字重换行，避免 body 字重（400）与渲染字重（最高 900）
+  // 不一致导致换行位置和高度估算错误，造成文字叠加。
+  const wrapWeight =
+    block.kind === 'subheading' && headingLevel
+      ? resolveHeadingFontWeight(headingLevel, theme)
+      : bodyWeight
   const lines = wrapInlineTokensByWidth(
     parseInlineMarkdown(block.raw),
     activeFontSize,
     quoteWidth,
     fontFamily,
-    bodyWeight,
+    wrapWeight,
   )
   // 标题高度使用 lineHeight × 行数，而非 fontSize + (n-1)×lineHeight。
   // 后者在超大字号（>100px）下严重低估视觉高度：120px 标题丢失 30px leading，

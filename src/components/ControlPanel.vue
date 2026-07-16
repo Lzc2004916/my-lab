@@ -133,19 +133,11 @@
     </div>
 
     <!-- ═══════════════════════════════════════════════════════════════════
-         Section 3: 标题样式
+         Section 3: 卡片主题
          ═══════════════════════════════════════════════════════════════ -->
     <div class="px-4 pt-4 pb-3 border-b border-base-200">
-      <h3 class="section-heading mb-3">标题样式</h3>
-      <HeadingStylePanel />
-    </div>
-
-    <!-- ═══════════════════════════════════════════════════════════════════
-         Section 4: 卡片主题
-         ═══════════════════════════════════════════════════════════════ -->
-    <div class="px-4 pt-4 pb-4 flex-1 flex flex-col min-h-0">
       <h3 class="section-heading mb-3">卡片主题</h3>
-      <div class="flex flex-col gap-3 flex-1 min-h-0">
+      <div class="flex flex-col gap-3">
         <!-- Theme selector with built-in category tabs -->
         <ThemeSelector v-model="themeId" :themes="THEMES" />
 
@@ -154,6 +146,14 @@
           <GradientPicker :model-value="gradientConfig" @update:model-value="(v: GradientConfig) => emit('update:gradientConfig', v)" />
         </div>
       </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════════════
+         Section 4: 标题样式
+         ═══════════════════════════════════════════════════════════════════ -->
+    <div class="px-4 pt-4 pb-4 flex-1 flex flex-col min-h-0">
+      <h3 class="section-heading mb-3">标题样式</h3>
+      <HeadingStylePanel />
     </div>
   </div>
 </template>

@@ -33,15 +33,37 @@ async function bootstrap(): Promise<void> {
     await new Promise((resolve) => setTimeout(resolve, remaining))
   }
 
-  // 淡出 splash
+  // 保存 splash DOM 引用 — app.mount('#app') 会清空 #app 内容
   const splashEl = document.querySelector<HTMLDivElement>('#app .splash')
+
+  // 挂载 Vue（会替换 #app 内所有内容）
+  app.mount('#app')
+
+  // 将保存的 splash 重新插入 #app，覆盖在 Vue 渲染内容之上
+  if (splashEl) {
+    document.querySelector('#app')!.appendChild(splashEl)
+  }
+
+  // 等待 Vue 组件完全渲染（Canvas / Editor 初始化完成）
+  await new Promise<void>((resolve) => {
+    const onReady = () => {
+      window.removeEventListener('app-render-ready', onReady)
+      resolve()
+    }
+    window.addEventListener('app-render-ready', onReady)
+    // 安全超时：8 秒后强制淡出
+    setTimeout(() => {
+      window.removeEventListener('app-render-ready', onReady)
+      resolve()
+    }, 8000)
+  })
+
+  // 淡出 splash
   if (splashEl) {
     splashEl.classList.add('splash-fade-out')
     await new Promise((resolve) => setTimeout(resolve, FADE_OUT_DURATION + 50))
+    splashEl.remove()
   }
-
-  // 挂载 Vue（替换 #app 内容）
-  app.mount('#app')
 }
 
 bootstrap()

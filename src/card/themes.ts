@@ -125,7 +125,7 @@ export const THEMES: ThemeDefinition[] = [
       list: { bulletChar: '▸', bulletSizeRatio: 0.78, indentPerLevel: 26, itemGap: 6, orderedMarkerBox: true },
     },
     category: 'professional',
-    decor: { kind: 'cornerBracket', opacity: 0.18, color: '#e89440', scale: 1.0 },
+    decor: { kind: 'desertSun', opacity: 0.75, color: '#e89440', scale: 1.0 },
     gradient: { enabled: false, color1: '#f2ede4', color2: '#faf8f5' },
   },
 
@@ -182,7 +182,7 @@ export const THEMES: ThemeDefinition[] = [
       list: { bulletChar: '•', bulletSizeRatio: 0.84, indentPerLevel: 28, itemGap: 8 },
     },
     category: 'artistic',
-    decor: { kind: 'none', opacity: 0 },
+    decor: { kind: 'sakuraPetal', opacity: 0.80, color: '#e8928c', scale: 0.95 },
     gradient: { enabled: false, color1: '#fce8db', color2: '#fdf5f0' },
   },
 
@@ -259,34 +259,34 @@ export const THEMES: ThemeDefinition[] = [
       pageAlt: '#e8efe5',
       text: '#1e2a1c',
       muted: '#5f6e5c',
-      accent: '#6b9b5c',
-      accentSoft: 'rgba(107,155,92,0.18)',
-      border: 'rgba(80,100,76,0.12)',
-      shadow: 'rgba(80,100,76,0.1)',
-      glow: 'rgba(210,230,200,0.36)',
+      accent: '#5a9478',
+      accentSoft: 'rgba(90,148,120,0.18)',
+      border: 'rgba(70,110,90,0.12)',
+      shadow: 'rgba(70,110,90,0.1)',
+      glow: 'rgba(195,230,215,0.34)',
     },
     surface: {
-      grainAlpha: 0.036,
-      vignetteAlpha: 0.042,
-      washStrength: 0.3,
-      innerFrameAlpha: 0.1,
+      grainAlpha: 0.032,
+      vignetteAlpha: 0.038,
+      washStrength: 0.28,
+      innerFrameAlpha: 0.08,
       innerFrameInset: 24,
-      titleAccentMix: 0.84,
-      footerLineAlpha: 0.2,
-      footerTextAlpha: 0.9,
+      titleAccentMix: 0.82,
+      footerLineAlpha: 0.18,
+      footerTextAlpha: 0.88,
       previewShadow:
-        '0 24px 50px rgba(80,100,76,0.1), 0 2px 16px rgba(255,255,255,0.4) inset',
+        '0 24px 50px rgba(70,110,90,0.1), 0 2px 16px rgba(240,250,245,0.4) inset',
     },
     components: {
-      quoteFillAlpha: 0.044,
-      quoteStrokeAlpha: 0.072,
-      quoteBarAlpha: 0.7,
+      quoteFillAlpha: 0.042,
+      quoteStrokeAlpha: 0.068,
+      quoteBarAlpha: 0.68,
       quoteRadius: 20,
       quoteTreatment: 'paper',
       highlightTreatment: 'softUnderline',
-      highlightUnderlineAlpha: 0.7,
-      highlightMarkerAlpha: 0.3,
-      highlightDashAlpha: 0.82,
+      highlightUnderlineAlpha: 0.68,
+      highlightMarkerAlpha: 0.28,
+      highlightDashAlpha: 0.80,
     },
     editor: {
       bodySize: 29,
@@ -298,54 +298,54 @@ export const THEMES: ThemeDefinition[] = [
       list: { bulletChar: '•', bulletSizeRatio: 0.82, indentPerLevel: 28, itemGap: 7 },
     },
     category: 'light',
-    decor: { kind: 'none', opacity: 0 },
+    decor: { kind: 'geometricPattern', opacity: 0.10, color: '#5a9478', scale: 1.06 },
     gradient: { enabled: false, color1: '#e8efe5', color2: '#f4f6f3' },
   },
 
-  // ── 6. swiss-modern ────────────────────────────────────────────────────
-  // 设计升级：从平庸红白 → 深群青瑞士风格，
-  // Müller-Brockmann 式的冷静、群青 accent、非对称网格张力
+  // ── 6. swiss-modern (瑞士现代) ─────────────────────────────────────────
+  // 重大设计升级：Müller-Brockmann 网格贴纸 + 微温纸感
+  // 菱形几何网格作为视觉锚点，微暖纸面替代冷酷纯白
   {
     id: 'swiss-modern',
     name: '瑞士现代',
-    mood: '深群青网格几何冷静张力',
+    mood: '深群青几何网格非对称张力微温纸感',
     preset: '群青网格',
-    description: '深群青 accent、严格网格秩序、非对称留白张力，适合设计宣言与品牌陈述',
-    tags: ['网格', '群青', '张力'],
+    description: '深群青 accent、菱形几何网格贴纸、非对称留白张力、微温纸面，适合设计宣言与品牌陈述',
+    tags: ['网格', '群青', '张力', '几何'],
     mode: 'swiss',
     palette: {
-      page: '#fcfcfb',          // 纯白画布 — 无可挑剔的白
-      pageAlt: '#f6f6f4',       // 微暖灰白 — 仅够感知的层次
+      page: '#fafaf7',          // 微温纸白 — 比纯白多 2% 暖意，更像真实 Swiss 海报纸
+      pageAlt: '#f3f3f0',       // 淡灰白 — 仅够感知的层次
       text: '#1a1c22',          // 深蓝黑 — 不是死黑，带群青底调
       muted: '#6a6e78',         // 冷蓝灰 — 精确克制的次级色
-      accent: '#2d4b8e',        // 深群青 — 替代平庸的红色，来自伊夫·克莱因之前的经典
-      accentSoft: 'rgba(45,75,142,0.12)',
-      border: 'rgba(30,35,50,0.14)',
+      accent: '#2d4b8e',        // 深群青 — 伊夫·克莱因之前的经典
+      accentSoft: 'rgba(45,75,142,0.14)',
+      border: 'rgba(30,35,50,0.16)',
       shadow: 'rgba(25,30,45,0.08)',
-      glow: 'rgba(45,75,142,0.05)',
+      glow: 'rgba(45,75,142,0.06)',
     },
     surface: {
-      grainAlpha: 0,
-      vignetteAlpha: 0,
-      washStrength: 0,
-      innerFrameAlpha: 0.16,
+      grainAlpha: 0.008,        // 微纸纹 — 真实 Swiss 海报纸的触感
+      vignetteAlpha: 0.006,     // 极微暗角 — 印刷品的自然边缘
+      washStrength: 0.06,       // 极淡群青光晕 — 给白纸注入色彩调性
+      innerFrameAlpha: 0.18,    // 更强的几何内框 — 网格秩序的骨架
       innerFrameInset: 22,
-      titleAccentMix: 0.72,
-      footerLineAlpha: 0.22,
-      footerTextAlpha: 0.92,
+      titleAccentMix: 0.76,
+      footerLineAlpha: 0.24,
+      footerTextAlpha: 0.94,
       previewShadow:
         '0 16px 36px rgba(25,30,45,0.08), 0 1px 6px rgba(0,0,0,0.03) inset',
     },
     components: {
-      quoteFillAlpha: 0.018,
-      quoteStrokeAlpha: 0.10,
-      quoteBarAlpha: 0.88,
+      quoteFillAlpha: 0.020,
+      quoteStrokeAlpha: 0.11,
+      quoteBarAlpha: 0.90,
       quoteRadius: 2,
       quoteTreatment: 'callout',
       highlightTreatment: 'swissRule',
-      highlightUnderlineAlpha: 0.54,
-      highlightMarkerAlpha: 0.22,
-      highlightDashAlpha: 0.90,
+      highlightUnderlineAlpha: 0.56,
+      highlightMarkerAlpha: 0.24,
+      highlightDashAlpha: 0.92,
     },
     editor: {
       bodySize: 28,
@@ -364,8 +364,8 @@ export const THEMES: ThemeDefinition[] = [
       list: { bulletChar: '—', bulletSizeRatio: 0.76, indentPerLevel: 24, itemGap: 6, orderedMarkerBox: true },
     },
     category: 'professional',
-    decor: { kind: 'cornerBracket', opacity: 0.22, scale: 1.08 },
-    gradient: { enabled: false, color1: '#fcfcfb', color2: '#fcfcfb' },
+    decor: { kind: 'geometricPattern', opacity: 0.10, color: '#2d4b8e', scale: 1.08 },
+    gradient: { enabled: false, color1: '#f3f3f0', color2: '#fafaf7' },
   },
 
   // ── 7. forest-archive ──────────────────────────────────────────────────
@@ -429,21 +429,21 @@ export const THEMES: ThemeDefinition[] = [
   {
     id: 'deep-obsidian',
     name: '深黑曜石',
-    mood: '深黑金戏剧感',
-    preset: '黑金曜石',
-    description: '极致黑底、金文点睛，适合金句卡片与品牌宣言',
-    tags: ['暗色', '戏剧'],
+    mood: '黑曜石底熔岩铜火戏剧感',
+    preset: '熔岩铜火',
+    description: '极致黑底、熔岩铜火点缀、火山玻璃质感，适合金句卡片与品牌宣言',
+    tags: ['暗色', '熔岩', '戏剧'],
     mode: 'obsidian',
     palette: {
       page: '#151310',
       pageAlt: '#1c1915',
       text: '#e8dcc8',
       muted: '#8a8070',
-      accent: '#d4a84b',
-      accentSoft: 'rgba(212,168,75,0.16)',
-      border: 'rgba(232,220,200,0.1)',
+      accent: '#c47b5b',
+      accentSoft: 'rgba(196,123,91,0.16)',
+      border: 'rgba(232,210,190,0.1)',
       shadow: 'rgba(8,6,4,0.4)',
-      glow: 'rgba(212,168,75,0.1)',
+      glow: 'rgba(196,123,91,0.1)',
     },
     surface: {
       grainAlpha: 0.08,
@@ -483,8 +483,8 @@ export const THEMES: ThemeDefinition[] = [
       list: { bulletChar: '◆', bulletSizeRatio: 0.76, indentPerLevel: 28, itemGap: 8, orderedMarkerBox: true },
     },
     category: 'dark',
-    decor: { kind: 'topRule', opacity: 0.28, scale: 1 },
-    gradient: { enabled: true, color1: '#151310', color2: '#d4a84b' },
+    decor: { kind: 'geometricPattern', opacity: 0.16, color: '#c47b5b', scale: 1.06 },
+    gradient: { enabled: true, color1: '#151310', color2: '#c47b5b' },
   },
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -739,58 +739,60 @@ export const THEMES: ThemeDefinition[] = [
       h1Scale: 5.8, h1LineHeight: 1.04, centered: true, topOffset: -24,
     },
     category: 'professional',
-    decor: { kind: 'cornerBracket', opacity: 0.44, color: '#c4552e', scale: 1.12 },
+    decor: { kind: 'topRule', opacity: 0.64, color: '#c4552e', scale: 1.12 },
     gradient: { enabled: false, color1: '#f0ede8', color2: '#f0ede8' },
   },
 
   // ── 13. gold-luxe (鎏金奢) ─────────────────────────────────────────────
+  // 重大设计升级：金箔贴纸密度提升 + 象牙暖金渐变
+  // 金箔粒子 ×3 密度、象牙→香槟金渐变、衬线标题鎏金质感
   {
     id: 'gold-luxe',
     name: '鎏金奢',
-    mood: '象牙金箔奢华质感',
+    mood: '象牙金箔奢华鎏金质感',
     preset: '鎏金质感',
-    description: '象牙白底、金箔点缀、衬线标题，适合高端品牌与邀请函',
-    tags: ['奢华', '金箔', '高端'],
+    description: '象牙白底、密集金箔贴纸、香槟金渐变、衬线鎏金标题，适合高端品牌、婚礼邀请函与珍藏内容',
+    tags: ['奢华', '金箔', '高端', '鎏金'],
     mode: 'luxe',
     palette: {
-      page: '#fdfaf3',
-      pageAlt: '#f7f0e0',
-      text: '#2d2218',
-      muted: '#8a7a65',
-      accent: '#c8a44e',
-      accentSoft: 'rgba(200,164,78,0.18)',
-      border: 'rgba(200,164,78,0.2)',
-      shadow: 'rgba(120,100,60,0.08)',
-      glow: 'rgba(220,190,110,0.2)',
+      page: '#fdfaf3',          // 象牙白 — 精致暖白
+      pageAlt: '#f7eeda',       // 香槟金雾 — 更明显的金色底层
+      text: '#2d2216',          // 深棕黑 — 比纯黑更温暖奢华
+      muted: '#8a7a62',         // 古铜灰 — 金属氧化后的次级色调
+      accent: '#c8a44e',        // 鎏金 — 纯正金色 accent
+      accentSoft: 'rgba(200,164,78,0.20)',
+      border: 'rgba(200,164,78,0.22)',
+      shadow: 'rgba(120,100,50,0.10)',
+      glow: 'rgba(230,195,115,0.28)',   // 更强金色光晕
     },
     surface: {
-      grainAlpha: 0.022,
-      vignetteAlpha: 0.034,
-      washStrength: 0.2,
-      innerFrameAlpha: 0.1,
+      grainAlpha: 0.018,        // 微纸纹 — 高级纸的细腻纹理
+      vignetteAlpha: 0.040,     // 更强的聚光灯暗角 — 珠宝展示感
+      washStrength: 0.26,       // 更强的金色光晕漫射
+      innerFrameAlpha: 0.12,    // 金色内框更可见
       innerFrameInset: 28,
-      titleAccentMix: 0.92,
-      footerLineAlpha: 0.18,
-      footerTextAlpha: 0.9,
+      titleAccentMix: 0.94,     // 标题几乎纯金色
+      footerLineAlpha: 0.20,
+      footerTextAlpha: 0.92,
       previewShadow:
-        '0 24px 56px rgba(120,100,60,0.1), 0 2px 18px rgba(255,250,235,0.5) inset, 0 0 0 1px rgba(200,164,78,0.15) inset',
+        '0 28px 60px rgba(120,100,50,0.12), 0 2px 20px rgba(255,250,235,0.55) inset, 0 0 0 1px rgba(200,164,78,0.18) inset',
     },
     components: {
-      quoteFillAlpha: 0.04,
-      quoteStrokeAlpha: 0.08,
-      quoteBarAlpha: 0.8,
+      quoteFillAlpha: 0.044,
+      quoteStrokeAlpha: 0.088,
+      quoteBarAlpha: 0.84,
       quoteRadius: 16,
       quoteTreatment: 'paper',
       highlightTreatment: 'softUnderline',
-      highlightUnderlineAlpha: 0.7,
-      highlightMarkerAlpha: 0.3,
-      highlightDashAlpha: 0.76,
+      highlightUnderlineAlpha: 0.72,
+      highlightMarkerAlpha: 0.32,
+      highlightDashAlpha: 0.80,
     },
     editor: {
       bodySize: 30,
       lineHeight: 1.9,
-      bodyFontMode: 'simsun',
-      bodyFontWeight: 400,
+      bodyFontMode: 'notoserif',  // 思源宋体 — 比 SimSun 更优雅的衬线
+      bodyFontWeight: 350,
       subheadingStyle: 'accent',
       highlightStyle: 'underline',
       heading: {
@@ -806,52 +808,54 @@ export const THEMES: ThemeDefinition[] = [
         h1Scale: 4.2, h1LineHeight: 1.12, centered: true,
       },
     category: 'professional',
-    decor: { kind: 'goldFoil', opacity: 0.12, color: '#c8a44e', scale: 1 },
-    gradient: { enabled: false, color1: '#f7f0e0', color2: '#fdfaf3' },
+    decor: { kind: 'goldFoil', opacity: 0.34, color: '#c8a44e', scale: 1 },
+    gradient: { enabled: true, color1: '#f7eeda', color2: '#fdfaf3', angle: 135 },
   },
 
   // ── 14. botanical-field (原野手札) ─────────────────────────────────────
+  // 重大设计升级：植物叶子贴纸 + 原野暖绿重配色
+  // 页边距植物叶片插图、暖草纸底、橄榄绿 accent、手写楷体、田野笔记氛围
   {
     id: 'botanical-field',
     name: '原野手札',
-    mood: '植物图鉴手绘田野笔记',
+    mood: '植物图鉴手绘田野笔记暖草纸',
     preset: '植物手札',
-    description: '暖草纸底、植物绿调、手写标题，适合自然笔记与田野记录',
-    tags: ['自然', '手绘', '植物'],
-    mode: 'sage',
+    description: '暖草纸底、页边植物叶子贴纸、橄榄绿 accent、手写楷体，适合自然笔记、植物观察与田野记录',
+    tags: ['自然', '植物', '叶子', '田野'],
+    mode: 'paper',
     palette: {
-      page: '#f8f5ed',
-      pageAlt: '#efe8d6',
-      text: '#2d3320',
-      muted: '#7a8065',
-      accent: '#5c8a3c',
-      accentSoft: 'rgba(92,138,60,0.16)',
-      border: 'rgba(92,110,70,0.12)',
-      shadow: 'rgba(80,100,60,0.08)',
-      glow: 'rgba(180,210,160,0.24)',
+      page: '#f8f5ec',          // 暖草纸 — 阳光晒过的草本底色
+      pageAlt: '#efe5cf',       // 干草金黄 — 更温暖的自然渐变
+      text: '#2d3320',          // 深橄榄棕 — 植物标本的墨色
+      muted: '#7a8060',         // 干草绿灰 — 被阳光漂白的草色
+      accent: '#6b8a3c',        // 原野橄榄绿 — 活力与自然并存
+      accentSoft: 'rgba(107,138,60,0.18)',
+      border: 'rgba(100,120,65,0.12)',
+      shadow: 'rgba(90,105,55,0.08)',
+      glow: 'rgba(185,215,155,0.26)',
     },
     surface: {
-      grainAlpha: 0.04,
-      vignetteAlpha: 0.04,
-      washStrength: 0.26,
-      innerFrameAlpha: 0.08,
+      grainAlpha: 0.044,        // 草纸纤维 — 自然纸的触感
+      vignetteAlpha: 0.044,
+      washStrength: 0.30,
+      innerFrameAlpha: 0.10,
       innerFrameInset: 26,
-      titleAccentMix: 0.8,
-      footerLineAlpha: 0.18,
-      footerTextAlpha: 0.88,
+      titleAccentMix: 0.80,
+      footerLineAlpha: 0.20,
+      footerTextAlpha: 0.90,
       previewShadow:
-        '0 22px 48px rgba(80,100,60,0.08), 0 2px 14px rgba(255,250,235,0.4) inset',
+        '0 22px 48px rgba(90,105,55,0.08), 0 2px 14px rgba(250,242,225,0.4) inset',
     },
     components: {
-      quoteFillAlpha: 0.04,
-      quoteStrokeAlpha: 0.07,
-      quoteBarAlpha: 0.68,
+      quoteFillAlpha: 0.044,
+      quoteStrokeAlpha: 0.072,
+      quoteBarAlpha: 0.70,
       quoteRadius: 14,
       quoteTreatment: 'paper',
       highlightTreatment: 'softUnderline',
-      highlightUnderlineAlpha: 0.64,
-      highlightMarkerAlpha: 0.26,
-      highlightDashAlpha: 0.72,
+      highlightUnderlineAlpha: 0.66,
+      highlightMarkerAlpha: 0.30,
+      highlightDashAlpha: 0.76,
     },
     editor: {
       bodySize: 29,
@@ -860,10 +864,20 @@ export const THEMES: ThemeDefinition[] = [
       bodyFontWeight: 400,
       subheadingStyle: 'accent',
       highlightStyle: 'underline',
+      heading: {
+        h1Scale: 3.2, h2Scale: 1.6, h3Scale: 1.3,
+        h1LineHeight: 1.3, h2LineHeight: 1.4, h3LineHeight: 1.5,
+        h1FontWeight: 600, h2FontWeight: 500, h3FontWeight: 400,
+        h1MarginTop: 24, h1MarginBottom: 12,
+      },
+      list: { bulletChar: '◦', bulletSizeRatio: 0.82, indentPerLevel: 28, itemGap: 8 },
     },
-    category: 'artistic',
-    decor: { kind: 'leafMotif', opacity: 0.14, color: '#5c8a3c', scale: 0.9 },
-    gradient: { enabled: false, color1: '#efe8d6', color2: '#f8f5ed' },
+    coverHeading: {
+      h1Scale: 4.0, h1LineHeight: 1.15, centered: false,
+    },
+    category: 'light',
+    decor: { kind: 'leafMotif', opacity: 0.15, color: '#6b8a3c', scale: 0.95 },
+    gradient: { enabled: true, color1: '#efe5cf', color2: '#f8f5ec', angle: 135 },
   },
 
   // ── 15. arctic-frost (极光冰原) ────────────────────────────────────────
@@ -918,6 +932,17 @@ export const THEMES: ThemeDefinition[] = [
       bodyFontWeight: 350,
       subheadingStyle: 'large',
       highlightStyle: 'underline',
+      heading: {
+        h1Scale: 3.4, h2Scale: 1.65, h3Scale: 1.3,
+        h1LineHeight: 1.18, h2LineHeight: 1.28, h3LineHeight: 1.38,
+        h1FontWeight: 700, h2FontWeight: 600, h3FontWeight: 500,
+        h1MarginTop: 24, h1MarginBottom: 12,
+        h1Color: '#3e8ec4',
+      },
+      list: { bulletChar: '◇', bulletSizeRatio: 0.76, indentPerLevel: 26, itemGap: 6, orderedMarkerBox: true },
+    },
+    coverHeading: {
+      h1Scale: 4.2, h1LineHeight: 1.12, centered: true,
     },
     category: 'light',
     decor: { kind: 'geometricPattern', opacity: 0.10, color: '#3e8ec4', scale: 1.05 },
@@ -974,6 +999,17 @@ export const THEMES: ThemeDefinition[] = [
       bodyFontWeight: 400,
       subheadingStyle: 'accent',
       highlightStyle: 'underline',
+      heading: {
+        h1Scale: 3.5, h2Scale: 1.7, h3Scale: 1.35,
+        h1LineHeight: 1.18, h2LineHeight: 1.28, h3LineHeight: 1.38,
+        h1FontWeight: 700, h2FontWeight: 600, h3FontWeight: 500,
+        h1MarginTop: 26, h1MarginBottom: 14,
+        h1Color: '#7eb8da',
+      },
+      list: { bulletChar: '◆', bulletSizeRatio: 0.78, indentPerLevel: 28, itemGap: 8, orderedMarkerBox: true },
+    },
+    coverHeading: {
+      h1Scale: 4.4, h1LineHeight: 1.10, centered: true,
     },
     category: 'dark',
     decor: { kind: 'watermark', opacity: 0.05, color: '#7eb8da', scale: 1.4 },
@@ -981,115 +1017,123 @@ export const THEMES: ThemeDefinition[] = [
   },
 
   // ═══════════════════════════════════════════════════════════════════════════
-  // ── 17。 apple-note (苹果备忘录) ──────────────────────────────────────────
-  // 设计升级：从弱黄便签 → 真正的 Cupertino 质感，
-  // 微冷调米白纸面、iOS 系统蓝 accent、精密阴影分层
+  // ── 17。 iphone-note (iPhone备忘录) ──────────────────────────────────────
+  // 1:1 复刻 iPhone 备忘录 App 视觉特征：
+  //   • 暖黄纸面 — 备忘录的温暖底色
+  //   • 应用图标黄 accent — 标志性的 #f5c542
+  //   • 系统无衬线字体 — PingFang SC / San Francisco 风格
+  //   • 零装饰 — 极简 iOS 设计语言
+  //   • 细密纸纹 — 模拟 iPhone 屏幕上的纸感
+  //   • 扁平微投影 — iOS 系统卡片的柔和阴影
   {
-    id: 'apple-note',
-    name: '苹果备忘录',
-    mood: 'Cupertino微冷米白精密分层',
-    preset: 'iOS 质感',
-    description: '微冷调米白纸面、iOS 系统蓝 accent、精密投影分层、San Francisco 般的克制品味',
-    tags: ['iOS', '精密', '克制'],
+    id: 'iphone-note',
+    name: 'iPhone备忘录',
+    mood: 'iOS备忘录暖黄纸极致简约',
+    preset: 'iOS备忘',
+    description: '1:1 复刻 iPhone 备忘录 App：暖黄纸面、应用图标标志性暖黄 accent、SF 风格无衬线字体、零装饰极简 iOS 设计语言，适合日常记录与随手速记',
+    tags: ['iOS', '备忘', '暖黄', '极简', 'Apple'],
     mode: 'paper',
     palette: {
-      page: '#fcfaf7',          // 冷调米白 — Apple Notes 的真实底色
-      pageAlt: '#f5f1ea',       // 淡亚麻 — 微妙暖灰渐变
-      text: '#1d1d1f',          // 近黑 Apple 系统字色
-      muted: '#86868b',         // 系统灰 — Apple 的次级文本色
-      accent: '#0071e3',        // Apple 系统蓝 — 精确的品牌色
-      accentSoft: 'rgba(0,113,227,0.14)',
-      border: 'rgba(140,135,128,0.10)',
-      shadow: 'rgba(100,95,90,0.08)',
-      glow: 'rgba(210,225,245,0.22)',
+      page: '#fefefc',          // 备忘录真实底色 — 极净暖白，与 iPhone 屏幕一致
+      pageAlt: '#f9f6ef',       // 微暖纸底 — 比纯白多一层暖黄意
+      text: '#1d1d1f',          // SF 系统黑 — Apple 的标准文本色 Lab(0,0,0)
+      muted: '#8e8e93',         // 系统灰 — iOS 次级文本 #8e8e93
+      accent: '#f5c542',        // 备忘录黄 — iPhone Notes 应用图标标志性暖黄
+      accentSoft: 'rgba(245,197,66,0.16)',
+      border: 'rgba(140,135,125,0.08)',
+      shadow: 'rgba(95,90,80,0.06)',
+      glow: 'rgba(250,235,190,0.20)',
     },
     surface: {
-      grainAlpha: 0.012,
-      vignetteAlpha: 0.014,
-      washStrength: 0.14,
-      innerFrameAlpha: 0.06,
+      grainAlpha: 0.008,        // 极微纸纹 — iPhone 屏幕的细腻纸感
+      vignetteAlpha: 0.010,     // 几乎无暗角 — 平面 iOS 设计
+      washStrength: 0.12,       // 微暖柔光 — 备忘录的黄调光晕
+      innerFrameAlpha: 0.04,    // 极微内框 — iOS 卡片的隐约边界
       innerFrameInset: 24,
-      titleAccentMix: 0.56,
-      footerLineAlpha: 0.14,
-      footerTextAlpha: 0.86,
+      titleAccentMix: 0.42,     // 标题微染暖黄色
+      footerLineAlpha: 0.10,
+      footerTextAlpha: 0.82,
       previewShadow:
-        '0 8px 32px rgba(100,95,90,0.08), 0 2px 8px rgba(0,0,0,0.02), 0 1px 0 rgba(255,255,255,0.8) inset',
+        '0 6px 24px rgba(95,90,80,0.06), 0 1px 4px rgba(0,0,0,0.01), 0 1px 0 rgba(255,255,255,0.7) inset',
     },
     components: {
-      quoteFillAlpha: 0.032,
-      quoteStrokeAlpha: 0.054,
-      quoteBarAlpha: 0.64,
-      quoteRadius: 20,
+      quoteFillAlpha: 0.024,    // 引用：极致克制的微底色
+      quoteStrokeAlpha: 0.044,
+      quoteBarAlpha: 0.54,
+      quoteRadius: 18,          // iOS 风格的圆角引用
       quoteTreatment: 'paper',
       highlightTreatment: 'softUnderline',
-      highlightUnderlineAlpha: 0.56,
-      highlightMarkerAlpha: 0.22,
-      highlightDashAlpha: 0.64,
+      highlightUnderlineAlpha: 0.48,
+      highlightMarkerAlpha: 0.20,
+      highlightDashAlpha: 0.54,
     },
     editor: {
       bodySize: 28,
-      lineHeight: 1.78,
-      bodyFontMode: 'yahei',
+      lineHeight: 1.76,
+      bodyFontMode: 'notosans',  // 思源黑体 — 最接近 SF / PingFang 的可用字体
       bodyFontWeight: 400,
       subheadingStyle: 'large',
       highlightStyle: 'underline',
       heading: {
-        h1Scale: 3.3, h2Scale: 1.6, h3Scale: 1.3,
-        h1LineHeight: 1.18, h2LineHeight: 1.28, h3LineHeight: 1.38,
+        h1Scale: 3.2, h2Scale: 1.55, h3Scale: 1.25,
+        h1LineHeight: 1.15, h2LineHeight: 1.25, h3LineHeight: 1.35,
         h1FontWeight: 700, h2FontWeight: 600, h3FontWeight: 500,
         h1MarginTop: 28, h1MarginBottom: 12,
       },
+      list: { bulletChar: '•', bulletSizeRatio: 0.80, indentPerLevel: 26, itemGap: 6 },
     },
     coverHeading: {
-      h1Scale: 4.0, h1LineHeight: 1.10, centered: true,
+      h1Scale: 3.8, h1LineHeight: 1.08, centered: false,
     },
     category: 'light',
-    decor: { kind: 'macosWindow', opacity: 0.62, color: '#0071e3', scale: 1.0 },
-    gradient: { enabled: false, color1: '#f5f1ea', color2: '#fcfaf7' },
+    decor: { kind: 'iosNotesNav', opacity: 0.92, color: '#8e8e93', scale: 1.0 },
+    gradient: { enabled: false, color1: '#f9f6ef', color2: '#fefefc' },
   },
 
   // ── 18。 notebook-paper (笔记本) ──────────────────────────────────────────
+  // 重大设计升级：横线纸质感 + 墨水蓝素描贴纸 + 活页孔氛围
+  // 真实笔记本白纸、蓝黑墨水色、角落涂鸦排线、微蓝横线渐变
   {
     id: 'notebook-paper',
     name: '笔记本',
-    mood: '横线笔记本蓝墨手写感',
+    mood: '横线笔记本蓝黑墨水手写涂鸦',
     preset: '学生笔记',
-    description: '白色横线纸、蓝色墨水、红边距线、活页孔，适合学习笔记与整理',
-    tags: ['笔记', '学习', '手写'],
+    description: '真实横线纸白底、经典蓝黑墨水、角落涂鸦素描贴纸、活页孔氛围，适合学习笔记、课堂整理与随手速记',
+    tags: ['笔记', '学习', '墨水', '涂鸦'],
     mode: 'paper',
     palette: {
-      page: '#fdfdfb',
-      pageAlt: '#f0f1f5',
-      text: '#1a1a2e',
-      muted: '#6b7d95',
-      accent: '#2563eb',
-      accentSoft: 'rgba(37,99,235,0.16)',
-      border: 'rgba(37,99,235,0.12)',
-      shadow: 'rgba(40,80,140,0.08)',
-      glow: 'rgba(220,235,255,0.28)',
+      page: '#fdfdfa',          // 真实笔记本纸白 — 微蓝调的白
+      pageAlt: '#eef0f6',       // 蓝灰横线底 — 模拟横线纸的蓝色调
+      text: '#1a1a30',          // 蓝黑墨水 — 圆珠笔的经典墨色
+      muted: '#6b7d98',         // 淡墨蓝灰 — 被橡皮擦过的铅笔字
+      accent: '#3b5db8',        // 蓝黑墨水 — 比之前更深更浓的笔墨色
+      accentSoft: 'rgba(59,93,184,0.16)',
+      border: 'rgba(59,93,184,0.12)',
+      shadow: 'rgba(35,55,110,0.08)',
+      glow: 'rgba(200,218,248,0.28)',
     },
     surface: {
-      grainAlpha: 0.018,
-      vignetteAlpha: 0.022,
-      washStrength: 0.14,
-      innerFrameAlpha: 0.07,
+      grainAlpha: 0.022,        // 横线纸微纹 — 比普通纸更光滑但仍有质感
+      vignetteAlpha: 0.024,
+      washStrength: 0.16,
+      innerFrameAlpha: 0.08,
       innerFrameInset: 20,
-      titleAccentMix: 0.65,
-      footerLineAlpha: 0.16,
-      footerTextAlpha: 0.86,
+      titleAccentMix: 0.68,
+      footerLineAlpha: 0.18,
+      footerTextAlpha: 0.88,
       previewShadow:
-        '0 20px 42px rgba(40,80,140,0.08), 0 1px 12px rgba(255,255,250,0.36) inset',
+        '0 20px 42px rgba(35,55,110,0.08), 0 1px 12px rgba(255,255,250,0.38) inset',
     },
     components: {
-      quoteFillAlpha: 0.036,
-      quoteStrokeAlpha: 0.064,
-      quoteBarAlpha: 0.64,
+      quoteFillAlpha: 0.038,
+      quoteStrokeAlpha: 0.066,
+      quoteBarAlpha: 0.66,
       quoteRadius: 10,
       quoteTreatment: 'paper',
       highlightTreatment: 'softUnderline',
-      highlightUnderlineAlpha: 0.62,
-      highlightMarkerAlpha: 0.26,
-      highlightDashAlpha: 0.74,
+      highlightUnderlineAlpha: 0.64,
+      highlightMarkerAlpha: 0.28,
+      highlightDashAlpha: 0.76,
     },
     editor: {
       bodySize: 28,
@@ -1098,61 +1142,71 @@ export const THEMES: ThemeDefinition[] = [
       bodyFontWeight: 400,
       subheadingStyle: 'accent',
       highlightStyle: 'underline',
+      heading: {
+        h1Scale: 3.0, h2Scale: 1.55, h3Scale: 1.25,
+        h1LineHeight: 1.25, h2LineHeight: 1.35, h3LineHeight: 1.45,
+        h1FontWeight: 600, h2FontWeight: 500, h3FontWeight: 400,
+        h1MarginTop: 20, h1MarginBottom: 10,
+      },
+      list: { bulletChar: '—', bulletSizeRatio: 0.78, indentPerLevel: 26, itemGap: 6 },
+    },
+    coverHeading: {
+      h1Scale: 3.8, h1LineHeight: 1.15, centered: false,
     },
     category: 'light',
-    decor: { kind: 'none', opacity: 0 },
-    gradient: { enabled: false, color1: '#f0f1f5', color2: '#fdfdfb' },
+    decor: { kind: 'cornerBracket', opacity: 0.22, color: '#3b5db8', scale: 1.0 },
+    gradient: { enabled: true, color1: '#eef0f6', color2: '#fdfdfa', angle: 135 },
   },
 
   // ── 19。 chinese-trad (中国传统) ────────────────────────────────────────
-  // 设计升级：从平淡米纸 → 真实澄心堂纸质感，
-  // 古法楮皮纸纤维、辰砂朱红、松烟墨色、裱绫纹边框
+  // 重大设计升级：澄心堂纸质感 + 朱砂印章贴纸 + 金箔微光
+  // 五色体系：黄（纸）、赤（印）、青（裱绫）、黑（墨）、金（箔）
   {
     id: 'chinese-trad',
     name: '中国传统',
-    mood: '澄心堂纸古法松烟墨辰砂印',
+    mood: '澄心堂纸松烟墨朱砂印金箔微光',
     preset: '澄心堂纸',
-    description: '澄心堂楮皮纸纤维纹理、松烟墨色正文、辰砂朱红印章点缀，适合古风诗词与文言语录',
-    tags: ['澄心堂', '松烟', '辰砂'],
+    description: '澄心堂楮皮纸纹理、松烟墨色正文、朱砂红印章贴纸、金箔微光点缀，适合古风诗词、文言语录与书画题跋',
+    tags: ['澄心堂', '松烟', '辰砂', '金箔', '印章'],
     mode: 'paper',
     palette: {
-      page: '#f6f0e4',          // 澄心堂纸 — 北宋名纸的温润米黄色
-      pageAlt: '#ede2cf',       // 旧绢色 — 古画裱底的岁月旧色
-      text: '#1c1a18',          // 松烟墨黑 — 比纯黑多一层褐暖的古墨
-      muted: '#8a8070',         // 石褐灰 — 碑帖拓片的色调
-      accent: '#c43d2e',        // 辰砂红 — 真正的朱砂印泥色，比 #c41e3a 更偏橙
-      accentSoft: 'rgba(196,61,46,0.10)',
+      page: '#f7f1e4',          // 澄心堂纸 — 北宋名纸温润如玉的米黄色
+      pageAlt: '#efe1cc',       // 旧绢托底 — 古画裱褙的岁月金黄
+      text: '#1c1a16',          // 松烟墨黑 — 比纯黑多褐暖的古法墨色
+      muted: '#908270',         // 碑帖石褐 — 拓片上的金石味
+      accent: '#c9422e',        // 辰砂朱红 — 朱砂印泥的饱满正红
+      accentSoft: 'rgba(201,66,46,0.10)',
       border: 'rgba(160,140,115,0.08)',
-      shadow: 'rgba(40,30,20,0.05)',
-      glow: 'rgba(220,205,185,0.16)',
+      shadow: 'rgba(35,25,15,0.06)',
+      glow: 'rgba(230,200,155,0.22)',   // 金箔微光 — 传统泥金笺的温润光泽
     },
     surface: {
-      grainAlpha: 0.042,        // 楮皮纤维 — 比普通纸更明显的长纤维纹理
-      vignetteAlpha: 0.036,
-      washStrength: 0.14,
-      innerFrameAlpha: 0.07,
-      innerFrameInset: 34,      // 更多留白 — 中国画的呼吸
-      titleAccentMix: 0.46,
-      footerLineAlpha: 0.12,
-      footerTextAlpha: 0.80,
+      grainAlpha: 0.052,        // 楮皮长纤维 — 比普通纸更明显的纸纹
+      vignetteAlpha: 0.046,     // 古画边角微暗 — 岁月侵蚀的自然暗角
+      washStrength: 0.20,       // 金箔柔光漫射 — 泥金纸面的温润反射
+      innerFrameAlpha: 0.09,    // 裱绫纹边框 — 古画装裱的绫边留白
+      innerFrameInset: 36,      // 更宽的留白 — 中国画的"计白当黑"
+      titleAccentMix: 0.52,     // 标题半染辰砂色
+      footerLineAlpha: 0.14,
+      footerTextAlpha: 0.82,
       previewShadow:
-        '0 18px 40px rgba(40,30,20,0.05), 0 1px 8px rgba(250,242,230,0.34) inset',
+        '0 20px 44px rgba(35,25,15,0.06), 0 1px 10px rgba(250,242,225,0.38) inset, 0 0 0 1px rgba(200,160,100,0.06) inset',
     },
     components: {
-      quoteFillAlpha: 0.022,
-      quoteStrokeAlpha: 0.040,
-      quoteBarAlpha: 0.50,
-      quoteRadius: 2,
+      quoteFillAlpha: 0.028,    // 引用底色微染 — 仿古书眉批
+      quoteStrokeAlpha: 0.048,
+      quoteBarAlpha: 0.56,      // 更明显的辰砂强调条
+      quoteRadius: 2,           // 直角 — 中式书法的方正
       quoteTreatment: 'paper',
       highlightTreatment: 'softUnderline',
-      highlightUnderlineAlpha: 0.34,
-      highlightMarkerAlpha: 0.14,
-      highlightDashAlpha: 0.40,
+      highlightUnderlineAlpha: 0.40,
+      highlightMarkerAlpha: 0.18,
+      highlightDashAlpha: 0.48,
     },
     editor: {
       bodySize: 30,
       lineHeight: 2.0,
-      bodyFontMode: 'fangsong',
+      bodyFontMode: 'fangsong',  // 仿宋 — 最接近古籍刻本的现代字体
       bodyFontWeight: 400,
       subheadingStyle: 'large',
       highlightStyle: 'underline',
@@ -1161,13 +1215,13 @@ export const THEMES: ThemeDefinition[] = [
         h1LineHeight: 1.35, h2LineHeight: 1.45, h3LineHeight: 1.55,
         h1FontWeight: 700, h2FontWeight: 600, h3FontWeight: 500,
         h1MarginTop: 30, h1MarginBottom: 16,
-        h1Color: '#c43d2e',     // 标题直接用辰砂色
+        h1Color: '#c9422e',     // 标题辰砂色 — 如书画题跋的朱笔
       },
       list: { bulletChar: '◦', bulletSizeRatio: 0.82, indentPerLevel: 30, itemGap: 9 },
     },
     category: 'artistic',
-    decor: { kind: 'watermark', opacity: 0.07, color: '#c43d2e', scale: 1.25 },
-    gradient: { enabled: false, color1: '#ede2cf', color2: '#f6f0e4' },
+    decor: { kind: 'sealStamp', opacity: 0.88, color: '#c9422e', scale: 1.0 },
+    gradient: { enabled: true, color1: '#efe1cc', color2: '#f7f1e4', angle: 135 },
   },
 
   // ── 20。 alibaba-orange (阿里橙) ────────────────────────────────────────
@@ -1222,6 +1276,17 @@ export const THEMES: ThemeDefinition[] = [
       bodyFontWeight: 400,
       subheadingStyle: 'large',
       highlightStyle: 'underline',
+      heading: {
+        h1Scale: 3.2, h2Scale: 1.6, h3Scale: 1.3,
+        h1LineHeight: 1.2, h2LineHeight: 1.3, h3LineHeight: 1.4,
+        h1FontWeight: 700, h2FontWeight: 600, h3FontWeight: 500,
+        h1MarginTop: 22, h1MarginBottom: 10,
+        h1Color: '#ff6a2c',
+      },
+      list: { bulletChar: '▸', bulletSizeRatio: 0.78, indentPerLevel: 24, itemGap: 6, orderedMarkerBox: true },
+    },
+    coverHeading: {
+      h1Scale: 4.0, h1LineHeight: 1.12, centered: true,
     },
     category: 'professional',
     decor: { kind: 'geometricPattern', opacity: 0.12, color: '#ff6a2c', scale: 1.02 },
@@ -1301,49 +1366,49 @@ export const THEMES: ThemeDefinition[] = [
   // ── Vintage mode ──────────────────────────────────────────────────────────
 
   // ── 22。 vintage-typewriter (复古打字机) ────────────────────────────────
-  // 设计升级：从平淡泛黄纸 → 海明威书房质感，
-  // 烟叶熏纸、深褐墨带、金属字模压痕感
+  // 重大设计升级：打字机稿纸 + 炭笔涂鸦贴纸 + 烟熏墨带氛围
+  // 烟叶熏黄打字纸、深褐墨带色、角落编辑涂鸦排线、海明威式的粗粝文学质感
   {
     id: 'vintage-typewriter',
     name: '复古打字机',
-    mood: '海明威书房烟叶熏纸墨带压痕',
+    mood: '海明威书房烟叶熏纸墨带涂鸦',
     preset: '烟熏稿纸',
-    description: '烟叶熏黄打字纸、深褐墨带色、不均匀压痕墨迹，海明威式的粗粝文学质感',
-    tags: ['烟熏', '墨带', '海明威'],
+    description: '烟叶熏黄打字纸、深褐墨带色、角落编辑涂鸦贴纸、墨迹压痕，海明威式的粗粝文学质感',
+    tags: ['烟熏', '墨带', '海明威', '涂鸦'],
     mode: 'vintage',
     palette: {
       page: '#f2ebe0',          // 烟熏稿纸 — 被烟草和时光熏黄的纸上色
-      pageAlt: '#e8ddca',       // 旧书页 — 更深的氧化色
+      pageAlt: '#e8dcca',       // 旧书页 — 更深的氧化色
       text: '#261e15',          // 墨带黑褐 — Olivetti 打字机色带的不均匀墨色
       muted: '#8a7862',         // 咖啡渍褐 — 有故事感的次级色
       accent: '#6b4423',        // 深胡桃木 — 打字机木质机身的颜色
-      accentSoft: 'rgba(107,68,35,0.16)',
+      accentSoft: 'rgba(107,68,35,0.18)',
       border: 'rgba(140,110,80,0.14)',
       shadow: 'rgba(100,70,40,0.12)',
-      glow: 'rgba(220,195,160,0.20)',
+      glow: 'rgba(225,200,165,0.22)',
     },
     surface: {
-      grainAlpha: 0.058,        // 更强纸张纤维 — 廉价打字纸的粗糙感
-      vignetteAlpha: 0.064,
-      washStrength: 0.42,
-      innerFrameAlpha: 0.12,
+      grainAlpha: 0.062,        // 更强打字纸纤维 — 廉价打字纸的粗糙触感
+      vignetteAlpha: 0.068,     // 更强暗角 — 老书房角落的阴影
+      washStrength: 0.44,       // 更浓的烟熏暖光
+      innerFrameAlpha: 0.14,    // 更可见的稿纸边框
       innerFrameInset: 24,
-      titleAccentMix: 0.84,
-      footerLineAlpha: 0.22,
-      footerTextAlpha: 0.88,
+      titleAccentMix: 0.86,
+      footerLineAlpha: 0.24,
+      footerTextAlpha: 0.90,
       previewShadow:
-        '0 28px 56px rgba(100,70,40,0.12), 0 2px 18px rgba(242,235,224,0.42) inset',
+        '0 28px 56px rgba(100,70,40,0.14), 0 2px 20px rgba(242,235,224,0.44) inset',
     },
     components: {
-      quoteFillAlpha: 0.054,
-      quoteStrokeAlpha: 0.082,
-      quoteBarAlpha: 0.78,
+      quoteFillAlpha: 0.058,
+      quoteStrokeAlpha: 0.086,
+      quoteBarAlpha: 0.80,
       quoteRadius: 6,
       quoteTreatment: 'paper',
       highlightTreatment: 'softUnderline',
-      highlightUnderlineAlpha: 0.60,
-      highlightMarkerAlpha: 0.32,
-      highlightDashAlpha: 0.74,
+      highlightUnderlineAlpha: 0.62,
+      highlightMarkerAlpha: 0.34,
+      highlightDashAlpha: 0.76,
     },
     editor: {
       bodySize: 28,
@@ -1352,10 +1417,21 @@ export const THEMES: ThemeDefinition[] = [
       bodyFontWeight: 400,
       subheadingStyle: 'large',
       highlightStyle: 'underline',
+      heading: {
+        h1Scale: 3.2, h2Scale: 1.6, h3Scale: 1.3,
+        h1LineHeight: 1.22, h2LineHeight: 1.32, h3LineHeight: 1.42,
+        h1FontWeight: 700, h2FontWeight: 600, h3FontWeight: 500,
+        h1MarginTop: 22, h1MarginBottom: 12,
+        h1Color: '#6b4423',
+      },
+      list: { bulletChar: '—', bulletSizeRatio: 0.78, indentPerLevel: 26, itemGap: 7 },
+    },
+    coverHeading: {
+      h1Scale: 4.2, h1LineHeight: 1.12, centered: false,
     },
     category: 'artistic',
-    decor: { kind: 'watermark', opacity: 0.05, scale: 1.15 },
-    gradient: { enabled: false, color1: '#e8ddca', color2: '#f2ebe0' },
+    decor: { kind: 'fanBurst', opacity: 0.22, color: '#6b4423', scale: 1.02 },
+    gradient: { enabled: true, color1: '#e8dcca', color2: '#f2ebe0', angle: 135 },
   },
 
   // ── 23。 kraft-paper (复古牛皮纸) ──────────────────────────────────────
@@ -1408,9 +1484,20 @@ export const THEMES: ThemeDefinition[] = [
       bodyFontWeight: 400,
       subheadingStyle: 'accent',
       highlightStyle: 'underline',
+      heading: {
+        h1Scale: 3.2, h2Scale: 1.6, h3Scale: 1.3,
+        h1LineHeight: 1.25, h2LineHeight: 1.35, h3LineHeight: 1.45,
+        h1FontWeight: 700, h2FontWeight: 600, h3FontWeight: 500,
+        h1MarginTop: 24, h1MarginBottom: 12,
+        h1Color: '#8b4513',
+      },
+      list: { bulletChar: '•', bulletSizeRatio: 0.84, indentPerLevel: 28, itemGap: 8 },
+    },
+    coverHeading: {
+      h1Scale: 4.0, h1LineHeight: 1.15, centered: true,
     },
     category: 'artistic',
-    decor: { kind: 'none', opacity: 0 },
+    decor: { kind: 'watermark', opacity: 0.12, color: '#8b4513', scale: 1.15 },
     gradient: { enabled: false, color1: '#b8956a', color2: '#c4a67a' },
   },
 
@@ -1433,11 +1520,11 @@ export const THEMES: ThemeDefinition[] = [
       pageAlt: '#f3f5f8',       // 冷调雾灰 — 比旧版少一些蓝色
       text: '#1a1e26',          // 深石板蓝黑 — 专业但有色彩调性
       muted: '#5c6478',         // 中石板灰 — 数据标注的标准色
-      accent: '#2d5068',        // 深海蓝灰 — 比藏青更现代、更锋利
-      accentSoft: 'rgba(45,80,104,0.12)',
-      border: 'rgba(45,80,104,0.14)',
-      shadow: 'rgba(20,30,45,0.06)',
-      glow: 'rgba(45,80,104,0.04)',
+      accent: '#4a5568',        // 温石板灰蓝 — 比深蓝更现代中性
+      accentSoft: 'rgba(74,85,104,0.12)',
+      border: 'rgba(74,85,104,0.14)',
+      shadow: 'rgba(30,40,55,0.06)',
+      glow: 'rgba(74,85,104,0.04)',
     },
     surface: {
       grainAlpha: 0,
@@ -1474,7 +1561,7 @@ export const THEMES: ThemeDefinition[] = [
         h1LineHeight: 1.12, h2LineHeight: 1.22, h3LineHeight: 1.32,
         h1FontWeight: 800, h2FontWeight: 700, h3FontWeight: 600,
         h1MarginTop: 16, h1MarginBottom: 8,
-        h1Color: '#2d5068',
+        h1Color: '#4a5568',
       },
       list: { bulletChar: '—', bulletSizeRatio: 0.75, indentPerLevel: 24, itemGap: 6 },
     },
@@ -1482,7 +1569,7 @@ export const THEMES: ThemeDefinition[] = [
       h1Scale: 3.6, h1LineHeight: 1.08, centered: true,
     },
     category: 'professional',
-    decor: { kind: 'cornerBracket', opacity: 0.20, scale: 1.06 },
+    decor: { kind: 'geometricPattern', opacity: 0.08, color: '#4a5568', scale: 1.06 },
     gradient: { enabled: false, color1: '#f3f5f8', color2: '#fcfdfd' },
   },
 
@@ -1598,9 +1685,19 @@ export const THEMES: ThemeDefinition[] = [
       bodyFontWeight: 400,
       subheadingStyle: 'large',
       highlightStyle: 'underline',
+      heading: {
+        h1Scale: 3.2, h2Scale: 1.6, h3Scale: 1.3,
+        h1LineHeight: 1.2, h2LineHeight: 1.3, h3LineHeight: 1.4,
+        h1FontWeight: 700, h2FontWeight: 600, h3FontWeight: 500,
+        h1MarginTop: 24, h1MarginBottom: 12,
+      },
+      list: { bulletChar: '›', bulletSizeRatio: 0.76, indentPerLevel: 24, itemGap: 6, orderedMarkerBox: true },
+    },
+    coverHeading: {
+      h1Scale: 4.0, h1LineHeight: 1.12, centered: true,
     },
     category: 'dark',
-    decor: { kind: 'none', opacity: 0 },
+    decor: { kind: 'circuitTrace', opacity: 0.08, color: '#6b7dff', scale: 0.92 },
     gradient: { enabled: true, color1: '#16162a', color2: '#6b7dff' },
   },
 
@@ -1657,7 +1754,17 @@ export const THEMES: ThemeDefinition[] = [
       bodyFontWeight: 400,
       subheadingStyle: 'accent',
       highlightStyle: 'underline',
+      heading: {
+        h1Scale: 3.6, h2Scale: 1.7, h3Scale: 1.35,
+        h1LineHeight: 1.15, h2LineHeight: 1.25, h3LineHeight: 1.35,
+        h1FontWeight: 700, h2FontWeight: 600, h3FontWeight: 500,
+        h1MarginTop: 18, h1MarginBottom: 10,
+        h1Color: '#00ff41',
+      },
       list: { bulletChar: '›', bulletSizeRatio: 0.74, indentPerLevel: 22, itemGap: 5, orderedMarkerBox: true },
+    },
+    coverHeading: {
+      h1Scale: 4.8, h1LineHeight: 1.06, centered: true,
     },
     category: 'dark',
     decor: { kind: 'circuitTrace', opacity: 0.16, color: '#00ff41', scale: 1 },
@@ -2196,6 +2303,17 @@ export const THEMES: ThemeDefinition[] = [
       bodyFontWeight: 400,
       subheadingStyle: 'accent',
       highlightStyle: 'underline',
+      heading: {
+        h1Scale: 3.6, h2Scale: 1.7, h3Scale: 1.35,
+        h1LineHeight: 1.18, h2LineHeight: 1.28, h3LineHeight: 1.38,
+        h1FontWeight: 800, h2FontWeight: 700, h3FontWeight: 600,
+        h1MarginTop: 26, h1MarginBottom: 14,
+        h1Color: '#ff6b6b',
+      },
+      list: { bulletChar: '◆', bulletSizeRatio: 0.78, indentPerLevel: 28, itemGap: 8, orderedMarkerBox: true },
+    },
+    coverHeading: {
+      h1Scale: 4.6, h1LineHeight: 1.08, centered: true,
     },
     category: 'dark',
     decor: { kind: 'coralBranch', opacity: 0.85, color: '#ff6b6b', scale: 1.08 },
@@ -2252,6 +2370,17 @@ export const THEMES: ThemeDefinition[] = [
       bodyFontWeight: 400,
       subheadingStyle: 'accent',
       highlightStyle: 'underline',
+      heading: {
+        h1Scale: 3.5, h2Scale: 1.7, h3Scale: 1.35,
+        h1LineHeight: 1.2, h2LineHeight: 1.3, h3LineHeight: 1.4,
+        h1FontWeight: 700, h2FontWeight: 600, h3FontWeight: 500,
+        h1MarginTop: 26, h1MarginBottom: 14,
+        h1Color: '#9b6dff',
+      },
+      list: { bulletChar: '◇', bulletSizeRatio: 0.78, indentPerLevel: 28, itemGap: 8, orderedMarkerBox: true },
+    },
+    coverHeading: {
+      h1Scale: 4.4, h1LineHeight: 1.08, centered: true,
     },
     category: 'dark',
     decor: { kind: 'crystalFacet', opacity: 0.88, color: '#9b6dff', scale: 1.08 },
@@ -2310,7 +2439,16 @@ export const THEMES: ThemeDefinition[] = [
       bodyFontWeight: 400,
       subheadingStyle: 'large',
       highlightStyle: 'underline',
+      heading: {
+        h1Scale: 3.2, h2Scale: 1.55, h3Scale: 1.25,
+        h1LineHeight: 1.2, h2LineHeight: 1.3, h3LineHeight: 1.4,
+        h1FontWeight: 700, h2FontWeight: 600, h3FontWeight: 500,
+        h1MarginTop: 22, h1MarginBottom: 12,
+      },
       list: { bulletChar: '—', bulletSizeRatio: 0.76, indentPerLevel: 28, itemGap: 7, orderedMarkerBox: true },
+    },
+    coverHeading: {
+      h1Scale: 4.0, h1LineHeight: 1.12, centered: false,
     },
     category: 'professional',
     decor: { kind: 'sketchHatch', opacity: 0.82, color: '#4a4640', scale: 1.08 },
@@ -2374,6 +2512,9 @@ export const THEMES: ThemeDefinition[] = [
         h1MarginTop: 20, h1MarginBottom: 10,
       },
       list: { bulletChar: '◦', bulletSizeRatio: 0.78, indentPerLevel: 28, itemGap: 8 },
+    },
+    coverHeading: {
+      h1Scale: 4.0, h1LineHeight: 1.15, centered: true,
     },
     category: 'artistic',
     decor: { kind: 'matchaRing', opacity: 0.84, color: '#8ba87a', scale: 1.06 },
