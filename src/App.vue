@@ -160,6 +160,17 @@
       @discard="onDraftDiscard"
     />
 
+    <!-- ═══ Search dialog ═══════════════════════════════════════════════ -->
+    <SearchDialog
+      ref="searchDialogRef"
+      :visible="showSearchDialog"
+      @update:visible="showSearchDialog = $event"
+      @search="onSearch"
+      @next="onSearchNext"
+      @prev="onSearchPrev"
+      @close="onSearchClose"
+    />
+
     <!-- ═══ Close confirmation dialog ══════════════════════════════════ -->
     <dialog
       ref="closeDialogRef"
@@ -210,6 +221,8 @@ import DraftRecoveryModal from '@/components/DraftRecoveryModal.vue'
 import type { GradientConfig } from '@/card'
 import type { TypographySettings, HighlightStyle, SubheadingStyle, HeadingStyleOverrides } from '@/card'
 import { useSettings } from '@/composables/useSettings'
+import { useSearch, type SearchMatch } from '@/composables/useSearch'
+import SearchDialog from '@/components/SearchDialog.vue'
 
 // ── App theme (light/dark) toggle ──────────────────────────────────────
 
@@ -365,6 +378,13 @@ function initWindowControls(): void {
   windowControlCleanups.push(
     window.electronAPI.onCloseRequest(() => {
       showCloseDialog.value = true
+    }),
+  )
+
+  // 监听主进程转发的 Ctrl+F 快捷键
+  windowControlCleanups.push(
+    window.electronAPI.onSearchOpen(() => {
+      showSearchDialog.value = true
     }),
   )
 }
@@ -555,6 +575,10 @@ interface MarkdownEditorAPI {
   undo: () => void
   redo: () => void
   setValue: (text: string) => void
+  getEditorView: () => EditorView | null
+  setSearchHighlights: (config: { matches: { from: number; to: number }[]; activeIndex: number } | null) => void
+  clearSearchHighlights: () => void
+  scrollToSearchMatch: (from: number, to: number) => void
 }
 
 const editorRef = ref<MarkdownEditorAPI | null>(null)
@@ -650,12 +674,90 @@ async function handleExportPDF(): Promise<void> {
   }
 }
 
+// ── Search ──────────────────────────────────────────────────────────────
+
+const showSearchDialog = ref(false)
+const searchDialogRef = ref<{ updateResults: (activeIndex: number, total: number) => void; focus: () => void } | null>(null)
+
+const search = useSearch()
+
+/** 将搜索匹配项同步到编辑器的装饰层。 */
+function syncSearchHighlights(): void {
+  const view = editorRef.value?.getEditorView?.()
+  if (!view) return
+
+  if (search.matches.value.length === 0) {
+    editorRef.value?.clearSearchHighlights?.()
+    return
+  }
+
+  editorRef.value?.setSearchHighlights?.({
+    matches: search.matches.value.map((m: SearchMatch) => ({ from: m.from, to: m.to })),
+    activeIndex: search.activeIndex.value,
+  })
+}
+
+/** 滚动编辑器到当前激活的匹配项。 */
+function scrollToActiveMatch(): void {
+  const match = search.matches.value[search.activeIndex.value]
+  if (!match) return
+  editorRef.value?.scrollToSearchMatch?.(match.from, match.to)
+}
+
+function onSearch(
+  query: string,
+  opts: { contentOnly: boolean; caseSensitive: boolean },
+): void {
+  search.search(query, source.value, opts)
+  syncSearchHighlights()
+  scrollToActiveMatch()
+  // 更新搜索弹窗中的结果计数
+  searchDialogRef.value?.updateResults(
+    search.activeIndex.value,
+    search.total.value,
+  )
+}
+
+function onSearchNext(): void {
+  search.next()
+  syncSearchHighlights()
+  scrollToActiveMatch()
+  searchDialogRef.value?.updateResults(
+    search.activeIndex.value,
+    search.total.value,
+  )
+}
+
+function onSearchPrev(): void {
+  search.prev()
+  syncSearchHighlights()
+  scrollToActiveMatch()
+  searchDialogRef.value?.updateResults(
+    search.activeIndex.value,
+    search.total.value,
+  )
+}
+
+function onSearchClose(): void {
+  showSearchDialog.value = false
+  search.clear()
+  editorRef.value?.clearSearchHighlights?.()
+}
+
 // ── Keyboard shortcuts ──────────────────────────────────────────────────
 
 function onKeydown(e: KeyboardEvent): void {
+  // Ctrl+T — 新建文档
   if ((e.ctrlKey || e.metaKey) && e.key === 't') {
     e.preventDefault()
     store.addDocument()
+    return
+  }
+  // Ctrl+F — 打开搜索（Windows）/ Cmd+F（Mac）
+  if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+    e.preventDefault()
+    showSearchDialog.value = true
+    return
   }
 }
 

@@ -85,6 +85,17 @@ contextBridge.exposeInMainWorld('electronAPI', {
     return () => ipcRenderer.removeListener(channel, handler)
   },
 
+  // ── 搜索快捷键 ─────────────────────────────────────
+  /**
+   * 监听来自主进程的 Ctrl+F 搜索快捷键。
+   * 返回取消订阅函数。
+   */
+  onSearchOpen: (callback: () => void): (() => void) => {
+    const handler = (): void => callback()
+    ipcRenderer.on('window:search-open', handler)
+    return () => ipcRenderer.removeListener('window:search-open', handler)
+  },
+
   // ── 窗口控制 ────────────────────────────────────────
   /**
    * 将窗口最小化到任务栏。

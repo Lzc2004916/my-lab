@@ -16,6 +16,12 @@ import { Transaction } from '@codemirror/state'
 import { markdown } from '@codemirror/lang-markdown'
 import { oneDark } from '@codemirror/theme-one-dark'
 import { highlightDecorations } from './highlight-decorations'
+import {
+  searchHighlightExtensions,
+  applySearchHighlights,
+  scrollToMatch,
+  type SearchHighlightConfig,
+} from './search-decorations'
 
 // ── Props ───────────────────────────────────────────────────────────
 
@@ -54,6 +60,7 @@ let isInternalChange = false
  * 重新创建整个编辑器状态。
  */
 const themeCompartment = new Compartment()
+const searchCompartment = new Compartment()
 
 /** 将主题 prop 值映射为 Extension。 */
 function resolveThemeExtension(name: string): Extension {
@@ -99,6 +106,9 @@ function createExtensions(): Extension[] {
 
     // 主题 — 通过 Compartment 管理以支持热切换
     themeCompartment.of(resolveThemeExtension(props.theme ?? 'one-dark')),
+
+    // 搜索高亮 — 通过 Compartment 管理以支持热替换
+    searchCompartment.of(searchHighlightExtensions),
 
     // 软换行
     EditorView.lineWrapping,
@@ -408,6 +418,23 @@ function redoEdit(): void {
   redo(view)
 }
 
+// ── Search highlight helpers ─────────────────────────────────────────
+
+/** 在编辑器中设置搜索高亮。 */
+function setSearchHighlights(config: SearchHighlightConfig | null): void {
+  applySearchHighlights(editorView, config)
+}
+
+/** 清除编辑器中的搜索高亮。 */
+function clearSearchHighlights(): void {
+  applySearchHighlights(editorView, null)
+}
+
+/** 将编辑器滚动到指定搜索匹配位置。 */
+function scrollToSearchMatch(from: number, to: number): void {
+  scrollToMatch(editorView, from, to)
+}
+
 defineExpose({
   insertAtCursor,
   wrapSelectionOrInsert,
@@ -421,6 +448,9 @@ defineExpose({
   getEditorView,
   undo: undoEdit,
   redo: redoEdit,
+  setSearchHighlights,
+  clearSearchHighlights,
+  scrollToSearchMatch,
 })
 </script>
 
@@ -476,5 +506,23 @@ defineExpose({
   text-decoration-color: var(--card-highlight-underline-color, oklch(0.62 0.19 250));
   text-underline-offset: 3px;
   text-decoration-thickness: 1px;
+}
+
+/* Search match highlights */
+
+.markdown-editor :deep(.cm-search-match) {
+  background-color: rgba(255, 200, 0, 0.35);
+  border-radius: 2px;
+  padding: 0 1px;
+  margin: 0 -1px;
+}
+
+.markdown-editor :deep(.cm-search-match-active) {
+  background-color: rgba(255, 140, 0, 0.55);
+  border-radius: 2px;
+  padding: 0 1px;
+  margin: 0 -1px;
+  outline: 2px solid rgba(255, 120, 0, 0.7);
+  outline-offset: 0;
 }
 </style>

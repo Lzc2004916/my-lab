@@ -53,6 +53,13 @@
         background-color: oklch(0.95 0.008 260);
         overflow: hidden;
         z-index: 9999;
+        transition: opacity 0.4s ease;
+      }
+
+      /* 淡出：Vue 挂载前由 JS 添加此类 */
+      .splash.splash-fade-out {
+        opacity: 0;
+        pointer-events: none;
       }
 
       html[data-theme='dark'] .splash {
@@ -89,6 +96,8 @@
         if (saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
           document.documentElement.setAttribute('data-theme', 'dark');
         }
+        // 记录页面加载时间戳，供 main.ts 计算 splash 已显示时长
+        window.__SPLASH_START__ = Date.now();
       })();
     </script>
   </head>

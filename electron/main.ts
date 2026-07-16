@@ -94,9 +94,19 @@ function createWindow(): void {
     return { action: 'deny' }
   })
 
-  // F12 切换 DevTools（无边框窗口没有原生菜单）
-  win.webContents.on('before-input-event', (_event, input) => {
-    if (input.key === 'F12' && input.type === 'keyDown') {
+  // 快捷键拦截（无边框窗口没有原生菜单）
+  win.webContents.on('before-input-event', (event, input) => {
+    if (input.type !== 'keyDown') return
+
+    // Ctrl+F / Cmd+F → 转发给渲染进程的自定义搜索
+    if ((input.control || input.meta) && input.key === 'f') {
+      event.preventDefault()
+      win?.webContents.send('window:search-open')
+      return
+    }
+
+    // F12 → 切换 DevTools
+    if (input.key === 'F12') {
       win?.webContents.toggleDevTools()
     }
   })

@@ -85,6 +85,12 @@ interface ElectronAPI {
    * 返回取消订阅函数。
    */
   onCloseRequest: (callback: () => void) => () => void
+
+  /**
+   * 监听来自主进程的 Ctrl+F 搜索快捷键事件。
+   * 返回取消订阅函数。
+   */
+  onSearchOpen: (callback: () => void) => () => void
 }
 
 interface Window {
