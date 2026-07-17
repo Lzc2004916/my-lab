@@ -129,10 +129,16 @@ function splitOversizedUnit(
  * token 文本 + 布局参数中派生一个紧凑的键。
  */
 function wrapCacheKey(tokens: InlineToken[], fontSize: number, maxWidth: number, fontFamily?: string, bodyFontWeight?: number): string {
-  // 使用首尾 token 文本 + 总数作为轻量指纹
+  // 使用首尾 token 文本 + 总数 + 样式摘要作为轻量指纹。
+  // 前 8 个 token 的样式足以区分绝大多数碰撞场景，
+  // 同时保持 key 紧凑（不会随段落长度无限增长）。
   const first = tokens.length > 0 ? tokens[0]!.text : ''
   const last = tokens.length > 0 ? tokens[tokens.length - 1]!.text : ''
-  return `${tokens.length}:${first}:${last}:${fontSize}:${Math.round(maxWidth)}:${fontFamily ?? ''}:${bodyFontWeight ?? BODY_TEXT_WEIGHT}`
+  const styleDigest = tokens
+    .slice(0, 8)
+    .map((t) => (t.bold ? 'b' : '') + (t.italic ? 'i' : '') + (t.mark ? 'm' : '') + (t.underline ? 'u' : ''))
+    .join(',')
+  return `${tokens.length}:${first}:${last}:${fontSize}:${Math.round(maxWidth)}:${fontFamily ?? ''}:${bodyFontWeight ?? BODY_TEXT_WEIGHT}:${styleDigest}`
 }
 
 /** 将内联 token 按 `maxWidth` 换行，返回行。 */

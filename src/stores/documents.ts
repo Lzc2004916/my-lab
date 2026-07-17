@@ -343,14 +343,42 @@ export const useDocumentsStore = defineStore('documents', () => {
 
   // ── 操作 ─────────────────────────────────────────────────（续）
 
-  /** 更新内容 + 自动提取标题和标签。 */
+  /** Per-document debounce timers for deferred title/tags extraction. */
+  const extractTimers = new Map<string, ReturnType<typeof setTimeout>>()
+
+  /** Debounce interval for title/tags extraction (ms). */
+  const EXTRACT_DEBOUNCE_MS = 500
+
+  /** 更新内容 + 自动提取标题和标签（标题/标签延迟提取以减少输入卡顿）。 */
   function updateContent(id: string, content: string): void {
     const doc = documents.value.find((d) => d.id === id)
     if (!doc) return
+
+    // 内容立即更新 — 这是数据源，必须实时同步
     doc.content = content
-    doc.title = extractTitle(content)
-    doc.tags = extractTags(content)
     doc.savedAt = new Date().toISOString()
+
+    // 延迟提取标题和标签（输入停止 500ms 后），避免每次按键都解析 frontmatter
+    const existing = extractTimers.get(id)
+    if (existing) clearTimeout(existing)
+
+    extractTimers.set(id, setTimeout(() => {
+      // 在 timeout 内重新获取文档引用：文档数组可能已被替换
+      const d = documents.value.find((d) => d.id === id)
+      if (!d) return
+
+      // 一次 parseFrontmatter 同时用于标题和标签
+      const fm = parseFrontmatter(content)
+      d.title = fm?.title ?? ''
+      // 回退到第一个 # 标题（无需重新解析 frontmatter）
+      if (!d.title) {
+        const headingMatch = content.match(/^#\s+(.+)$/m)
+        d.title = headingMatch ? headingMatch[1].trim() : ''
+      }
+      d.tags = fm?.tags ?? []
+
+      extractTimers.delete(id)
+    }, EXTRACT_DEBOUNCE_MS))
   }
 
   // ── 返回 ──────────────────────────────────────────────────

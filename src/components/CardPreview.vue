@@ -174,21 +174,33 @@ function getRenderedCardHeight(): number {
 
 let debounceTimer: ReturnType<typeof setTimeout> | null = null
 
+/** 用于取消进行中渲染的 AbortController。新渲染启动时旧渲染被取消。 */
+let abortController: AbortController | null = null
+
 /** 缓存的页面布局 — 仅在主题/样式变化时复用（源文本不变）。 */
 let lastSourceKey = ''
 let cachedLayoutPages: CardPage[] = []
 
 function scheduleRender(): void {
+  // 取消上一次仍在进行中的渲染
+  if (abortController) {
+    abortController.abort()
+    abortController = null
+  }
   if (debounceTimer) clearTimeout(debounceTimer)
-  debounceTimer = setTimeout(doRender, 150)
+  debounceTimer = setTimeout(doRender, 300)
 }
 
 async function doRender(): Promise<void> {
+  // 创建新的 AbortController 供本次渲染使用
+  abortController = new AbortController()
+  const signal = abortController.signal
+
   try {
     const sourceChanged = props.source !== lastSourceKey
 
     if (sourceChanged) {
-      // 完整管线：布局 + 渲染
+      // 完整管线：布局 + 渲染（每页之间 yield 主线程）
       const result = await renderAllPagesAsync({
         source: props.source,
         themeId: props.themeId,
@@ -200,12 +212,12 @@ async function doRender(): Promise<void> {
         cardCornerMode: props.cardCornerMode,
         gradientConfig: props.gradientConfig,
         headingOverrides: props.headingOverrides,
-      })
+      }, signal)
       canvases.value = result.canvases
       cachedLayoutPages = result.pages
       lastSourceKey = props.source
     } else {
-      // 仅样式变更：复用布局，仅重新渲染
+      // 仅样式变更：复用布局，仅重新渲染（每页之间 yield 主线程）
       if (cachedLayoutPages.length === 0) {
         // 回退：无缓存时进行完整渲染
         const result = await renderAllPagesAsync({
@@ -219,27 +231,36 @@ async function doRender(): Promise<void> {
           cardCornerMode: props.cardCornerMode,
           gradientConfig: props.gradientConfig,
           headingOverrides: props.headingOverrides,
-        })
+        }, signal)
         canvases.value = result.canvases
         cachedLayoutPages = result.pages
       } else {
         const theme = getTheme(props.themeId ?? 'moss-paper')
-        canvases.value = cachedLayoutPages.map((page, index) =>
-          renderCard({
-            page,
-            theme,
-            settings: props.typography,
-            highlightStyle: props.highlightStyle ?? theme.editor.highlightStyle,
-            pageIndex: index,
-            totalPages: cachedLayoutPages.length,
-            footerLeft: props.footerLeft ?? '',
-            footerRightMode: props.footerRightMode ?? 'page',
-            footerEnabled: props.footerEnabled ?? true,
-            cardCornerMode: props.cardCornerMode ?? 'square',
-            gradientConfig: props.gradientConfig,
-            headingOverrides: props.headingOverrides,
-          }),
-        )
+        const canvasesList: HTMLCanvasElement[] = []
+        for (let i = 0; i < cachedLayoutPages.length; i++) {
+          if (signal.aborted) return
+          canvasesList.push(
+            renderCard({
+              page: cachedLayoutPages[i]!,
+              theme,
+              settings: props.typography,
+              highlightStyle: props.highlightStyle ?? theme.editor.highlightStyle,
+              pageIndex: i,
+              totalPages: cachedLayoutPages.length,
+              footerLeft: props.footerLeft ?? '',
+              footerRightMode: props.footerRightMode ?? 'page',
+              footerEnabled: props.footerEnabled ?? true,
+              cardCornerMode: props.cardCornerMode ?? 'square',
+              gradientConfig: props.gradientConfig,
+              headingOverrides: props.headingOverrides,
+            }),
+          )
+          // 每页渲染后 yield 主线程
+          if (i < cachedLayoutPages.length - 1) {
+            await new Promise((resolve) => setTimeout(resolve, 0))
+          }
+        }
+        canvases.value = canvasesList
       }
     }
 
@@ -247,7 +268,10 @@ async function doRender(): Promise<void> {
     if (props.currentPage >= canvases.value.length && canvases.value.length > 0) {
       emit('update:currentPage', Math.max(0, canvases.value.length - 1))
     }
-  } catch (e) {
+  } catch (e: unknown) {
+    // AbortError 是预期行为——静默忽略
+    if (e instanceof DOMException && e.name === 'AbortError') return
+
     console.warn('[CardPreview] Render failed:', e)
     try {
       const result = renderAllPages({
@@ -390,7 +414,8 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
-  // ResizeObserver 移除
+  // 取消进行中的渲染，防止组件销毁后更新已卸载的响应式状态
+  if (abortController) abortController.abort()
   if (debounceTimer) clearTimeout(debounceTimer)
   if (scrollTimer) clearTimeout(scrollTimer)
 })

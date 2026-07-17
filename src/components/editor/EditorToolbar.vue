@@ -62,6 +62,10 @@
         <svg v-else-if="item.id === 'code'" class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>
         </svg>
+        <!-- Blockquote -->
+        <svg v-else-if="item.id === 'quote'" class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="4" y1="4" x2="4" y2="20"/><path d="M8 6h12"/><path d="M8 11h9"/><path d="M8 16h10"/>
+        </svg>
         <!-- Table -->
         <svg v-else-if="item.id === 'table'" class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/>
@@ -194,8 +198,9 @@ const toolbarItems: readonly ToolbarItem[] = [
   { id: 'link',        icon: '🔗',                   label: '链接', template: '[链接文本](url)' },
   { id: 'image',       icon: '🖼',                   label: '图片', template: '![图片描述](url)' },
 
-  // ── Code ──
+  // ── Code & quote ──
   { id: 'code',        icon: '⟨⟩',                   label: '代码块', template: '```\n代码\n```' },
+  { id: 'quote',       icon: '❝',                   label: '引用块', template: '> 引用内容', wrap: { prefix: '> ', suffix: '', placeholder: '引用内容' } },
 
   // ── Table ──
   { id: 'table',       icon: '⊞',                    label: '表格', template: '| 列1 | 列2 | 列3 |\n| --- | --- | --- |\n| 内容 | 内容 | 内容 |' },

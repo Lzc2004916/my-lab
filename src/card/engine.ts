@@ -81,13 +81,61 @@ export function renderAllPages(
 }
 
 /**
- * 异步包装器 — 委托给同步的 renderAllPages。
- * 保留以保持 API 兼容性。
+ * 异步渲染所有页面。
+ *
+ * 每渲染一页后 yield 主线程（setTimeout(0)），确保 UI 保持响应。
+ * 传入 AbortSignal 可在渲染期间取消——取消时抛出 AbortError。
+ *
+ * layoutPages 保持同步（解析阶段通常 < 50ms），仅逐页渲染在
+ * 微任务间拆散。
  */
 export async function renderAllPagesAsync(
   opts: EngineOptions,
+  signal?: AbortSignal,
 ): Promise<{ pages: CardPage[]; canvases: HTMLCanvasElement[] }> {
-  return renderAllPages(opts)
+  const theme: ThemeDefinition = getTheme(opts.themeId)
+  const settings: TypographySettings = opts.typography
+
+  // layout 保持同步（开销可控）
+  if (signal?.aborted) throw new DOMException('Aborted', 'AbortError')
+
+  const pages = layoutPages({
+    source: opts.source,
+    settings,
+    theme,
+    footerEnabled: opts.footerEnabled ?? true,
+    headingOverrides: opts.headingOverrides,
+  })
+
+  const canvases: HTMLCanvasElement[] = []
+
+  for (let i = 0; i < pages.length; i++) {
+    if (signal?.aborted) throw new DOMException('Aborted', 'AbortError')
+
+    canvases.push(
+      renderCard({
+        page: pages[i]!,
+        theme,
+        settings,
+        highlightStyle: opts.highlightStyle ?? theme.editor.highlightStyle,
+        pageIndex: i,
+        totalPages: pages.length,
+        footerLeft: opts.footerLeft ?? '',
+        footerRightMode: opts.footerRightMode ?? 'page',
+        footerEnabled: opts.footerEnabled ?? true,
+        cardCornerMode: opts.cardCornerMode ?? 'square',
+        gradientConfig: opts.gradientConfig,
+        headingOverrides: opts.headingOverrides,
+      }),
+    )
+
+    // 每页渲染后 yield 主线程，让浏览器处理用户输入/滚动
+    if (i < pages.length - 1) {
+      await new Promise((resolve) => setTimeout(resolve, 0))
+    }
+  }
+
+  return { pages, canvases }
 }
 
 /** 获取单个渲染 canvas 的预览数据 URL。 */

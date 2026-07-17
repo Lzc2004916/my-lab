@@ -485,12 +485,21 @@ const { currentPage } = useMarkdown(source)
 
 // ── Stats ───────────────────────────────────────────────────────────────
 
-const lineCount = computed(() => source.value.split(/\r?\n/).length)
-const wordCount = computed(() => {
-  const text = source.value.trim()
-  if (!text) return 0
-  return text.split(/\s+/).length
-})
+const lineCount = ref(0)
+const wordCount = ref(0)
+let statsDebounceTimer: ReturnType<typeof setTimeout> | null = null
+
+function computeStats(content: string): void {
+  lineCount.value = content.split(/\r?\n/).length
+  const text = content.trim()
+  wordCount.value = text ? text.split(/\s+/).length : 0
+}
+
+// 防抖更新统计（输入停止 300ms 后），避免每次按键都对全文执行 split
+watch(source, (val) => {
+  if (statsDebounceTimer) clearTimeout(statsDebounceTimer)
+  statsDebounceTimer = setTimeout(() => computeStats(val), 300)
+}, { immediate: true })
 
 // ── Left drag-to-resize (editor ↔ preview) ──────────────────────────────
 
@@ -778,6 +787,7 @@ window.addEventListener('keydown', onKeydown)
 onBeforeUnmount(() => {
   dragging.value = false
   draggingRight.value = false
+  if (statsDebounceTimer) clearTimeout(statsDebounceTimer)
   window.removeEventListener('keydown', onKeydown)
   windowControlCleanups.forEach((fn) => fn())
 })

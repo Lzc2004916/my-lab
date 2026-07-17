@@ -79,12 +79,19 @@ function createWindow(): void {
     icon: ICON_PATH,
     frame: false,             // 无边框窗口 — 去掉系统标题栏
     useContentSize: true,     // width/height 代表渲染进程内容区域
+    show: false,              // 等待首帧渲染后再显示，避免白屏闪烁
+    backgroundColor: '#F2F2F6', // 与 splash 背景一致（oklch(0.95 0.008 260) ≈ #F2F2F6）
     webPreferences: {
       preload: PRELOAD_PATH,
       nodeIntegration: false,
       contextIsolation: true,
       sandbox: false,
     },
+  })
+
+  // ── 首帧渲染完成后显示窗口，消除白屏 ─────────────────
+  win.once('ready-to-show', () => {
+    win?.show()
   })
 
   win.webContents.setWindowOpenHandler(({ url }) => {
