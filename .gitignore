@@ -5,5 +5,6 @@ release/
 release2/
 build/icon.ico
 *.log
+*.rar
 .DS_Store
 Thumbs.db
