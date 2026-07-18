@@ -21,16 +21,6 @@ declare global {
   }
 }
 
-// ── 第三方模块声明（没有 @types 的包） ──────────
+// ── 第三方模块声明 ──────────────────────────────
+// prismjs 声明在项目根目录 env.d.ts 中
 
-declare module 'prismjs' {
-  const Prism: {
-    languages: Record<string, unknown>
-    tokenize: (code: string, grammar: unknown) => Array<{
-      type: string
-      content: string | Array<{ type: string; content: unknown }>
-    }>
-    highlight: (code: string, grammar: unknown, lang: string) => string
-  }
-  export default Prism
-}

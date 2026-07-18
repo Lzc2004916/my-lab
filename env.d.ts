@@ -30,9 +30,13 @@ declare module 'markdown-it-emoji' {
   export const light: PluginWithOptions
 }
 
-
 declare module 'prismjs' {
   const Prism: {
+    languages: Record<string, unknown>
+    tokenize: (code: string, grammar: unknown) => Array<{
+      type: string
+      content: string | Array<{ type: string; content: unknown }>
+    }>
     highlightElement: (element: Element, async?: boolean) => void
     highlight: (text: string, grammar: unknown, language: string) => string
   }
