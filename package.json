@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc --noEmit && vite build",
-    "build:app": "vue-tsc --noEmit && vite build && node scripts/generate-ico.js && electron-builder",
+    "build:app": "node scripts/clean-release.js && vue-tsc --noEmit && vite build && node scripts/generate-ico.js && electron-builder",
     "build:mobile": "cross-env VITE_MOBILE_BUILD=true vue-tsc --noEmit && cross-env VITE_MOBILE_BUILD=true vite build",
     "ios:sync": "npm run build:mobile && npx cap sync ios",
     "ios:open": "npm run ios:sync && npx cap open ios",
@@ -72,6 +72,7 @@
       "signAndEditExecutable": false,
       "signDlls": false
     },
+    "asar": false,
     "nsis": {
       "oneClick": false,
       "perMachine": false,
