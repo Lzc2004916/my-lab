@@ -3,6 +3,11 @@ import { createPinia } from 'pinia'
 import App from './App.vue'
 import './style.css'
 
+// ── 平台初始化 ──────────────────────────────────────────────────────
+// 必须在 Vue 挂载前运行：当检测到 Capacitor 移动端平台时，
+// 注入 window.electronAPI 兼容桥接层，使现有代码无需修改。
+import { initPlatform } from './platforms'
+
 // ── 启动 — 带 Splash 过渡 ──────────────────────────────────────────
 
 /** Splash 最小显示时长（ms）。 */
@@ -22,6 +27,9 @@ function getSplashElapsed(): number {
 }
 
 async function bootstrap(): Promise<void> {
+  // 平台桥接层初始化（Electron / Capacitor / Web）
+  await initPlatform()
+
   const app = createApp(App)
   const pinia = createPinia()
   app.use(pinia)

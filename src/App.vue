@@ -10,8 +10,8 @@
       <div class="navbar-center"><!-- deliberately empty --></div>
 
       <div class="navbar-end">
-        <!-- Window controls (frameless) -->
-        <div class="flex items-center h-full win-controls" role="group" :aria-label="isMaximized ? '还原' : '最大化'">
+        <!-- Window controls (frameless, desktop only) -->
+        <div v-if="isDesktopPlatform" class="flex items-center h-full win-controls" role="group" :aria-label="isMaximized ? '还原' : '最大化'">
           <button
             class="win-btn"
             aria-label="最小化"
@@ -44,7 +44,8 @@
     <!-- ═══ Document tabs ═══════════════════════════════════════════════ -->
     <DocumentTabs />
 
-    <!-- ═══ Three-panel body ════════════════════════════════════════════ -->
+    <!-- ═══ Three-panel body (desktop) ══════════════════════════════════ -->
+    <template v-if="isDesktopPlatform">
     <div class="flex-1 flex overflow-hidden">
       <!-- ── LEFT: Editor panel ────────────────────────────────────── -->
       <div
@@ -152,6 +153,48 @@
         />
       </div>
     </div>
+    </template>
+
+    <!-- ═══ Mobile layout ═══════════════════════════════════════════════ -->
+    <MobileLayout
+      v-else
+      :source="source"
+      :editor-theme="editorTheme"
+      :can-undo="canUndo"
+      :can-redo="canRedo"
+      :card-theme="cardTheme"
+      :app-theme="appTheme"
+      :typography="typography"
+      :highlight-style="highlightStyle"
+      :footer-enabled="footerEnabled"
+      :gradient-config="gradientConfig"
+      :preview-scale="previewScale"
+      :heading-overrides="headingOverrides"
+      :active-tags="activeTags"
+      :word-count="wordCount"
+      :line-count="lineCount"
+      :is-exporting="isExporting"
+      :progress="progress"
+      :font-options="BODY_FONT_OPTIONS"
+      :body-font-mode="bodyFontMode"
+      :body-font-size="bodyFontSize"
+      :body-font-weight="bodyFontWeight"
+      @update:source="onSourceUpdate"
+      @toolbar-insert="onToolbarInsert"
+      @toolbar-command="onToolbarCommand"
+      @update:app-theme="(v: 'light' | 'dark') => { appTheme = v; applyAppTheme() }"
+      @update:card-theme="(v: string) => cardTheme = v"
+      @update:body-font-mode="(v: string) => bodyFontMode = v as BodyFontMode"
+      @update:body-font-size="(v: number) => bodyFontSize = v"
+      @update:body-font-weight="(v: number) => bodyFontWeight = v"
+      @update:highlight-style="(v: string) => highlightStyle = v as HighlightStyle"
+      @update:footer-enabled="(v: boolean) => footerEnabled = v"
+      @update:gradient-config="(v: GradientConfig) => gradientConfig = v"
+      @update:preview-scale="(v: number) => previewScale = v"
+      @export-png="handleBatchExportPNG"
+      @export-jpg="handleBatchExportJPG"
+      @export-pdf="handleExportPDF"
+    />
 
     <!-- ═══ Draft recovery modal ═══════════════════════════════════════ -->
     <DraftRecoveryModal
@@ -223,8 +266,12 @@ import type { TypographySettings, HighlightStyle, SubheadingStyle, HeadingStyleO
 import { useSettings } from '@/composables/useSettings'
 import { useSearch, type SearchMatch } from '@/composables/useSearch'
 import SearchDialog from '@/components/SearchDialog.vue'
+import { isDesktop } from '@/platforms/detection'
+import MobileLayout from '@/layouts/MobileLayout.vue'
 
-// ── App theme (light/dark) toggle ──────────────────────────────────────
+// ── Platform detection ─────────────────────────────────────────────────────
+
+const isDesktopPlatform = isDesktop()
 
 const appTheme = ref<'light' | 'dark'>(
   (localStorage.getItem('app-theme') as 'light' | 'dark') || 'light',

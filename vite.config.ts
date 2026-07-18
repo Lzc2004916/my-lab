@@ -4,37 +4,55 @@ import electron from 'vite-plugin-electron'
 import renderer from 'vite-plugin-electron-renderer'
 import { resolve } from 'node:path'
 
+/**
+ * 移动端构建模式：跳过 Electron 插件，仅输出纯 Web 产物供 Capacitor 使用。
+ * 通过环境变量 VITE_MOBILE_BUILD=true 激活。
+ */
+const isMobileBuild = process.env.VITE_MOBILE_BUILD === 'true'
+
+// 构建目标提示
+if (isMobileBuild) {
+  console.log('📱 Building for Capacitor mobile (no Electron plugins)')
+} else {
+  console.log('🖥️  Building for Electron desktop')
+}
+
 export default defineConfig({
   plugins: [
     vue(),
-    electron([
-      {
-        entry: 'electron/main.ts',
-        vite: {
-          build: {
-            outDir: 'dist-electron',
-            rollupOptions: {
-              external: ['electron'],
+    // 移动端构建不需要 Electron 插件
+    ...(isMobileBuild
+      ? []
+      : [
+          electron([
+            {
+              entry: 'electron/main.ts',
+              vite: {
+                build: {
+                  outDir: 'dist-electron',
+                  rollupOptions: {
+                    external: ['electron'],
+                  },
+                },
+              },
             },
-          },
-        },
-      },
-      {
-        entry: 'electron/preload.ts',
-        onstart(args) {
-          args.reload()
-        },
-        vite: {
-          build: {
-            outDir: 'dist-electron',
-            rollupOptions: {
-              external: ['electron'],
+            {
+              entry: 'electron/preload.ts',
+              onstart(args) {
+                args.reload()
+              },
+              vite: {
+                build: {
+                  outDir: 'dist-electron',
+                  rollupOptions: {
+                    external: ['electron'],
+                  },
+                },
+              },
             },
-          },
-        },
-      },
-    ]),
-    renderer(),
+          ]),
+          renderer(),
+        ]),
   ],
   resolve: {
     alias: {
@@ -50,7 +68,7 @@ export default defineConfig({
     assetsInlineLimit: 4096,
     // chunk 大小警告阈值
     chunkSizeWarningLimit: 500,
-    // 目标浏览器（支持 ES2020+）
+    // 目标浏览器（支持 ES2020+；移动端 Safari 也兼容）
     target: 'es2020',
     // 关闭 sourcemap 减小体积
     sourcemap: false,
