@@ -11,6 +11,8 @@ export interface AppSettings {
   bodyFontMode: string
   bodyFontSize: number
   highlightStyle: string
+  /** 自定义高亮颜色（null = 使用主题强调色） */
+  highlightColor?: string | null
   footerEnabled: boolean
   split: number
   rightSplit: number

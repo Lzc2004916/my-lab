@@ -76,6 +76,11 @@ const bodyFontMode = ref<'wenkai' | 'yahei' | 'simsun' | 'kaiti' | 'dengxian' | 
   (localStorage.getItem(STORAGE_PREFIX + 'bodyFontMode') as 'wenkai' | 'yahei' | 'simsun' | 'kaiti' | 'dengxian' | 'fangsong' | 'simhei' | 'youyuan' | 'notosans' | 'notoserif') || 'wenkai',
 )
 
+/** 自定义高亮颜色（null = 使用主题强调色） */
+const highlightColor = ref<string | null>(
+  localStorage.getItem(STORAGE_PREFIX + 'highlightColor') || null,
+)
+
 // ── Heading style overrides ────────────────────────────────────────────
 
 function loadHeadingSize(key: string): number | null {
@@ -148,6 +153,7 @@ watch(footerEnabled, (v) => localStorage.setItem(STORAGE_PREFIX + 'footerEnabled
 watch(cardCornerMode, (v) => localStorage.setItem(STORAGE_PREFIX + 'cardCornerMode', v))
 watch(subheadingStyle, (v) => localStorage.setItem(STORAGE_PREFIX + 'subheadingStyle', v))
 watch(bodyFontMode, (v) => localStorage.setItem(STORAGE_PREFIX + 'bodyFontMode', v))
+watch(highlightColor, (v) => localStorage.setItem(STORAGE_PREFIX + 'highlightColor', v ?? ''))
 
 // Heading style overrides — persist to localStorage
 watch(headingH1Size, (v) => localStorage.setItem(STORAGE_PREFIX + 'headingH1Size', v === null ? '' : String(v)))
@@ -197,6 +203,7 @@ export function useSettings(): {
   cardCornerMode: typeof cardCornerMode
   subheadingStyle: typeof subheadingStyle
   bodyFontMode: typeof bodyFontMode
+  highlightColor: typeof highlightColor
   headingH1Size: typeof headingH1Size
   headingH2Size: typeof headingH2Size
   headingH3Size: typeof headingH3Size
@@ -247,6 +254,7 @@ export function useSettings(): {
     cardCornerMode,
     subheadingStyle,
     bodyFontMode,
+    highlightColor,
     headingH1Size,
     headingH2Size,
     headingH3Size,

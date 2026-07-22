@@ -19,9 +19,12 @@ const props = withDefaults(
   defineProps<{
     /** 初始激活的主题 ID。 */
     themeId?: string
+    /** 自定义高亮颜色（null = 使用主题强调色） */
+    highlightColor?: string | null
   }>(),
   {
     themeId: 'moss-paper',
+    highlightColor: null,
   },
 )
 
@@ -186,14 +189,23 @@ function applyThemeToDOM(theme: ThemeDefinition): void {
   root.style.setProperty('--card-divider-color', theme.palette.border)
 
   // ── Highlight styles ────────────────────────────────────────────
-  root.style.setProperty('--card-highlight-underline-color', `rgba(${qr},${qg},${qb},${theme.components.highlightUnderlineAlpha})`)
-  root.style.setProperty('--card-highlight-marker-bg', `rgba(${qr},${qg},${qb},${theme.components.highlightMarkerAlpha})`)
-  root.style.setProperty('--card-highlight-border-color', `rgba(${qr},${qg},${qb},${theme.components.highlightDashAlpha})`)
-  root.style.setProperty('--card-highlight-bold-accent-color', theme.palette.accent)
+  applyHighlightVars(theme, props.highlightColor ?? null)
 
   // ── General ─────────────────────────────────────────────────────
   root.style.setProperty('--card-list-marker-color', theme.palette.accent)
   root.style.setProperty('--card-link-color', theme.palette.accent)
+}
+
+/** Apply highlight-related CSS variables, optionally using a custom color. */
+function applyHighlightVars(theme: ThemeDefinition, customColor: string | null): void {
+  const root = document.documentElement
+  const color = customColor ?? theme.palette.accent
+  const [r, g, b] = [parseInt(color.slice(1,3),16), parseInt(color.slice(3,5),16), parseInt(color.slice(5,7),16)]
+
+  root.style.setProperty('--card-highlight-underline-color', `rgba(${r},${g},${b},${theme.components.highlightUnderlineAlpha})`)
+  root.style.setProperty('--card-highlight-marker-bg', `rgba(${r},${g},${b},${theme.components.highlightMarkerAlpha})`)
+  root.style.setProperty('--card-highlight-border-color', `rgba(${r},${g},${b},${theme.components.highlightDashAlpha})`)
+  root.style.setProperty('--card-highlight-bold-accent-color', color)
 }
 
 // ── Theme switching ────────────────────────────────────────────────────────
@@ -210,6 +222,8 @@ function setTheme(id: string): void {
   activeThemeId.value = id
   activeTheme.value = theme
   applyThemeToDOM(theme)
+  // Re-apply custom highlight color on theme change (need to set props ref indirectly)
+  applyHighlightVars(theme, props.highlightColor ?? null)
   emit('theme-change', id)
 
   // 动画完成后清除过渡类名
@@ -253,6 +267,14 @@ watch(
     if (newId !== activeThemeId.value) {
       setTheme(newId)
     }
+  },
+)
+
+// 自定义高亮颜色变更时仅更新高亮相关 CSS 变量
+watch(
+  () => props.highlightColor,
+  (newColor) => {
+    applyHighlightVars(activeTheme.value, newColor ?? null)
   },
 )
 </script>

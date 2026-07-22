@@ -1,5 +1,5 @@
 <template>
-  <ThemeProvider :theme-id="cardTheme">
+  <ThemeProvider :theme-id="cardTheme" :highlight-color="highlightColor">
   <div class="h-screen flex flex-col overflow-hidden bg-base-200">
     <!-- ═══ Navbar (minimal: title + window controls) ═══════════════════ -->
     <div class="navbar bg-base-100 border-b border-base-300/60 z-20 shrink-0 min-h-0 py-0 h-11">
@@ -105,6 +105,7 @@
             :theme-id="cardTheme"
             :typography="typography"
             :highlight-style="highlightStyle"
+            :highlight-color="highlightColor"
             :footer-enabled="footerEnabled"
             :gradient-config="gradientConfig"
             :preview-scale="previewScale"
@@ -138,6 +139,8 @@
           @update:body-font-weight="bodyFontWeight = $event"
           :highlight-style="highlightStyle"
           @update:highlight-style="(v: string) => highlightStyle = v as HighlightStyle"
+          :highlight-color="highlightColor"
+          @update:highlight-color="highlightColor = $event"
           :footer-enabled="footerEnabled"
           @update:footer-enabled="footerEnabled = $event"
           :gradient-config="gradientConfig"
@@ -166,6 +169,7 @@
       :app-theme="appTheme"
       :typography="typography"
       :highlight-style="highlightStyle"
+      :highlight-color="highlightColor"
       :footer-enabled="footerEnabled"
       :gradient-config="gradientConfig"
       :preview-scale="previewScale"
@@ -188,6 +192,7 @@
       @update:body-font-size="(v: number) => bodyFontSize = v"
       @update:body-font-weight="(v: number) => bodyFontWeight = v"
       @update:highlight-style="(v: string) => highlightStyle = v as HighlightStyle"
+      @update:highlight-color="(v: string | null) => highlightColor = v"
       @update:footer-enabled="(v: boolean) => footerEnabled = v"
       @update:gradient-config="(v: GradientConfig) => gradientConfig = v"
       @update:preview-scale="(v: number) => previewScale = v"
@@ -372,6 +377,7 @@ const settings = useSettings()
 const bodyFontSize = ref<number>(30)
 const bodyFontWeight = ref<number>(400)
 const highlightStyle = ref<HighlightStyle>('underline' as HighlightStyle)
+const highlightColor = ref<string | null>(null)
 const footerEnabled = ref<boolean>(true)
 const gradientConfig = ref<GradientConfig>({
   enabled: false,
@@ -598,6 +604,7 @@ function collectSettings(): AppSettings {
     bodyFontSize: bodyFontSize.value,
     bodyFontWeight: bodyFontWeight.value,
     highlightStyle: highlightStyle.value,
+    highlightColor: highlightColor.value,
     footerEnabled: footerEnabled.value,
     split: split.value,
     rightSplit: rightSplit.value,
@@ -613,6 +620,7 @@ function applySettings(s: AppSettings): void {
   bodyFontSize.value = s.bodyFontSize
   bodyFontWeight.value = s.bodyFontWeight ?? 400
   highlightStyle.value = s.highlightStyle as HighlightStyle
+  highlightColor.value = s.highlightColor ?? null
   footerEnabled.value = s.footerEnabled
   split.value = s.split
   rightSplit.value = s.rightSplit ?? 22
@@ -626,7 +634,7 @@ function applySettings(s: AppSettings): void {
 watch(
   [
     cardTheme, bodyFontMode, bodyFontSize, bodyFontWeight,
-    highlightStyle, footerEnabled, split, rightSplit, previewScale, gradientConfig,
+    highlightStyle, highlightColor, footerEnabled, split, rightSplit, previewScale, gradientConfig,
   ],
   () => saveSettings(collectSettings()),
   { deep: false },

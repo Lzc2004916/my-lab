@@ -650,9 +650,10 @@ function drawHighlightMark(
   baselineY: number,
   tokenWidth: number,
   fontSize: number,
+  highlightColor?: string | null,
 ): void {
   const treatment = resolveHighlightTreatment(theme, highlightStyle)
-  const accent = theme.palette.accent
+  const accent = highlightColor ?? theme.palette.accent
 
   ctx.save()
 
@@ -708,14 +709,17 @@ function drawQuoteBlock(
   metrics: QuoteBoxMetrics,
 ): void {
   const treatment = theme.components.quoteTreatment
+  // Use accent color for fill on light themes (paper & callout) so the
+  // quote background is visibly tinted rather than a near-invisible dark wash.
+  // Dark themes and 'code' treatment keep text-color fill for contrast.
   const quoteBaseColor =
-    treatment === 'paper' && !isDarkTheme(theme)
+    !isDarkTheme(theme) && treatment !== 'code'
       ? theme.palette.accent
       : theme.palette.text
   const fillAlpha =
     treatment === 'callout'
-      ? Math.max(theme.components.quoteFillAlpha, 0.05)
-      : theme.components.quoteFillAlpha
+      ? Math.max(theme.components.quoteFillAlpha, 0.07)
+      : Math.max(theme.components.quoteFillAlpha, 0.03)
 
   // 背景填充
   ctx.save()
@@ -971,6 +975,7 @@ function drawColumnContainer(
   settings: TypographySettings,
   highlightStyle: HighlightStyle,
   headingOverrides?: HeadingStyleOverrides | null,
+  highlightColor?: string | null,
 ): number {
   const halfWidth = (CONTENT_WIDTH - COLUMN_GAP) / 2
   const leftX = x
@@ -978,12 +983,12 @@ function drawColumnContainer(
 
   // 保存/恢复裁剪区域，防止列之间相互渗透
   ctx.save()
-  drawColumnBlocks(ctx, colBlock.leftBlocks, leftX, y, halfWidth, metrics, theme, settings, highlightStyle, headingOverrides)
+  drawColumnBlocks(ctx, colBlock.leftBlocks, leftX, y, halfWidth, metrics, theme, settings, highlightStyle, headingOverrides, highlightColor)
   const leftHeight = _colDrawnHeight
   ctx.restore()
 
   ctx.save()
-  drawColumnBlocks(ctx, colBlock.rightBlocks, rightX, y, halfWidth, metrics, theme, settings, highlightStyle, headingOverrides)
+  drawColumnBlocks(ctx, colBlock.rightBlocks, rightX, y, halfWidth, metrics, theme, settings, highlightStyle, headingOverrides, highlightColor)
   const rightHeight = _colDrawnHeight
   ctx.restore()
 
@@ -1009,6 +1014,7 @@ function drawColumnBlocks(
   settings: TypographySettings,
   highlightStyle: HighlightStyle,
   headingOverrides?: HeadingStyleOverrides | null,
+  highlightColor?: string | null,
 ): void {
   const colBodyWeight = settings.bodyFontWeight ?? theme.editor.bodyFontWeight ?? BODY_TEXT_WEIGHT
   let cursorY = y
@@ -1038,6 +1044,7 @@ function drawColumnBlocks(
         false, // columns are never cover pages
         headingOverrides,
         colBodyWeight,
+        highlightColor,
       )
       cursorY += height
       prevBlock = paraBlock
@@ -1108,6 +1115,7 @@ function drawInlineParagraph(
   isCover = false,
   headingOverrides?: HeadingStyleOverrides | null,
   bodyFontWeight?: number,
+  highlightColor?: string | null,
 ): number {
   if (block.kind === 'divider') {
     const h = getDividerBlockHeight(fontSize)
@@ -1207,6 +1215,7 @@ function drawInlineParagraph(
           baselineY,
           tokenWidth,
           activeFontSize,
+          highlightColor,
         )
       }
 
@@ -1242,7 +1251,7 @@ function drawInlineParagraph(
           : isSubheading && subheadingStyle === 'accent'
             ? theme.palette.accent
             : markBoldAccent
-              ? theme.palette.accent
+              ? (highlightColor ?? theme.palette.accent)
               : theme.palette.text
 
       // ── 标题阴影（仅 subheading 块） ──────────────────────────────
@@ -1392,6 +1401,7 @@ export function renderCard(opts: RenderOptions): HTMLCanvasElement {
     footerRightMode,
     footerEnabled,
     cardCornerMode,
+    highlightColor,
   } = opts
 
   const canvas = document.createElement('canvas')
@@ -1496,6 +1506,7 @@ export function renderCard(opts: RenderOptions): HTMLCanvasElement {
         isCover,
         opts.headingOverrides,
         bodyFontWeight,
+        highlightColor,
       )
 
 
@@ -1564,6 +1575,7 @@ export function renderCard(opts: RenderOptions): HTMLCanvasElement {
         CONTENT_LEFT, paragraphY,
         metrics, theme, settings, highlightStyle,
         opts.headingOverrides,
+        highlightColor,
       )
       paragraphY += drawnH
       previousBlock = { kind: 'body', raw: '' }

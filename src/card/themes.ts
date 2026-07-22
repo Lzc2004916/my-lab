@@ -105,8 +105,8 @@ export const THEMES: ThemeDefinition[] = [
         '0 24px 50px rgba(80,75,65,0.08), 0 1px 12px rgba(250,245,235,0.40) inset',
     },
     components: {
-      quoteFillAlpha: 0.036,
-      quoteStrokeAlpha: 0.064,
+      quoteFillAlpha: 0.048,
+      quoteStrokeAlpha: 0.070,
       quoteBarAlpha: 0.78,
       quoteRadius: 14,
       quoteTreatment: 'callout',
@@ -337,8 +337,8 @@ export const THEMES: ThemeDefinition[] = [
         '0 16px 36px rgba(25,30,45,0.08), 0 1px 6px rgba(0,0,0,0.03) inset',
     },
     components: {
-      quoteFillAlpha: 0.020,
-      quoteStrokeAlpha: 0.11,
+      quoteFillAlpha: 0.044,
+      quoteStrokeAlpha: 0.12,
       quoteBarAlpha: 0.90,
       quoteRadius: 2,
       quoteTreatment: 'callout',
@@ -521,9 +521,9 @@ export const THEMES: ThemeDefinition[] = [
         '0 20px 44px rgba(0,0,0,0.06), 0 1px 10px rgba(255,255,255,0.3) inset',
     },
     components: {
-      quoteFillAlpha: 0.02,
-      quoteStrokeAlpha: 0.04,
-      quoteBarAlpha: 0.55,
+      quoteFillAlpha: 0.034,
+      quoteStrokeAlpha: 0.056,
+      quoteBarAlpha: 0.66,
       quoteRadius: 2,
       quoteTreatment: 'paper',
       highlightTreatment: 'softUnderline',
@@ -650,9 +650,9 @@ export const THEMES: ThemeDefinition[] = [
         '0 14px 38px rgba(10,120,110,0.12), 0 2px 14px rgba(255,255,255,0.52) inset, 0 0 0 1px rgba(130,240,220,0.14) inset',
     },
     components: {
-      quoteFillAlpha: 0.036,
-      quoteStrokeAlpha: 0.072,
-      quoteBarAlpha: 0.70,
+      quoteFillAlpha: 0.046,
+      quoteStrokeAlpha: 0.078,
+      quoteBarAlpha: 0.72,
       quoteRadius: 14,
       quoteTreatment: 'callout',
       highlightTreatment: 'softUnderline',
@@ -915,9 +915,9 @@ export const THEMES: ThemeDefinition[] = [
         '0 18px 42px rgba(30,90,130,0.08), 0 2px 14px rgba(240,248,255,0.46) inset',
     },
     components: {
-      quoteFillAlpha: 0.028,
-      quoteStrokeAlpha: 0.058,
-      quoteBarAlpha: 0.68,
+      quoteFillAlpha: 0.042,
+      quoteStrokeAlpha: 0.068,
+      quoteBarAlpha: 0.70,
       quoteRadius: 10,
       quoteTreatment: 'callout',
       highlightTreatment: 'softUnderline',
@@ -1057,9 +1057,9 @@ export const THEMES: ThemeDefinition[] = [
         '0 6px 24px rgba(95,90,80,0.06), 0 1px 4px rgba(0,0,0,0.01), 0 1px 0 rgba(255,255,255,0.7) inset',
     },
     components: {
-      quoteFillAlpha: 0.024,    // 引用：极致克制的微底色
-      quoteStrokeAlpha: 0.044,
-      quoteBarAlpha: 0.54,
+      quoteFillAlpha: 0.034,    // 引用：微底色
+      quoteStrokeAlpha: 0.056,
+      quoteBarAlpha: 0.66,
       quoteRadius: 18,          // iOS 风格的圆角引用
       quoteTreatment: 'paper',
       highlightTreatment: 'softUnderline',
@@ -1193,9 +1193,9 @@ export const THEMES: ThemeDefinition[] = [
         '0 20px 44px rgba(35,25,15,0.06), 0 1px 10px rgba(250,242,225,0.38) inset, 0 0 0 1px rgba(200,160,100,0.06) inset',
     },
     components: {
-      quoteFillAlpha: 0.028,    // 引用底色微染 — 仿古书眉批
-      quoteStrokeAlpha: 0.048,
-      quoteBarAlpha: 0.56,      // 更明显的辰砂强调条
+      quoteFillAlpha: 0.038,    // 引用底色微染 — 仿古书眉批
+      quoteStrokeAlpha: 0.060,
+      quoteBarAlpha: 0.66,      // 更明显的辰砂强调条
       quoteRadius: 2,           // 直角 — 中式书法的方正
       quoteTreatment: 'paper',
       highlightTreatment: 'softUnderline',
@@ -1259,8 +1259,8 @@ export const THEMES: ThemeDefinition[] = [
         '0 20px 44px rgba(180,100,50,0.08), 0 2px 12px rgba(255,245,235,0.40) inset',
     },
     components: {
-      quoteFillAlpha: 0.036,
-      quoteStrokeAlpha: 0.064,
+      quoteFillAlpha: 0.048,
+      quoteStrokeAlpha: 0.070,
       quoteBarAlpha: 0.78,
       quoteRadius: 12,
       quoteTreatment: 'callout',
@@ -1328,9 +1328,9 @@ export const THEMES: ThemeDefinition[] = [
         '0 16px 36px rgba(20,18,14,0.04), 0 1px 8px rgba(250,248,243,0.32) inset',
     },
     components: {
-      quoteFillAlpha: 0.024,
-      quoteStrokeAlpha: 0.048,
-      quoteBarAlpha: 0.58,
+      quoteFillAlpha: 0.040,
+      quoteStrokeAlpha: 0.064,
+      quoteBarAlpha: 0.66,
       quoteRadius: 2,
       quoteTreatment: 'callout',
       highlightTreatment: 'swissRule',
@@ -1539,8 +1539,8 @@ export const THEMES: ThemeDefinition[] = [
         '0 18px 40px rgba(20,30,45,0.06), 0 1px 6px rgba(0,0,0,0.03) inset',
     },
     components: {
-      quoteFillAlpha: 0.018,
-      quoteStrokeAlpha: 0.08,
+      quoteFillAlpha: 0.040,
+      quoteStrokeAlpha: 0.09,
       quoteBarAlpha: 0.84,
       quoteRadius: 4,
       quoteTreatment: 'callout',
@@ -1608,8 +1608,8 @@ export const THEMES: ThemeDefinition[] = [
         '0 14px 34px rgba(30,60,140,0.06), 0 1px 8px rgba(79,110,246,0.04) inset',
     },
     components: {
-      quoteFillAlpha: 0.018,
-      quoteStrokeAlpha: 0.072,
+      quoteFillAlpha: 0.040,
+      quoteStrokeAlpha: 0.080,
       quoteBarAlpha: 0.78,
       quoteRadius: 6,
       quoteTreatment: 'callout',
@@ -1809,9 +1809,9 @@ export const THEMES: ThemeDefinition[] = [
         '0 12px 36px rgba(130,70,100,0.12), 0 2px 14px rgba(255,250,252,0.50) inset, 0 0 0 1px rgba(220,170,195,0.12) inset',
     },
     components: {
-      quoteFillAlpha: 0.036,
-      quoteStrokeAlpha: 0.068,
-      quoteBarAlpha: 0.66,
+      quoteFillAlpha: 0.046,
+      quoteStrokeAlpha: 0.074,
+      quoteBarAlpha: 0.68,
       quoteRadius: 16,
       quoteTreatment: 'callout',
       highlightTreatment: 'softUnderline',
@@ -1871,9 +1871,9 @@ export const THEMES: ThemeDefinition[] = [
         '0 16px 38px rgba(225,48,108,0.14), 0 2px 12px rgba(255,255,255,0.48) inset, 0 0 0 1px rgba(255,255,255,0.28) inset',
     },
     components: {
-      quoteFillAlpha: 0.038,
-      quoteStrokeAlpha: 0.076,
-      quoteBarAlpha: 0.68,
+      quoteFillAlpha: 0.048,
+      quoteStrokeAlpha: 0.080,
+      quoteBarAlpha: 0.70,
       quoteRadius: 16,
       quoteTreatment: 'callout',
       highlightTreatment: 'softUnderline',
@@ -2096,10 +2096,10 @@ export const THEMES: ThemeDefinition[] = [
         '0 8px 32px rgba(150,138,168,0.08), 0 2px 8px rgba(195,185,210,0.06), 0 0 0 1px rgba(255,255,255,0.5) inset',
     },
     components: {
-      // 引用：极致克制，微底色 + 淡紫强调条
-      quoteFillAlpha: 0.02,
-      quoteStrokeAlpha: 0.035,
-      quoteBarAlpha: 0.42,
+      // 引用：微底色 + 淡紫强调条
+      quoteFillAlpha: 0.034,
+      quoteStrokeAlpha: 0.050,
+      quoteBarAlpha: 0.60,
       quoteRadius: 14,
       quoteTreatment: 'paper',
       // 高亮：柔和下划线
@@ -2230,9 +2230,9 @@ export const THEMES: ThemeDefinition[] = [
         '0 20px 44px rgba(180,140,150,0.08), 0 2px 14px rgba(255,248,250,0.40) inset',
     },
     components: {
-      quoteFillAlpha: 0.032,
-      quoteStrokeAlpha: 0.054,
-      quoteBarAlpha: 0.58,
+      quoteFillAlpha: 0.038,
+      quoteStrokeAlpha: 0.060,
+      quoteBarAlpha: 0.66,
       quoteRadius: 16,
       quoteTreatment: 'paper',
       highlightTreatment: 'softUnderline',
@@ -2488,9 +2488,9 @@ export const THEMES: ThemeDefinition[] = [
         '0 20px 44px rgba(90,110,70,0.07), 0 2px 14px rgba(250,247,240,0.40) inset',
     },
     components: {
-      quoteFillAlpha: 0.034,
-      quoteStrokeAlpha: 0.058,
-      quoteBarAlpha: 0.60,
+      quoteFillAlpha: 0.040,
+      quoteStrokeAlpha: 0.064,
+      quoteBarAlpha: 0.66,
       quoteRadius: 14,
       quoteTreatment: 'paper',
       highlightTreatment: 'softUnderline',

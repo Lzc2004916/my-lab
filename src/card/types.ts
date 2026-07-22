@@ -436,6 +436,8 @@ export interface RenderOptions {
   gradientConfig?: GradientConfig
   /** 用户自定义标题样式覆盖 */
   headingOverrides?: HeadingStyleOverrides | null
+  /** 自定义高亮颜色（null = 使用主题强调色） */
+  highlightColor?: string | null
 }
 
 // ── Layout options (passed to layoutPages) ────────────────────────────────

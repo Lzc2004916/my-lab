@@ -86,6 +86,8 @@ interface Props {
   previewScale?: number
   /** 用户自定义标题样式覆盖 */
   headingOverrides?: HeadingStyleOverrides | null
+  /** 自定义高亮颜色（null = 使用主题强调色） */
+  highlightColor?: string | null
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -97,6 +99,7 @@ const props = withDefaults(defineProps<Props>(), {
     bodyFontMode: 'wenkai' as const,
     subheadingStyle: 'large' as const,
   }),
+  highlightColor: null,
   highlightStyle: 'underline' as HighlightStyle,
   footerLeft: '',
   footerRightMode: 'page' as FooterRightMode,
@@ -212,6 +215,7 @@ async function doRender(): Promise<void> {
         cardCornerMode: props.cardCornerMode,
         gradientConfig: props.gradientConfig,
         headingOverrides: props.headingOverrides,
+        highlightColor: props.highlightColor,
       }, signal)
       canvases.value = result.canvases
       cachedLayoutPages = result.pages
@@ -231,6 +235,7 @@ async function doRender(): Promise<void> {
           cardCornerMode: props.cardCornerMode,
           gradientConfig: props.gradientConfig,
           headingOverrides: props.headingOverrides,
+          highlightColor: props.highlightColor,
         }, signal)
         canvases.value = result.canvases
         cachedLayoutPages = result.pages
@@ -253,6 +258,7 @@ async function doRender(): Promise<void> {
               cardCornerMode: props.cardCornerMode ?? 'square',
               gradientConfig: props.gradientConfig,
               headingOverrides: props.headingOverrides,
+              highlightColor: props.highlightColor,
             }),
           )
           // 每页渲染后 yield 主线程
@@ -285,6 +291,7 @@ async function doRender(): Promise<void> {
         cardCornerMode: props.cardCornerMode,
         gradientConfig: props.gradientConfig,
         headingOverrides: props.headingOverrides,
+        highlightColor: props.highlightColor,
       })
       canvases.value = result.canvases
       cachedLayoutPages = result.pages
@@ -309,6 +316,7 @@ watch(
     props.cardCornerMode,
     props.gradientConfig,
     props.headingOverrides,
+    props.highlightColor,
   ] as const,
   scheduleRender,
   { immediate: true },

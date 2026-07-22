@@ -61,6 +61,8 @@
           @update:body-font-weight="(v: number) => emit('update:body-font-weight', v)"
           :highlight-style="highlightStyle"
           @update:highlight-style="(v: string) => emit('update:highlight-style', v)"
+          :highlight-color="highlightColor"
+          @update:highlight-color="(v: string | null) => emit('update:highlight-color', v)"
           :footer-enabled="footerEnabled"
           @update:footer-enabled="(v: boolean) => emit('update:footer-enabled', v)"
           :gradient-config="gradientConfig"
@@ -129,6 +131,7 @@ interface Props {
   appTheme: 'light' | 'dark'
   typography: TypographySettings
   highlightStyle: HighlightStyle
+  highlightColor: string | null
   footerEnabled: boolean
   gradientConfig: GradientConfig
   previewScale: number
@@ -158,6 +161,7 @@ const emit = defineEmits<{
   'update:body-font-size': [value: number]
   'update:body-font-weight': [value: number]
   'update:highlight-style': [value: string]
+  'update:highlight-color': [value: string | null]
   'update:footer-enabled': [value: boolean]
   'update:gradient-config': [value: GradientConfig]
   'update:preview-scale': [value: number]

@@ -104,6 +104,27 @@
           </div>
         </div>
 
+        <!-- Highlight color picker -->
+        <div class="ctrl-row-item">
+          <span class="ctrl-label">高亮颜色</span>
+          <div class="flex items-center gap-2">
+            <input
+              type="color"
+              :value="highlightColor ?? '#000000'"
+              class="w-7 h-7 rounded cursor-pointer border border-base-300 bg-base-100"
+              title="选择高亮颜色"
+              @input="emit('update:highlightColor', ($event.target as HTMLInputElement).value)"
+            />
+            <button
+              v-if="highlightColor"
+              class="btn btn-xs btn-ghost h-5 min-h-0 px-1 text-base-content/40 hover:text-base-content"
+              title="重置为默认颜色"
+              @click="emit('update:highlightColor', null)"
+            >✕</button>
+            <span class="text-xs text-base-content/50">{{ highlightColor ?? '跟随主题' }}</span>
+          </div>
+        </div>
+
         <!-- Footer toggle -->
         <div class="ctrl-row-item">
           <span class="ctrl-label">页脚</span>
@@ -191,6 +212,7 @@ interface Props {
   bodyFontSize: number
   bodyFontWeight: number
   highlightStyle: string
+  highlightColor: string | null
   footerEnabled: boolean
   gradientConfig: GradientConfig
   previewScale: number
@@ -210,6 +232,7 @@ const emit = defineEmits<{
   (e: 'update:bodyFontSize', value: number): void
   (e: 'update:bodyFontWeight', value: number): void
   (e: 'update:highlightStyle', value: string): void
+  (e: 'update:highlightColor', value: string | null): void
   (e: 'update:footerEnabled', value: boolean): void
   (e: 'update:gradientConfig', value: GradientConfig): void
   (e: 'update:previewScale', value: number): void
