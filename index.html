@@ -32,84 +32,11 @@
       Splash Screen — Renders instantly before Vue/JS boots.
       Vue's app.mount('#app') replaces this content naturally on initialization.
       Displays a centered loading GIF while the app initializes.
+      Styles are externalized to src/splash.css (inline <style> triggers a flaky
+      Vite html-inline-proxy bug with vite-plugin-electron multi-build).
       ═══════════════════════════════════════════════════════════════════════════
     -->
-    <style>
-      /* ── Reset & Base ──────────────────────────────────────────────────── */
-      *{ box-sizing: border-box; margin: 0; padding: 0; }
-
-      html {
-        font-family: 'Inter', 'Noto Sans SC', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-        -webkit-font-smoothing: antialiased;
-        -moz-osx-font-smoothing: grayscale;
-        font-size: 16px;
-        line-height: 1.6;
-      }
-
-      body {
-        height: 100vh;
-        /* DaisyUI base-200 light */
-        background-color: oklch(0.95 0.008 260);
-        overflow: hidden;
-        /* iOS safe areas */
-        padding-top: env(safe-area-inset-top, 0px);
-        padding-bottom: env(safe-area-inset-bottom, 0px);
-        padding-left: env(safe-area-inset-left, 0px);
-        padding-right: env(safe-area-inset-right, 0px);
-      }
-
-      /* ── Dark mode body override ──────────────────────────────────────── */
-      html[data-theme='dark'] body {
-        background-color: oklch(0.22 0.03 260);
-      }
-
-      /* ══════════════════════════════════════════════════════════════════════
-         Splash Container — Centered GIF loading screen
-         ══════════════════════════════════════════════════════════════════ */
-
-      .splash {
-        position: fixed;
-        inset: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        /* DaisyUI base-200 light */
-        background-color: oklch(0.95 0.008 260);
-        overflow: hidden;
-        z-index: 9999;
-        transition: opacity 0.4s ease;
-      }
-
-      /* 淡出：Vue 挂载前由 JS 添加此类 */
-      .splash.splash-fade-out {
-        opacity: 0;
-        pointer-events: none;
-      }
-
-      html[data-theme='dark'] .splash {
-        background-color: oklch(0.22 0.03 260);
-      }
-
-      .splash-loading-gif {
-        max-width: 600px;
-        max-height: 600px;
-        width: auto;
-        height: auto;
-      }
-
-      .splash-loading-text {
-        margin-top: 28px;
-        font-family: 'Microsoft YaHei', 'PingFang SC', 'Noto Sans SC', sans-serif;
-        font-size: 1.8rem;
-        font-weight: 800;
-        color: oklch(0.20 0.02 260 / 0.82);
-        letter-spacing: 0.08em;
-      }
-
-      html[data-theme='dark'] .splash-loading-text {
-        color: oklch(0.88 0.01 260 / 0.82);
-      }
-    </style>
+    <link rel="stylesheet" href="/src/splash.css" />
 
     <!--
       Theme detection — runs before first paint to avoid flash of wrong theme.
