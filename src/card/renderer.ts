@@ -811,6 +811,8 @@ function drawListBlock(
   theme: ThemeDefinition,
   fontFamily?: string,
   bodyFontWeight?: number,
+  /** 正文文字颜色 — 作用于列表项文本。 */
+  bodyTextColor?: string | null,
 ): number {
   const listStyle: ListStyleConfig = theme.editor.list ?? DEFAULT_LIST_STYLE
   const resolvedWeight = bodyFontWeight ?? theme.editor.bodyFontWeight ?? BODY_TEXT_WEIGHT
@@ -928,7 +930,7 @@ function drawListBlock(
         const weight = token.bold ? BODY_BOLD_WEIGHT : resolvedWeight
         const fontStyle = token.italic ? 'italic ' : ''
         ctx.font = `${fontStyle}${weight} ${fontSize}px ${fontFamily ?? BODY_FONT_FAMILY}`
-        ctx.fillStyle = theme.palette.text
+        ctx.fillStyle = bodyTextColor ?? theme.palette.text
 
         ctx.fillText(token.text, cursorX, baselineY)
 
@@ -976,6 +978,8 @@ function drawColumnContainer(
   highlightStyle: HighlightStyle,
   headingOverrides?: HeadingStyleOverrides | null,
   highlightColor?: string | null,
+  /** 正文文字颜色 — 透传至列容器内的正文/引用/列表。 */
+  bodyTextColor?: string | null,
 ): number {
   const halfWidth = (CONTENT_WIDTH - COLUMN_GAP) / 2
   const leftX = x
@@ -983,12 +987,12 @@ function drawColumnContainer(
 
   // 保存/恢复裁剪区域，防止列之间相互渗透
   ctx.save()
-  drawColumnBlocks(ctx, colBlock.leftBlocks, leftX, y, halfWidth, metrics, theme, settings, highlightStyle, headingOverrides, highlightColor)
+  drawColumnBlocks(ctx, colBlock.leftBlocks, leftX, y, halfWidth, metrics, theme, settings, highlightStyle, headingOverrides, highlightColor, bodyTextColor)
   const leftHeight = _colDrawnHeight
   ctx.restore()
 
   ctx.save()
-  drawColumnBlocks(ctx, colBlock.rightBlocks, rightX, y, halfWidth, metrics, theme, settings, highlightStyle, headingOverrides, highlightColor)
+  drawColumnBlocks(ctx, colBlock.rightBlocks, rightX, y, halfWidth, metrics, theme, settings, highlightStyle, headingOverrides, highlightColor, bodyTextColor)
   const rightHeight = _colDrawnHeight
   ctx.restore()
 
@@ -1015,6 +1019,8 @@ function drawColumnBlocks(
   highlightStyle: HighlightStyle,
   headingOverrides?: HeadingStyleOverrides | null,
   highlightColor?: string | null,
+  /** 正文文字颜色 — 透传至列内正文/引用/列表。 */
+  bodyTextColor?: string | null,
 ): void {
   const colBodyWeight = settings.bodyFontWeight ?? theme.editor.bodyFontWeight ?? BODY_TEXT_WEIGHT
   let cursorY = y
@@ -1045,6 +1051,7 @@ function drawColumnBlocks(
         headingOverrides,
         colBodyWeight,
         highlightColor,
+        bodyTextColor,
       )
       cursorY += height
       prevBlock = paraBlock
@@ -1085,11 +1092,11 @@ function drawColumnBlocks(
         ctx.scale(scaleFactor, 1)
         cursorY += drawListBlock(ctx, listBlock, x / scaleFactor, cursorY,
           metrics.bodySize, metrics.bodyLineHeight, maxWidth / scaleFactor,
-          theme, metrics.bodyFontFamily, colBodyWeight)
+          theme, metrics.bodyFontFamily, colBodyWeight, bodyTextColor)
       } else {
         cursorY += drawListBlock(ctx, listBlock, x, cursorY,
           metrics.bodySize, metrics.bodyLineHeight, maxWidth,
-          theme, metrics.bodyFontFamily, colBodyWeight)
+          theme, metrics.bodyFontFamily, colBodyWeight, bodyTextColor)
       }
       ctx.restore()
       prevBlock = { kind: 'body', raw: '' }
@@ -1116,6 +1123,8 @@ function drawInlineParagraph(
   headingOverrides?: HeadingStyleOverrides | null,
   bodyFontWeight?: number,
   highlightColor?: string | null,
+  /** 正文文字颜色 — 仅对正文/引用块生效（null = 跟随主题正文色）。 */
+  bodyTextColor?: string | null,
 ): number {
   if (block.kind === 'divider') {
     const h = getDividerBlockHeight(fontSize)
@@ -1138,6 +1147,12 @@ function drawInlineParagraph(
     : null
   const quoteInset = quoteMetrics?.textInset ?? 0
   const quoteWidth = quoteMetrics?.textWidth ?? maxWidth
+
+  // 正文文字颜色仅作用于正文（body）与引用（quote）；标题/分隔线沿用主题色。
+  const textColorFallback =
+    (block.kind === 'body' || block.kind === 'quote') && bodyTextColor
+      ? bodyTextColor
+      : theme.palette.text
 
   // 标题块使用标题字重换行，避免 body 字重（400）与渲染字重（最高 900）
   // 不一致导致换行位置和字符间距计算错误，造成文字叠加。
@@ -1252,7 +1267,7 @@ function drawInlineParagraph(
             ? theme.palette.accent
             : markBoldAccent
               ? (highlightColor ?? theme.palette.accent)
-              : theme.palette.text
+              : textColorFallback
 
       // ── 标题阴影（仅 subheading 块） ──────────────────────────────
       if (isSubheading && headingLevel) {
@@ -1402,6 +1417,7 @@ export function renderCard(opts: RenderOptions): HTMLCanvasElement {
     footerEnabled,
     cardCornerMode,
     highlightColor,
+    bodyTextColor,
   } = opts
 
   const canvas = document.createElement('canvas')
@@ -1507,6 +1523,7 @@ export function renderCard(opts: RenderOptions): HTMLCanvasElement {
         opts.headingOverrides,
         bodyFontWeight,
         highlightColor,
+        bodyTextColor,
       )
 
 
@@ -1557,6 +1574,7 @@ export function renderCard(opts: RenderOptions): HTMLCanvasElement {
         metrics.bodySize, metrics.bodyLineHeight, metrics.bodyWidth,
         theme, metrics.bodyFontFamily,
         bodyFontWeight,
+        bodyTextColor,
       )
       paragraphY += drawnH
       previousBlock = { kind: 'body', raw: '' }
@@ -1576,6 +1594,7 @@ export function renderCard(opts: RenderOptions): HTMLCanvasElement {
         metrics, theme, settings, highlightStyle,
         opts.headingOverrides,
         highlightColor,
+        bodyTextColor,
       )
       paragraphY += drawnH
       previousBlock = { kind: 'body', raw: '' }

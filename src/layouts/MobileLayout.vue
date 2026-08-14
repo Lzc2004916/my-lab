@@ -42,6 +42,7 @@
             :gradient-config="gradientConfig"
             :preview-scale="previewScale"
             :heading-overrides="headingOverrides"
+            :body-text-color="bodyTextColor"
           />
         </div>
       </div>
@@ -72,6 +73,8 @@
           :font-options="fontOptions"
           :is-exporting="isExporting"
           :progress="progress"
+          :body-text-color="bodyTextColor"
+          @update:body-text-color="(v: string | null) => emit('update:body-text-color', v)"
           @export-png="emit('export-png')"
           @export-jpg="emit('export-jpg')"
           @export-pdf="emit('export-pdf')"
@@ -145,6 +148,7 @@ interface Props {
   bodyFontMode: string
   bodyFontSize: number
   bodyFontWeight: number
+  bodyTextColor: string | null
 }
 
 defineProps<Props>()
@@ -165,6 +169,7 @@ const emit = defineEmits<{
   'update:footer-enabled': [value: boolean]
   'update:gradient-config': [value: GradientConfig]
   'update:preview-scale': [value: number]
+  'update:body-text-color': [value: string | null]
   'export-png': []
   'export-jpg': []
   'export-pdf': []

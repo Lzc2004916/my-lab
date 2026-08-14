@@ -153,9 +153,38 @@
       </div>
     </div>
 
-    <!-- ═══════════════════════════════════════════════════════════════════
+    <!-- ═══════════════════════════════════════════════════════
+         Section 2.5: 正文文字颜色
+         ═══════════════════════════════════════════════════ -->
+    <div class="px-4 pt-4 pb-3 border-b border-base-200">
+      <h3 class="section-heading mb-3">正文文字颜色</h3>
+      <p class="text-[0.6875rem] leading-snug text-base-content/45 mb-3">
+        自定义正文、引用与列表的文字颜色。留空则跟随主题正文色。
+      </p>
+      <div class="ctrl-row-item">
+        <span class="ctrl-label">文字颜色</span>
+        <div class="flex items-center gap-2">
+          <input
+            type="color"
+            :value="bodyTextColor ?? '#000000'"
+            class="w-7 h-7 rounded cursor-pointer border border-base-300 bg-base-100"
+            title="选择正文文字颜色"
+            @input="emit('update:bodyTextColor', ($event.target as HTMLInputElement).value)"
+          />
+          <button
+            v-if="bodyTextColor"
+            class="btn btn-xs btn-ghost h-5 min-h-0 px-1 text-base-content/40 hover:text-base-content"
+            title="重置为默认颜色"
+            @click="emit('update:bodyTextColor', null)"
+          >✕</button>
+          <span class="text-xs text-base-content/50">{{ bodyTextColor ?? '跟随主题' }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════
          Section 3: 卡片主题
-         ═══════════════════════════════════════════════════════════════ -->
+         ═══════════════════════════════════════════════════ -->
     <div class="px-4 pt-4 pb-3 border-b border-base-200">
       <h3 class="section-heading mb-3">卡片主题</h3>
       <div class="flex flex-col gap-3">
@@ -219,6 +248,7 @@ interface Props {
   fontOptions: FontOption[]
   isExporting: boolean
   progress: number
+  bodyTextColor: string | null
 }
 
 const props = defineProps<Props>()
@@ -236,6 +266,7 @@ const emit = defineEmits<{
   (e: 'update:footerEnabled', value: boolean): void
   (e: 'update:gradientConfig', value: GradientConfig): void
   (e: 'update:previewScale', value: number): void
+  (e: 'update:bodyTextColor', value: string | null): void
   (e: 'export-png'): void
   (e: 'export-jpg'): void
   (e: 'export-pdf'): void
@@ -248,6 +279,8 @@ const themeId = computed({
   get: () => props.cardTheme,
   set: (v: string) => emit('update:cardTheme', v),
 })
+
+// ── 正文文字颜色 ──────────────────────────────────────────────────────
 </script>
 
 <style scoped>

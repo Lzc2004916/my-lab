@@ -213,23 +213,8 @@ export function drawWatermark(
   const decor = theme.decor
   if (!decor || decor.kind !== 'watermark') return
 
-  const alpha = decor.opacity
-  const color = decor.color ?? theme.palette.muted
-  const scale = decor.scale ?? 1
-
+  // 右下角「印」字戳记已按需求移除，watermark 装饰不再绘制字面。
   ctx.save()
-  ctx.fillStyle = hexToRgba(color, alpha)
-  ctx.textAlign = 'center'
-  ctx.textBaseline = 'middle'
-
-  // 右下角大幅微妙的印章标记
-  const size = 140 * scale
-  const x = PAGE_WIDTH - 72
-  const y = PAGE_HEIGHT - 72
-
-  ctx.font = `${size}px serif`
-  ctx.fillText('印', x, y)
-
   ctx.restore()
 }
 

@@ -43,6 +43,8 @@ export interface EngineOptions {
   headingOverrides?: HeadingStyleOverrides | null
   /** 自定义高亮颜色覆盖（null = 使用主题强调色） */
   highlightColor?: string | null
+  /** 自定义正文文字颜色（null = 跟随主题正文色）。作用于正文/引用/列表文本。 */
+  bodyTextColor?: string | null
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -77,6 +79,7 @@ export function renderAllPages(
       gradientConfig: opts.gradientConfig,
       headingOverrides: opts.headingOverrides,
       highlightColor: opts.highlightColor ?? null,
+      bodyTextColor: opts.bodyTextColor ?? null,
     }),
   )
 
@@ -130,6 +133,7 @@ export async function renderAllPagesAsync(
         gradientConfig: opts.gradientConfig,
         headingOverrides: opts.headingOverrides,
         highlightColor: opts.highlightColor ?? null,
+        bodyTextColor: opts.bodyTextColor ?? null,
       }),
     )
 

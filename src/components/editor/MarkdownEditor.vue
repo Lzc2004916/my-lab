@@ -4,16 +4,17 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount, watch } from 'vue'
-import { EditorState, EditorSelection, Compartment, type Extension } from '@codemirror/state'
+import { EditorState, EditorSelection, Compartment, Prec, type Extension } from '@codemirror/state'
 import {
   EditorView,
   lineNumbers,
   highlightActiveLine,
   keymap,
+  type Command,
 } from '@codemirror/view'
-import { defaultKeymap, history, historyKeymap, undo, redo } from '@codemirror/commands'
+import { defaultKeymap, history, historyKeymap, undo, redo, insertNewlineAndIndent } from '@codemirror/commands'
 import { Transaction } from '@codemirror/state'
-import { markdown } from '@codemirror/lang-markdown'
+import { markdown, insertNewlineContinueMarkup } from '@codemirror/lang-markdown'
 import { oneDark } from '@codemirror/theme-one-dark'
 import { highlightDecorations } from './highlight-decorations'
 import {
@@ -76,6 +77,25 @@ function resolveThemeExtension(name: string): Extension {
 // ── Extension factory ───────────────────────────────────────────────
 
 /**
+ * 自定义 Enter 处理，覆盖 @codemirror/lang-markdown 的默认
+ * `markdownKeymap`（其 Enter 会无条件续接引用 `>` 与列表标记）：
+ *
+ * - 光标所在行是引用块（以 `>` 开头）时：仅换行，不自动追加 `>` 标记；
+ * - 其他情况（如列表）：保持 markdown 默认续接行为。
+ *
+ * 用 `Prec.highest` 包裹，确保优先级高于 `markdown()` 内部的 `Prec.high` keymap。
+ */
+const enterNoQuoteContinue: Command = (view) => {
+  const { state } = view
+  const { from } = state.selection.main
+  const line = state.doc.lineAt(from)
+  if (/^\s*>/.test(line.text)) {
+    return insertNewlineAndIndent(view)
+  }
+  return insertNewlineContinueMarkup(view)
+}
+
+/**
  * 为 EditorState 构建扩展数组。
  *
  * 提取为独立函数，以便将来添加额外扩展（自动补全、Vim、Emacs、
@@ -83,6 +103,13 @@ function resolveThemeExtension(name: string): Extension {
  */
 function createExtensions(): Extension[] {
   return [
+    // 引用块内换行：仅换行，不续接 `>`（优先级最高，覆盖 markdown keymap）
+    Prec.highest(
+      keymap.of([
+        { key: 'Enter', run: enterNoQuoteContinue },
+      ]),
+    ),
+
     // 行号栏
     lineNumbers(),
 

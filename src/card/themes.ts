@@ -2520,6 +2520,350 @@ export const THEMES: ThemeDefinition[] = [
     decor: { kind: 'matchaRing', opacity: 0.84, color: '#8ba87a', scale: 1.06 },
     gradient: { enabled: true, color1: '#faf7f0', color2: '#8ba87a', angle: 135 },
   },
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // ── Green / Yellow series — 5 new themes (2026-08-14) ─────────────────────
+  // 绿×2 + 黄×3，五种差异化风格：清新自然 / 复古做旧 / 新潮荧光 / 暗色高对比 / 柔和奶油
+  // ───────────────────────────────────────────────────────────────────────────
+
+  // ── 32。 fresh-pine (清新松绿) ────────────────────────────────────────────
+  // 风格定位：清新自然（绿，浅色）。低饱和松绿纸面 + 嫩芽绿 accent + 晨雾通透留白。
+  {
+    id: 'fresh-pine',
+    name: '清新松绿',
+    mood: '林间晨雾松香清新自然',
+    preset: '清新松绿',
+    description: '低饱和松绿纸面、嫩芽绿 accent、晨雾般通透留白，适合自然随笔、读书笔记与轻量创作',
+    tags: ['清新', '松绿', '自然'],
+    mode: 'sage',
+    palette: {
+      page: '#F8FDF9',          // 松雾白 — 带一丝绿意的净白
+      pageAlt: '#E7F4EC',       // 嫩芽绿灰 — 自然深度渐变
+      text: '#243328',          // 深苔墨绿 — 不是纯黑，护眼自然
+      muted: '#546B5A',         // 石苔灰绿 — 有分量的次级文本
+      accent: '#63B977',        // 嫩芽绿 — 清新活力的强调色
+      accentSoft: 'rgba(99,185,119,0.18)',
+      border: 'rgba(99,185,119,0.12)',
+      shadow: 'rgba(60,120,90,0.08)',
+      glow: 'rgba(165,217,177,0.30)',
+    },
+    surface: {
+      grainAlpha: 0.030,        // 极淡纸纹 — 保留自然触感
+      vignetteAlpha: 0.036,
+      washStrength: 0.26,       // 通透晨雾光晕
+      innerFrameAlpha: 0.08,
+      innerFrameInset: 24,
+      titleAccentMix: 0.80,
+      footerLineAlpha: 0.18,
+      footerTextAlpha: 0.88,
+      previewShadow:
+        '0 24px 50px rgba(60,120,90,0.08), 0 2px 16px rgba(240,252,245,0.42) inset',
+    },
+    components: {
+      quoteFillAlpha: 0.044,
+      quoteStrokeAlpha: 0.070,
+      quoteBarAlpha: 0.72,
+      quoteRadius: 20,
+      quoteTreatment: 'paper',
+      highlightTreatment: 'softUnderline',
+      highlightUnderlineAlpha: 0.66,
+      highlightMarkerAlpha: 0.28,
+      highlightDashAlpha: 0.78,
+    },
+    editor: {
+      bodySize: 29,
+      lineHeight: 1.86,
+      bodyFontMode: 'wenkai',
+      bodyFontWeight: 400,
+      subheadingStyle: 'accent',
+      highlightStyle: 'underline',
+      heading: {
+        h1Scale: 3.2, h2Scale: 1.6, h3Scale: 1.3,
+        h1LineHeight: 1.3, h2LineHeight: 1.4, h3LineHeight: 1.5,
+        h1FontWeight: 600, h2FontWeight: 500, h3FontWeight: 400,
+        h1MarginTop: 22, h1MarginBottom: 12,
+      },
+      list: { bulletChar: '•', bulletSizeRatio: 0.82, indentPerLevel: 28, itemGap: 7 },
+    },
+    coverHeading: {
+      h1Scale: 4.0, h1LineHeight: 1.15, centered: true,
+    },
+    category: 'light',
+    decor: { kind: 'leafMotif', opacity: 0.55, color: '#63B977', scale: 1.08 },
+    gradient: { enabled: true, color1: '#E7F4EC', color2: '#F8FDF9', angle: 135 },
+  },
+
+  // ── 33。 vintage-mustard (复古芥黄) ───────────────────────────────────────
+  // 风格定位：复古做旧（黄，艺术）。做旧芥末黄纸面 + 深胡桃棕 accent + 烟熏墨带质感。
+  {
+    id: 'vintage-mustard',
+    name: '复古芥黄',
+    mood: '老派打字稿纸芥末暖黄做旧',
+    preset: '复古芥黄',
+    description: '暗做旧暖黄褐纸面、深胡桃棕 accent、泛黄水印与烟熏墨带质感，海明威式粗粝文学氛围',
+    tags: ['复古', '做旧', '芥黄', '文学', '暗色'],
+    mode: 'archive',
+    palette: {
+      page: '#3d3220',          // 做旧稿纸 — 被时光熏暗的暖黄褐
+      pageAlt: '#5c4d2e',       // 旧书页顶光 — 更亮的氧化底
+      text: '#f0e2bf',          // 墨带米黄 — 老式打字机色带墨色（亮，保证可读）
+      muted: '#b8a574',         // 咖啡渍褐 — 有故事感的次级色
+      accent: '#d9a23c',        // 深胡桃芥黄 — 沉稳做旧强调色（发光）
+      accentSoft: 'rgba(217,162,60,0.20)',
+      border: 'rgba(217,162,60,0.16)',
+      shadow: 'rgba(0,0,0,0.40)',
+      glow: 'rgba(217,162,60,0.14)',
+    },
+    surface: {
+      grainAlpha: 0.070,        // 明显做旧纸纹 — 廉价打字纸粗糙触感
+      vignetteAlpha: 0.090,     // 更强暗角 — 老书房角落阴影
+      washStrength: 0.40,       // 浓烟熏暖光
+      innerFrameAlpha: 0.14,
+      innerFrameInset: 26,
+      titleAccentMix: 0.86,
+      footerLineAlpha: 0.22,
+      footerTextAlpha: 0.90,
+      previewShadow:
+        '0 28px 56px rgba(0,0,0,0.42), 0 2px 18px rgba(60,45,20,0.30) inset',
+    },
+    components: {
+      quoteFillAlpha: 0.060,
+      quoteStrokeAlpha: 0.090,
+      quoteBarAlpha: 0.80,
+      quoteRadius: 6,
+      quoteTreatment: 'paper',
+      highlightTreatment: 'softUnderline',
+      highlightUnderlineAlpha: 0.60,
+      highlightMarkerAlpha: 0.34,
+      highlightDashAlpha: 0.74,
+    },
+    editor: {
+      bodySize: 29,
+      lineHeight: 1.82,
+      bodyFontMode: 'fangsong',
+      bodyFontWeight: 400,
+      subheadingStyle: 'accent',
+      highlightStyle: 'underline',
+      heading: {
+        h1Scale: 3.2, h2Scale: 1.6, h3Scale: 1.3,
+        h1LineHeight: 1.25, h2LineHeight: 1.35, h3LineHeight: 1.45,
+        h1FontWeight: 700, h2FontWeight: 600, h3FontWeight: 500,
+        h1MarginTop: 22, h1MarginBottom: 12,
+        h1Color: '#d9a23c',
+      },
+      list: { bulletChar: '—', bulletSizeRatio: 0.78, indentPerLevel: 26, itemGap: 7 },
+    },
+    coverHeading: {
+      h1Scale: 4.2, h1LineHeight: 1.12, centered: false,
+    },
+    category: 'dark',
+    decor: { kind: 'watermark', opacity: 0.50, color: '#d9a23c', scale: 1.0 },
+    gradient: { enabled: true, color1: '#d9a23c', color2: '#3d3220' },
+  },
+
+  // ── 34。 neon-lime (荧光青柠) ─────────────────────────────────────────────
+  // 风格定位：新潮荧光（绿，暗色）。深墨绿底 + 荧光青柠绿高亮 + 电路光迹。
+  {
+    id: 'neon-lime',
+    name: '荧光青柠',
+    mood: '暗夜霓虹青柠赛博荧光',
+    preset: '荧光青柠',
+    description: '深墨绿底、荧光青柠绿高亮、电路光迹与扫描线，新潮赛博感，适合科技短文与未来叙事',
+    tags: ['荧光', '青柠', '赛博', '新潮'],
+    mode: 'cyber',
+    palette: {
+      page: '#0B140E',          // 深墨绿黑 — 赛博夜的底色
+      pageAlt: '#11201A',       // 荧光绿雾 — 微透的绿调过渡
+      text: '#D9FBE2',          // 荧光明绿白 — 高可读性正文
+      muted: '#6FB890',         // 暗苔绿灰 — 次级文本
+      accent: '#8EFF3D',        // 荧光青柠 — 跳动的霓虹绿
+      accentSoft: 'rgba(142,255,61,0.16)',
+      border: 'rgba(142,255,61,0.18)',
+      shadow: 'rgba(142,255,61,0.10)',
+      glow: 'rgba(142,255,61,0.10)',
+    },
+    surface: {
+      grainAlpha: 0.016,        // 极细颗粒 — 屏幕质感
+      vignetteAlpha: 0.06,
+      washStrength: 0.22,       // 荧光绿光晕漫射
+      innerFrameAlpha: 0.13,
+      innerFrameInset: 18,
+      titleAccentMix: 0.88,
+      footerLineAlpha: 0.22,
+      footerTextAlpha: 0.84,
+      previewShadow:
+        '0 0 38px rgba(142,255,61,0.10), 0 0 76px rgba(60,180,40,0.05), 0 2px 16px rgba(0,0,0,0.42) inset',
+    },
+    components: {
+      quoteFillAlpha: 0.040,
+      quoteStrokeAlpha: 0.090,
+      quoteBarAlpha: 0.78,
+      quoteRadius: 4,
+      quoteTreatment: 'callout',
+      highlightTreatment: 'softUnderline',
+      highlightUnderlineAlpha: 0.56,
+      highlightMarkerAlpha: 0.36,
+      highlightDashAlpha: 0.74,
+    },
+    editor: {
+      bodySize: 28,
+      lineHeight: 1.78,
+      bodyFontMode: 'notosans',
+      bodyFontWeight: 400,
+      subheadingStyle: 'accent',
+      highlightStyle: 'underline',
+      heading: {
+        h1Scale: 3.6, h2Scale: 1.7, h3Scale: 1.35,
+        h1LineHeight: 1.18, h2LineHeight: 1.28, h3LineHeight: 1.38,
+        h1FontWeight: 700, h2FontWeight: 600, h3FontWeight: 500,
+        h1MarginTop: 18, h1MarginBottom: 10,
+        h1Color: '#8EFF3D',
+      },
+      list: { bulletChar: '›', bulletSizeRatio: 0.74, indentPerLevel: 22, itemGap: 5, orderedMarkerBox: true },
+    },
+    coverHeading: {
+      h1Scale: 4.8, h1LineHeight: 1.06, centered: true,
+    },
+    category: 'dark',
+    decor: { kind: 'circuitTrace', opacity: 0.45, color: '#8EFF3D', scale: 1.1 },
+    gradient: { enabled: true, color1: '#8EFF3D', color2: '#0B140E' },
+  },
+
+  // ── 35。 dark-amber (暗夜琥珀) ────────────────────────────────────────────
+  // 风格定位：暗色高对比（黄，暗色）。极深暖黑底 + 明亮琥珀金 + 超高对比。
+  {
+    id: 'dark-amber',
+    name: '暗夜琥珀',
+    mood: '暗夜硬朗琥珀金方块',
+    preset: '暗夜琥珀',
+    description: '纯黑底、明亮琥珀金文字与强调色、硬边方块角框与超高对比，野兽派 brutalist 风格，适合宣言式短句与焦点内容',
+    tags: ['暗色', '高对比', '琥珀', '硬朗', 'brutal'],
+    mode: 'brutal',
+    palette: {
+      page: '#0e0c08',          // 纯黑暖底 — brutalist 不渐变
+      pageAlt: '#0e0c08',       // 纯色（brutal 模式忽略渐变）
+      text: '#ffd24a',          // 亮琥珀金 — 极高对比正文
+      muted: '#a8854a',         // 哑光金褐 — 次级文本
+      accent: '#ffb000',        // 纯琥珀金 — 跳脱的强调色
+      accentSoft: 'rgba(255,176,0,0.22)',
+      border: 'rgba(255,176,0,0.40)',  // 强边框 — 硬朗宣言感
+      shadow: 'rgba(0,0,0,0.60)',
+      glow: 'rgba(255,176,0,0.10)',
+    },
+    surface: {
+      grainAlpha: 0.0,          // 无颗粒 — 扁平硬朗
+      vignetteAlpha: 0.0,       // 无暗角 — 硬边宣言
+      washStrength: 0.0,
+      innerFrameAlpha: 0.0,
+      innerFrameInset: 24,
+      titleAccentMix: 0.92,
+      footerLineAlpha: 0.40,    // 强页脚线 — 硬分隔
+      footerTextAlpha: 0.95,
+      previewShadow:
+        '0 0 0 3px rgba(255,176,0,0.55), 0 24px 48px rgba(0,0,0,0.60)',
+    },
+    components: {
+      quoteFillAlpha: 0.0,
+      quoteStrokeAlpha: 0.0,
+      quoteBarAlpha: 0.95,      // 粗强调条
+      quoteRadius: 0,           // 直角 — 硬朗
+      quoteTreatment: 'callout',
+      highlightTreatment: 'boldAccent',
+      highlightUnderlineAlpha: 0.0,
+      highlightMarkerAlpha: 0.0,
+      highlightDashAlpha: 0.0,
+    },
+    editor: {
+      bodySize: 30,
+      lineHeight: 1.80,
+      bodyFontMode: 'simhei',   // 黑体 — 硬朗
+      bodyFontWeight: 700,      // 重字重 — 宣言感
+      subheadingStyle: 'large',
+      highlightStyle: 'border',
+      heading: {
+        h1Scale: 3.6, h2Scale: 1.7, h3Scale: 1.3,
+        h1LineHeight: 1.10, h2LineHeight: 1.22, h3LineHeight: 1.34,
+        h1FontWeight: 800, h2FontWeight: 700, h3FontWeight: 600,
+        h1MarginTop: 24, h1MarginBottom: 12,
+        h1Color: '#ffb000',
+      },
+      list: { bulletChar: '■', bulletSizeRatio: 0.78, indentPerLevel: 28, itemGap: 8, orderedMarkerBox: true },
+    },
+    coverHeading: {
+      h1Scale: 4.8, h1LineHeight: 1.04, centered: false,
+    },
+    category: 'dark',
+    decor: { kind: 'cornerBracket', opacity: 1.0, color: '#ffb000', scale: 1.0 },
+    gradient: { enabled: false, color1: '#0e0c08', color2: '#ffb000' },
+  },
+
+  // ── 36。 creamy-butter (奶油柔黄) ─────────────────────────────────────────
+  // 风格定位：柔和奶油（黄，浅色）。奶油白纸面 + 柔和暖黄 accent + 温润光晕。
+  {
+    id: 'creamy-butter',
+    name: '奶油柔黄',
+    mood: '奶油柔黄温润奢华',
+    preset: '奶油柔黄',
+    description: '奶油暖白纸面、奢华金 accent、金箔点缀与温润光晕，轻甜中带质感，适合生活随笔与轻量阅读',
+    tags: ['奶油', '柔黄', '温和', '奢华', '轻甜'],
+    mode: 'luxe',
+    palette: {
+      page: '#fbf3df',          // 奶油白 — 温润的暖白底
+      pageAlt: '#f4e6c2',       // 香草奶霜 — 柔黄过渡
+      text: '#3a2d18',          // 深可可棕 — 比纯黑更温暖
+      muted: '#8a7245',         // 暗金褐 — 柔和次级色
+      accent: '#c89a3c',        // 奢华金 — 精致的暖金强调
+      accentSoft: 'rgba(200,154,60,0.22)',
+      border: 'rgba(200,154,60,0.18)',
+      shadow: 'rgba(150,110,40,0.10)',
+      glow: 'rgba(220,180,90,0.32)',
+    },
+    surface: {
+      grainAlpha: 0.020,        // 极淡纸纹 — 高级纸细腻纹理
+      vignetteAlpha: 0.028,
+      washStrength: 0.24,       // 温润暖光漫射
+      innerFrameAlpha: 0.12,    // 金线内框 — 奢华感
+      innerFrameInset: 30,
+      titleAccentMix: 0.82,
+      footerLineAlpha: 0.20,
+      footerTextAlpha: 0.88,
+      previewShadow:
+        '0 24px 52px rgba(150,110,40,0.12), 0 2px 16px rgba(255,250,235,0.46) inset',
+    },
+    components: {
+      quoteFillAlpha: 0.046,
+      quoteStrokeAlpha: 0.072,
+      quoteBarAlpha: 0.74,
+      quoteRadius: 16,
+      quoteTreatment: 'callout',  // 奢华卡片感
+      highlightTreatment: 'softUnderline',
+      highlightUnderlineAlpha: 0.64,
+      highlightMarkerAlpha: 0.30,
+      highlightDashAlpha: 0.76,
+    },
+    editor: {
+      bodySize: 30,
+      lineHeight: 1.88,
+      bodyFontMode: 'notoserif',  // 思源宋体 — 优雅
+      bodyFontWeight: 400,
+      subheadingStyle: 'accent',
+      highlightStyle: 'underline',
+      heading: {
+        h1Scale: 3.4, h2Scale: 1.65, h3Scale: 1.35,
+        h1LineHeight: 1.25, h2LineHeight: 1.35, h3LineHeight: 1.45,
+        h1FontWeight: 700, h2FontWeight: 600, h3FontWeight: 500,
+        h1MarginTop: 24, h1MarginBottom: 12,
+        h1Color: '#c89a3c',
+      },
+      list: { bulletChar: '✦', bulletSizeRatio: 0.82, indentPerLevel: 28, itemGap: 8 },
+    },
+    coverHeading: {
+      h1Scale: 4.2, h1LineHeight: 1.12, centered: true,
+    },
+    category: 'light',
+    decor: { kind: 'goldFoil', opacity: 0.60, color: '#c89a3c', scale: 1.0 },
+    gradient: { enabled: true, color1: '#f4e6c2', color2: '#fbf3df', angle: 135 },
+  },
 ]
 
 /** 未指定时使用的默认主题 ID。 */

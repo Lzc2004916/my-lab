@@ -88,6 +88,8 @@ interface Props {
   headingOverrides?: HeadingStyleOverrides | null
   /** 自定义高亮颜色（null = 使用主题强调色） */
   highlightColor?: string | null
+  /** 自定义正文文字颜色（null = 跟随主题正文色） */
+  bodyTextColor?: string | null
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -108,6 +110,7 @@ const props = withDefaults(defineProps<Props>(), {
   previewScale: 1.0,
   gradientConfig: () => ({ enabled: false, color1: '#6c5ce7', color2: '#a29bfe', angle: 135 }),
   headingOverrides: null,
+  bodyTextColor: null,
 })
 
 // ── Emits ────────────────────────────────────────────────────────────────
@@ -216,6 +219,7 @@ async function doRender(): Promise<void> {
         gradientConfig: props.gradientConfig,
         headingOverrides: props.headingOverrides,
         highlightColor: props.highlightColor,
+        bodyTextColor: props.bodyTextColor,
       }, signal)
       canvases.value = result.canvases
       cachedLayoutPages = result.pages
@@ -236,6 +240,7 @@ async function doRender(): Promise<void> {
           gradientConfig: props.gradientConfig,
           headingOverrides: props.headingOverrides,
           highlightColor: props.highlightColor,
+          bodyTextColor: props.bodyTextColor,
         }, signal)
         canvases.value = result.canvases
         cachedLayoutPages = result.pages
@@ -259,6 +264,7 @@ async function doRender(): Promise<void> {
               gradientConfig: props.gradientConfig,
               headingOverrides: props.headingOverrides,
               highlightColor: props.highlightColor,
+              bodyTextColor: props.bodyTextColor,
             }),
           )
           // 每页渲染后 yield 主线程
@@ -292,6 +298,7 @@ async function doRender(): Promise<void> {
         gradientConfig: props.gradientConfig,
         headingOverrides: props.headingOverrides,
         highlightColor: props.highlightColor,
+        bodyTextColor: props.bodyTextColor,
       })
       canvases.value = result.canvases
       cachedLayoutPages = result.pages
@@ -317,6 +324,7 @@ watch(
     props.gradientConfig,
     props.headingOverrides,
     props.highlightColor,
+    props.bodyTextColor,
   ] as const,
   scheduleRender,
   { immediate: true },

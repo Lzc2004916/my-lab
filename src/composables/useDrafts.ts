@@ -20,6 +20,8 @@ export interface AppSettings {
   /** 正文字重 (100–900)，默认 400。 */
   bodyFontWeight: number
   gradientConfig?: { enabled: boolean; color1: string; color2: string; angle: number }
+  /** 自定义正文文字颜色（null = 跟随主题正文色） */
+  bodyTextColor?: string | null
 }
 
 interface DraftPayload {

@@ -110,6 +110,7 @@
             :gradient-config="gradientConfig"
             :preview-scale="previewScale"
             :heading-overrides="headingOverrides"
+            :body-text-color="bodyTextColor"
           />
         </div>
       </div>
@@ -150,6 +151,8 @@
           :font-options="BODY_FONT_OPTIONS"
           :is-exporting="isExporting"
           :progress="progress"
+          :body-text-color="bodyTextColor"
+          @update:body-text-color="bodyTextColor = $event"
           @export-png="handleBatchExportPNG"
           @export-jpg="handleBatchExportJPG"
           @export-pdf="handleExportPDF"
@@ -183,6 +186,7 @@
       :body-font-mode="bodyFontMode"
       :body-font-size="bodyFontSize"
       :body-font-weight="bodyFontWeight"
+      :body-text-color="bodyTextColor"
       @update:source="onSourceUpdate"
       @toolbar-insert="onToolbarInsert"
       @toolbar-command="onToolbarCommand"
@@ -196,6 +200,7 @@
       @update:footer-enabled="(v: boolean) => footerEnabled = v"
       @update:gradient-config="(v: GradientConfig) => gradientConfig = v"
       @update:preview-scale="(v: number) => previewScale = v"
+      @update:body-text-color="(v: string | null) => bodyTextColor = v"
       @export-png="handleBatchExportPNG"
       @export-jpg="handleBatchExportJPG"
       @export-pdf="handleExportPDF"
@@ -387,6 +392,12 @@ const gradientConfig = ref<GradientConfig>({
 })
 const previewScale = ref<number>(1.0)
 const previewContainerRef = ref<HTMLDivElement | null>(null)
+
+// 正文文字颜色 —— 从 useSettings 单例初始化（已持久化到 localStorage）。
+const bodyTextColor = ref<string | null>(settings.bodyTextColor.value ?? null)
+
+// 同步到 useSettings 单例，触发其 watch 持久化到 localStorage。
+watch(bodyTextColor, (v) => { settings.bodyTextColor.value = v })
 
 // ── Ctrl + mouse wheel → preview zoom ──────────────────────────────────
 
@@ -610,6 +621,7 @@ function collectSettings(): AppSettings {
     rightSplit: rightSplit.value,
     previewScale: previewScale.value,
     gradientConfig: { ...gradientConfig.value },
+    bodyTextColor: bodyTextColor.value,
   }
 }
 
@@ -628,13 +640,16 @@ function applySettings(s: AppSettings): void {
   if (s.gradientConfig) {
     gradientConfig.value = { ...s.gradientConfig }
   }
+  if (s.bodyTextColor !== undefined) {
+    bodyTextColor.value = s.bodyTextColor ?? null
+  }
 }
 
 // 任何设置变更时自动持久化（saveSettings 内部有 1 秒防抖）。
 watch(
   [
     cardTheme, bodyFontMode, bodyFontSize, bodyFontWeight,
-    highlightStyle, highlightColor, footerEnabled, split, rightSplit, previewScale, gradientConfig,
+    highlightStyle, highlightColor, footerEnabled, split, rightSplit, previewScale, gradientConfig, bodyTextColor,
   ],
   () => saveSettings(collectSettings()),
   { deep: false },

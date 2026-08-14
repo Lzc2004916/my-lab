@@ -41,6 +41,11 @@ function isHeadingLine(line: string): boolean {
   return /^#{1,6}\s+\S/.test(line.trim())
 }
 
+/** 检查一行是否为引用块（以 `>` 开头）。 */
+function isQuoteLine(line: string): boolean {
+  return /^>\s?(.*)$/.test(line.trim())
+}
+
 /** 将原始文本行分类为 TextBlock。 */
 export function getParagraphBlock(text: string): TextBlock {
   const trimmed = text.trim()
@@ -165,9 +170,15 @@ export function parseInputBlocks(raw: string): Block[] {
 
 
   /** Push buffered text as TextBlock(s) using blank-line splitting.
-   *  Also splits on heading boundaries within multi-line text so that
-   *  headings mixed with body text (no blank line separator) are still
-   *  correctly identified. */
+   *  Also splits on heading and blockquote (`>`) boundaries within
+   *  multi-line text so that headings / quotes mixed with body text
+   *  (without a blank-line separator) are still correctly identified
+   *  as their own blocks.
+   *
+   *  关键修复：此前引用行（`>` 开头）不是块边界，当引用块紧跟正文、
+   *  仅以单个换行分隔（无空行）时，会被合并进正文块而丢失引用样式——
+   *  表现为「引用效果必须手动换行（加空行）才出现」。现在 `>` 行与
+   *  标题一样会成为独立块边界，且连续 `>` 行合并为同一多行引用块。 */
   function flushTextBuffer(buf: string): void {
     const trimmed = buf.trim()
     if (!trimmed) return
@@ -176,29 +187,45 @@ export function parseInputBlocks(raw: string): Block[] {
     for (const para of paragraphs) {
       if (!para.trim()) continue
 
-      // 在段落内按标题边界分割：
-// 以 # 开头的行应始终形成自己的块，
-// 即使它是第一行（前面没有需要刷新的文本）。
       const lines = para.split('\n')
-      let subBuffer = ''
+      let bodyBuffer = ''
+      let quoteBuffer = ''
+      const flushBody = () => {
+        if (bodyBuffer.trim()) {
+          blocks.push(getParagraphBlock(bodyBuffer.trim()))
+          bodyBuffer = ''
+        }
+      }
+      const flushQuote = () => {
+        if (quoteBuffer.trim()) {
+          blocks.push({ kind: 'quote', raw: quoteBuffer.trim() })
+          quoteBuffer = ''
+        }
+      }
+
       for (let li = 0; li < lines.length; li++) {
         const line = lines[li]!
         if (isHeadingLine(line)) {
-          // 在推送此标题之前刷新所有累积的文本
-          if (subBuffer.trim()) {
-            blocks.push(getParagraphBlock(subBuffer.trim()))
-          }
+          // 标题前先刷新已累积的引用与正文
+          flushQuote()
+          flushBody()
           // 将标题本身作为独立块推送，以便
-// getParagraphBlock 能正确匹配标题正则表达式。
+          // getParagraphBlock 能正确匹配标题正则表达式。
           blocks.push(getParagraphBlock(line.trim()))
-          subBuffer = ''
+        } else if (isQuoteLine(line)) {
+          // 进入 / 继续引用块：先刷新正文，再把去前缀后的内容并入引用
+          flushBody()
+          const m = line.trim().match(/^>\s?(.*)$/)
+          const content = m ? m[1]! : ''
+          quoteBuffer += (quoteBuffer ? '\n' : '') + content
         } else {
-          subBuffer += (subBuffer ? '\n' : '') + line
+          // 普通行：若正在累积引用，先刷新引用块
+          flushQuote()
+          bodyBuffer += (bodyBuffer ? '\n' : '') + line
         }
       }
-      if (subBuffer.trim()) {
-        blocks.push(getParagraphBlock(subBuffer.trim()))
-      }
+      flushQuote()
+      flushBody()
     }
   }
 

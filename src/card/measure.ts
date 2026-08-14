@@ -129,16 +129,17 @@ function splitOversizedUnit(
  * token 文本 + 布局参数中派生一个紧凑的键。
  */
 function wrapCacheKey(tokens: InlineToken[], fontSize: number, maxWidth: number, fontFamily?: string, bodyFontWeight?: number): string {
-  // 使用首尾 token 文本 + 总数 + 样式摘要作为轻量指纹。
-  // 前 8 个 token 的样式足以区分绝大多数碰撞场景，
-  // 同时保持 key 紧凑（不会随段落长度无限增长）。
-  const first = tokens.length > 0 ? tokens[0]!.text : ''
-  const last = tokens.length > 0 ? tokens[tokens.length - 1]!.text : ''
-  const styleDigest = tokens
-    .slice(0, 8)
-    .map((t) => (t.bold ? 'b' : '') + (t.italic ? 'i' : '') + (t.mark ? 'm' : '') + (t.underline ? 'u' : ''))
-    .join(',')
-  return `${tokens.length}:${first}:${last}:${fontSize}:${Math.round(maxWidth)}:${fontFamily ?? ''}:${bodyFontWeight ?? BODY_TEXT_WEIGHT}:${styleDigest}`
+  // 关键修复：缓存键必须完整编码每个 token 的样式与文本。
+  // 旧的弱指纹（仅首尾 token 文本 + 前 8 个 token 样式 + 总长度）会在
+  // 不同文本间发生碰撞，导致返回错误的换行结果：行数/块高度计算错误 →
+  // 分页异常增页，且卡片渲染出与编辑器原文不符的内容（错位/丢失）。
+  // 这里对全部 token 做 JSON 序列化后拼接（JSON 边界无歧义，天然防碰撞）。
+  let sig = ''
+  for (let i = 0; i < tokens.length; i++) {
+    const t = tokens[i]!
+    sig += JSON.stringify([t.bold ? 1 : 0, t.italic ? 1 : 0, t.mark ? 1 : 0, t.underline ? 1 : 0, t.text])
+  }
+  return `${fontSize}|${Math.round(maxWidth)}|${fontFamily ?? ''}|${bodyFontWeight ?? BODY_TEXT_WEIGHT}|${sig}`
 }
 
 /** 将内联 token 按 `maxWidth` 换行，返回行。 */
@@ -212,7 +213,9 @@ export function wrapInlineTokensByWidth(
  *
  * 结果按原始文本缓存 — 大多数块在渲染之间不会改变。
  */
-export function parseInlineMarkdown(text: string): InlineToken[] {
+export function parseInlineMarkdown(
+  text: string,
+): InlineToken[] {
   const cached = _parseCache.get(text)
   if (cached) return cached
 
@@ -256,6 +259,7 @@ export function parseInlineMarkdown(text: string): InlineToken[] {
     if (firstKey !== undefined) _parseCache.delete(firstKey)
   }
   _parseCache.set(text, tokens)
+
   return tokens
 }
 

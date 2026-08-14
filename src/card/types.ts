@@ -438,6 +438,8 @@ export interface RenderOptions {
   headingOverrides?: HeadingStyleOverrides | null
   /** 自定义高亮颜色（null = 使用主题强调色） */
   highlightColor?: string | null
+  /** 自定义正文文字颜色（null = 跟随主题正文色）。作用于正文/引用/列表文本。 */
+  bodyTextColor?: string | null
 }
 
 // ── Layout options (passed to layoutPages) ────────────────────────────────

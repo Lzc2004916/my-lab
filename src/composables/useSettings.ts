@@ -1,5 +1,6 @@
 import { ref, watch } from 'vue'
 
+
 // ── Types ────────────────────────────────────────────────────────────────
 
 export type CardSizePreset = 'small' | 'medium' | 'large'
@@ -81,6 +82,13 @@ const highlightColor = ref<string | null>(
   localStorage.getItem(STORAGE_PREFIX + 'highlightColor') || null,
 )
 
+// ── Body text color (正文文字颜色) ─────────────────────────────────────
+
+/** 自定义正文文字颜色（null = 跟随主题正文色）。作用于正文/引用/列表文本。 */
+const bodyTextColor = ref<string | null>(
+  localStorage.getItem(STORAGE_PREFIX + 'bodyTextColor') || null,
+)
+
 // ── Heading style overrides ────────────────────────────────────────────
 
 function loadHeadingSize(key: string): number | null {
@@ -154,6 +162,7 @@ watch(cardCornerMode, (v) => localStorage.setItem(STORAGE_PREFIX + 'cardCornerMo
 watch(subheadingStyle, (v) => localStorage.setItem(STORAGE_PREFIX + 'subheadingStyle', v))
 watch(bodyFontMode, (v) => localStorage.setItem(STORAGE_PREFIX + 'bodyFontMode', v))
 watch(highlightColor, (v) => localStorage.setItem(STORAGE_PREFIX + 'highlightColor', v ?? ''))
+watch(bodyTextColor, (v) => localStorage.setItem(STORAGE_PREFIX + 'bodyTextColor', v ?? ''))
 
 // Heading style overrides — persist to localStorage
 watch(headingH1Size, (v) => localStorage.setItem(STORAGE_PREFIX + 'headingH1Size', v === null ? '' : String(v)))
@@ -204,6 +213,7 @@ export function useSettings(): {
   subheadingStyle: typeof subheadingStyle
   bodyFontMode: typeof bodyFontMode
   highlightColor: typeof highlightColor
+  bodyTextColor: typeof bodyTextColor
   headingH1Size: typeof headingH1Size
   headingH2Size: typeof headingH2Size
   headingH3Size: typeof headingH3Size
@@ -255,6 +265,7 @@ export function useSettings(): {
     subheadingStyle,
     bodyFontMode,
     highlightColor,
+    bodyTextColor,
     headingH1Size,
     headingH2Size,
     headingH3Size,
